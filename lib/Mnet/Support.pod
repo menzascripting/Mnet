@@ -1,0 +1,185 @@
+=head1 NAME
+
+Mnet::Support - network automation scripting bug reporting
+
+=head1 SYNOPSIS
+
+The Mnet distribution is released under an open source license and there
+is no guarantee of free support. That being said it is desired that Mnet
+be as reliable and useful as possible and in that spirit attempts will
+be made to promptly address any problems.
+
+=head1 OBTAINING FREE SUPPORT
+
+Contact Mike Menza at mikemenza@menzascripting.com or mmenza@cpan.org
+with any questions, concerns, comments, or suggestions about the Mnet
+network perl automation scripting modules. Please refer to the rest of
+this document on how best to report problems.
+
+Send an email to mnet-announce+subscribe@googlegroups.com to receive
+update, problem, and security announcements for the Mnet distribution.
+
+Visit http://menzascripting.com to download the latest release of Mnet
+or access the latest documentation, including change logs.
+
+Note that free support of the open source Mnet perl modules does not
+necessarily extend to the debugging and maintenance of third party
+user scripts that make use of the Mnet modules.
+
+=head1 PAID SUPPORT, TRAINING, AND CONSULTING
+
+Contact Mike Menza at mikemenza@menzascripting.com if you might be
+interested in paying for additional support, training, or project
+consulting services. Refer to the articles and case studies posted
+on http://menzascripting.com for examples of the expertise and
+efficiencies that can be leveraged for your organization.
+
+=head1 HOW TO REPORT A PROBLEM
+
+Before reporting a problem with the Mnet perl scripting module it is
+helpful to do the following:
+
+ 1) Duplicate the problem with a small demonstation script
+
+ 2) Gather script output to send with the problem report
+
+ 3) Check documentation for correct usage or workaround
+
+ 4) Check for updates to that may fix the issue
+
+ 5) Prepare problem report email describing the problem
+
+The email address that can be used to contact the maintainer of the
+Mnet perl network automation scripting modules is at the top of this
+support document.
+
+=head1 DUPLICATE THE PROBLEM
+
+A problem report for any of the Mnet modules should include a small
+demonstration script that duplicates the problem. This will be used
+by the maintainers of the Mnet modules to duplicate your problem,
+allowing us to troubleshoot the same situation you are experiencing.
+
+It is asked that the demonstration script sent with a problem report be
+as small and concise as possible. This eliminates extra complications
+and allows us to focus on the problem at hand.
+
+For example, a complex user script may use the Mnet config function to
+read settings from several different places before making changes to a
+device. If there is a problem with all settings being parsed by Mnet
+it makes troubleshooting easier if a small sample script is created
+that only parses the config settings.
+
+Likewise, if a device login is failing, it is easier to troubleshoot
+if a small sample script that only logs into the device with the
+necessary config settings is submitted with the problem report. This
+avoids us being distracted by anything else in the user script, and
+allows us to focus on the problem in the Mnet modules.
+
+It may be the case where creating the small test script results in
+uncovering the nature of the problem, allowing for adjustments to be
+made in the larger user script. That's great, also!
+
+=head1 GATHER SCRIPT OUTPUT
+
+It is important to send a full debug log of script output along with
+any problem report. To do this add the '--log-level 7 --log-detail-all'
+arguments to your script's command line configuration and redirect the
+script output to an output.log file:
+
+ script.pl --log-level 7 --log-detail-all > output.log
+
+If the gzip utility is available on your system you can compress the
+output.log file to save space:
+
+ script.pl --log-level 7 --log-detail-all | gzip > output.log.gz
+
+Quite a bit of script output may generated with these configuration
+settings. This is why it is important to duplicate your problem with
+as small a script as possible.
+
+=head1 CHECK DOCUMENTATION
+
+The command `perldoc Mnet` has a SEE ALSO section at the bottom. This
+section lists all of the sub-modules and scripts that come with Mnet.
+The perldoc command can be used to review this documentation.
+
+Each Mnet module and script has a SYNOPSIS section, which gives a
+description of how the module is generally used, and code samples.
+
+Each module and script also has a CONFIGURATION section, showing
+all the configuration settings that can affect the operation of the
+module or script.
+
+When looking at output from an Mnet script the log entries from the
+included modules are identified by module name:
+
+ inf 6 10:09:27 mnet object 10.1.2.1 initiated, pid 95181
+ inf 6 10:09:27 expect start command 'telnet 10.1.2.1 23'
+ inf 6 10:09:27 report label connect = 1
+
+In the above output the main Mnet module generated the first log
+entry, the Mnet::Expect module the second, and the Mnet::Report module
+the third.
+
+The documentation for modules and scripts may include other sections
+describing the module operation or detailing functions that the
+module makes available to your script.
+
+A first step troubleshooting any problem is to check your invoking
+script and the documentation to see if there is anything different
+you can do that might work around the problem being experienced.
+
+=head1 CHECK FOR UPDATES
+
+Periodic updates will be made to the Mnet scripting system. To see
+what version of Mnet you are using enter the `perldoc Mnet` command
+and check the VERSION section at the top.
+
+The latest release of the Mnet scripting module, and documentation
+for the latest release, along with a change log, are posted on the
+menzascripting.com web site:
+
+ http://menzascripting.com/Mnet/Download
+ http://menzascripting.com/Documentation
+ http://menzascripting.com/Documentation/Changes
+
+The change log can be examined to see if an issue you may be
+experiencing has been addressed in a newer release.
+
+Note that Mnet modules and sub-modules from a single release are tested
+to work with each other. It may be unsafe to mix modules, sub-modules
+and scripts from a newer release those from an older release. Running
+an Mnet script with the '--log-level 7' argument will output the
+build version of each module and sub-module loaded by the script:
+
+ dbg 7 13:14:24 mnet module mnet version v4.0.0
+ dbg 7 13:14:24 mnet module expect version v4.0.0
+
+If everything is installed correctly then the version number of all
+Mnet modules should be the same.
+
+=head1 PREPARE PROBLEM REPORT
+
+A good problem report should contain the following:
+
+ 1) A description of the problem, including if this is a new problem,
+    if it happens all the time or only under certain conditions, etc.
+
+ 2) A copy of a small example script which contains code that calls the
+    Mnet modules and demonstrates the described problem.
+
+ 3) A copy of detailed debug logs from the example Mnet script which
+    will be used to analyze the described problem.
+
+This information should be sent in an email to one of the addresses
+at the top of this document. Expect a reply acknowledging the receipt
+of your email and an estimate of when more information will be
+forthcoming.
+
+=head1 SEE ALSO
+
+Mnet, Mnet::FAQ, Mnet::Tutorial
+
+=cut
+

@@ -1,0 +1,1604 @@
+#!/usr/bin/perl
+
+=head1 NAME
+
+Mnet::script::Mnet-web-mojo - network automation script
+
+=cut
+
+# Copyright 2006, 2013-2014 Michael J. Menza Jr.
+# Refer to `perldoc Mnet` for more information.
+
+=head1 SYNOPSIS
+
+Usage examples:
+
+ Mnet-web-mojo daemon \
+    --listen http://*:8888 - \
+    --db-name mnet.db \
+    --data-dir /data/dir
+
+=head1 DESCRIPTION
+
+This script uses the Mojolicious::Lite and Mnet perl modules to
+output mnet data using a web server.
+
+On each object page the following are displayed:
+
+ - object summary poll data, from the poll module
+ - object current alerts, of all severities
+ - object value rrd graphs, if any are present
+ - object interface poll data, int rrd graphs if present
+ - any other object rrd graphs, if present
+ - inline data-dir object dir .html files, if present
+ - other links to object files and object data
+
+Note that .html files in an object data-dir directory are shown
+inline on the output object page. Other files are shown as links.
+
+
+=head1 CONFIGURATION
+
+Alphabetical list of config settings supported by this script:
+
+ --data-dir </path/dir>        stored object data, defaults to current
+ --db-name <database>          database to connect to, default not set
+ --web-mojo-secret <phrase>    mojolicious app secure cookie passphrase
+ --web-navbar-color <color>    html color code for navigation bar
+ --web-page-title <text>       title in page output, default data-dir
+ --web-page-limit <count>      default 100 rows in log and object pages
+ --web-refresh-alert <secs>    page refresh for alerts, default 150
+ --web-refresh-other <secs>    non-alert page refreshes, default 14400
+ --web-rrd-height <pixels>     height of rrd graphs, default 180
+ --web-rrd-width <pixels>      width of rrd graphs, default 540
+
+=head1 MOJOLICIOUS
+
+This module uses the perl Mojolicious::Lite module.
+
+All of the web config settings from this module are added to the mojo
+stash for use in mojo templates.
+
+The following are also set in the mojo stash:
+
+ dtime          display time, set to mmm dd hh:mm
+ p_heading      current page heading
+ p_refresh      taken from web-refresh-alert or web-refresh-other
+ q_info         info input for queries
+ q_object       object input for queries
+ q_page         page number, for alerts and logs
+ q_script       script input for queries
+ q_sev          severity input for queries
+ q_time         time input for queries
+ q_type         type for log queries
+ user           name of authenticated web user
+
+The mojo morbo server can be used during development. The mnet_db and
+mnet_data environment variables can be set to pass into the script:
+
+    export mnet_data=/home/mnet/data/dir; \
+    export mnet_db=/home/mnet/data/mnet.db; \
+    morbo Mnet-web-mojo --listen http://*:8888 
+    
+Refer to the perl Mojolicious documentation for more information.
+ 
+=cut
+
+# use modules
+use warnings;
+use strict;
+use Data::Dumper;
+use Mnet;
+use Mnet::Model;
+use Mnet::Report;
+use Mnet::RRD;
+use Mnet::Silent;
+use Mojolicious::Lite;
+
+# read config settings
+our $cfg = &config({
+    'web-mojo-secret'   => 'change_secret_passphrase_to_secure_cookies',
+    'web-navbar-color'  => 'green',
+    'web-page-limit'    => 100,
+    'web-page-title'    => 'data-dir',
+    'web-refresh-alert' => 150,
+    'web-refresh-other' => 14400,
+    'main-version'      => '+++VERSION+++',
+});
+
+# set default rrd height and width from model module
+$cfg->{'web-rrd-height'} = $cfg->{'rrd-height'}
+    if not $cfg->{'web-rrd-height'};
+$cfg->{'web-rrd-width'} = $cfg->{'rrd-width'}
+    if not $cfg->{'web-rrd-width'};
+
+# set data-dir from environment variable, if not already defined
+$cfg->{'data-dir'} = $ENV{'mnet_data'}
+    if (not defined $cfg->{'data-dir'} or $cfg->{'data-dir'} eq '.')
+    and defined $ENV{'mnet_data'} and $ENV{'mnet_data'} =~ /\S/;
+
+# set db-name from environment variable, if not already defined
+$cfg->{'db-name'} = $ENV{'mnet_db'}
+    if not defined $cfg->{'db-name'}
+    and defined $ENV{'mnet_db'} and $ENV{'mnet_db'} =~ /\S/;
+
+# set mojo app secret password for sgned cookies
+app->secret($cfg->{'web-mojo-secret'});
+
+
+
+# builtin mojo call before routing, use for authentication and global setup
+under sub {
+
+    # read mojo instance
+    my $self = shift;
+
+    # stash web config settings for template use
+    foreach my $key (keys %$cfg) {
+        next if $key !~ /^web-/;
+        next if $key eq 'web-mojo-secret';
+        my $stash = $key;
+        $stash =~ s/-/_/g;
+        $self->stash($stash => $cfg->{$key});
+    }
+
+    # initialize some stash settings
+    my $dtime = localtime;
+    $dtime =~ s/^\S+\s+(\S+\s+\d+\s+\d+:\d+):\d+\s+\d+$/$1/;
+    $self->stash('dtime', $dtime);
+    $self->stash('p_refresh', $cfg->{'web-refresh-other'});
+    $self->stash('user', 'nobody');
+
+    # set default refresh time
+    $self->stash('p_refresh', $cfg->{'web-refresh-other'});
+
+    # retrieve user
+    #? enhance to use session cookie, read/set $self->session->{user}
+    my $user = $self->param('user') || '';
+
+    #? remove to enable authentication
+    return 1;
+
+    # authenticated
+    return 1 if $user eq 'test';
+
+    # login page
+    $self->render('login');
+
+    # finished under function
+    return undef;
+};
+
+
+
+# mojo route for home page
+any '/' => sub {
+    my $self = shift;
+
+    # stash list of reports
+    my $reports = [];
+    if (defined $cfg->{'db-name'}) {
+        $reports = &Mnet::Report::report_query_script;
+        $reports = [] if not defined $reports;
+    }
+    $self->stash('q_reports', $reports);
+
+    # render home route
+    $self->render('home');
+};
+
+
+
+# mojo route for alerts page
+any '/alerts' => sub {
+
+    # read mojo object
+    my $self = shift;
+
+    # output error and return if db-name not configured
+    if (not defined $cfg->{'db-name'}) {
+        $self->render('error',
+            error => 'db-name not set for alerts page',
+        );
+        return;
+    }
+
+    # initialize query stash inputs
+    my $q_info = $self->param('q_info');
+    $self->stash('q_info', $q_info);
+    my $q_object = $self->param('q_object');
+    $self->stash('q_object', $q_object);
+    my $q_script = $self->param('q_script');
+    $self->stash('q_script', $q_script);
+    my $q_sev = $self->param('q_sev');
+    $q_sev = 5 if not defined $q_sev or $q_sev eq '';
+    $q_sev =~ s/sev\s+//i;
+    $self->stash('q_sev', $q_sev);
+    my $q_time = $self->param('q_time') if $self->param('q_time');
+    $self->stash('q_time', $q_time);
+
+    # set refresh timer for alerts
+    $self->stash('p_refresh', $cfg->{'web-refresh-alert'});
+
+    # render alerts page
+    $self->render('alerts');
+
+    # finished mojo alerts route
+    return;
+};
+
+
+
+# mojo route for data page
+any '/data' => sub {
+
+    # read mojo object
+    my $self = shift;
+
+    # output error and return if db-name is not configured
+    if (not defined $cfg->{'db-name'}) {
+        $self->render('error',
+            error => 'db-name not set for data page',
+        );
+        return;
+    }
+
+    # retrieve key parameter
+    my $key = $self->param('q_key');
+
+    # initialize model input, including required object and file
+    my $input = {
+        'object'    => $self->param('q_object'),
+    };
+
+    # retrieve object data
+    my $info = &Mnet::Model::object_info($input);
+
+    # initialize output data to all, set from key if specified
+    my $data = $info;
+    if ($key eq 'poll') {
+        $data = $info->{'poll'};
+    } elsif ($key eq 'report') {
+        $data = $info->{'report'};
+    } elsif ($key =~ /\S/) {
+        $data = $info->{'persist'}->{$key};
+    }
+
+    # stash output data
+    $self->stash('q_object', $input->{'object'});
+    $key = 'all' if not defined $key or $key !~ /\S/;
+    $self->stash('q_key', $key);
+    $self->stash('q_data', $data);
+
+    # output page
+    $self->render('data');
+
+    # finished mojo data route
+    return;
+};
+
+
+
+# mojo route for file page
+any '/file' => sub {
+
+    # read mojo object
+    my $self = shift;
+
+    # output error and return if data-dir is not configured
+    if (not defined $cfg->{'data-dir'}) {
+        $self->render('error',
+            error => 'data-dir not set for file page',
+        );
+        return;
+    }
+
+    # initialize model input, including required object and file
+    my $input = {
+        'object'    => $self->param('q_object'),
+        'file'      => $self->param('q_file'),
+    };
+
+    # set input values in stash for output page
+    $self->stash('q_object', $input->{'object'});
+    $self->stash('q_file', $input->{'file'});
+
+    # retrieve file data, and stash it
+    my $data = &Mnet::Model::file_data($input);
+    $data = "There was an error retrieving this data." if not defined $data;
+    $data = "<pre>$data</pre>" if $input->{'file'} !~ /\.(rrd|html)$/;
+    $self->stash('q_data', $data);
+
+    # output page
+    $self->render('file');
+
+    # finished mojo file route
+    return;
+};
+
+
+
+# mojo route for logs page
+any '/logs' => sub {
+
+    # read mojo object
+    my $self = shift;
+
+    # output error and return if db-name not configured
+    if (not defined $cfg->{'db-name'}) {
+        $self->render('error',
+            error => 'db-name not set for logs page',
+        );
+        return;
+    }
+
+    # initialize query stash inputs
+    my $q_info = $self->param('q_info');
+    $self->stash('q_info', $q_info);
+    my $q_object = $self->param('q_object');
+    $self->stash('q_object', $q_object);
+    my $q_page = $self->param('q_page');
+    $q_page = 1 if not defined $q_page or $q_page !~ /^\d+$/ or $q_page < 1;
+    $self->stash('q_page', $q_page);
+    my $q_script = $self->param('q_script');
+    $self->stash('q_script', $q_script);
+    my $q_sev = $self->param('q_sev');
+    $q_sev = 5 if not defined $q_sev or $q_sev eq '';
+    $q_sev =~ s/sev\s+//i;
+    $self->stash('q_sev', $q_sev);
+    my $q_type = $self->param('q_type') if $self->param('q_type');
+    $self->stash('q_type', $q_type);
+    my $q_time = $self->param('q_time') if $self->param('q_time');
+    $self->stash('q_time', $q_time);
+
+    # render logs page
+    $self->render('logs');
+
+    # finished mojo logs route
+    return;
+};
+
+
+
+# mojo route for object page
+any '/object' => sub {
+
+    # read mojo object
+    my $self = shift;
+
+    # output error and return if db-name and data-dir are not configured
+    if (not defined $cfg->{'db-name'}) {
+        $self->render('error',
+            error => 'db-name not set for object page',
+        );
+        return;
+    }
+
+    # initialize query stash inputs
+    my $q_object = $self->param('q_object');
+    $self->stash('q_object', $q_object);
+    my $q_period = $self->param('q_period');
+    $q_period = 'short' if not $q_period;
+    $self->stash('q_period', $q_period);
+
+    # finished mojo logs route
+    return;
+};
+
+
+
+# mojo route for objects page
+any '/objects' => sub {
+
+    # read mojo object
+    my $self = shift;
+    
+    # output error and return if db-name not configured
+    if (not defined $cfg->{'db-name'} and not defined $cfg->{'data-dir'}) {
+        $self->render('error',
+            error => 'db-name or data-dir not set for objects page',
+        );
+        return;
+    }
+
+    # initialize query stash inputs
+    my $q_info = $self->param('q_info');
+    $self->stash('q_info', $q_info);
+    my $q_object = $self->param('q_object');
+    $self->stash('q_object', $q_object);
+    my $q_sev = $self->param('q_sev');
+    $q_sev = '7' if not defined $q_sev or $q_sev eq '';
+    $q_sev =~ s/sev\s+//i;
+    $self->stash('q_sev', $q_sev);
+
+    # set refresh timer for alerts
+    $self->stash('p_refresh', $cfg->{'web-refresh-alert'});
+
+    # render objects page
+    $self->render('objects');
+
+    # finished mojo objects route
+    return;
+};
+
+
+
+# mojo route for report page
+any '/report' => sub {
+
+    # read mojo object
+    my $self = shift;
+
+    # output error and return if db-name is not configured
+    if (not defined $cfg->{'db-name'}) {
+        $self->render('error',
+            error => 'db-name not set for report page',
+        );
+        return;
+    }
+
+    # initialize query stash inputs
+    my $q_script = $self->param('q_script');
+    $self->stash('q_script', $q_script);
+    my $q_label = $self->param('q_label');
+    $self->stash('q_label', $q_label);
+    my $q_order = $self->param('q_order');
+    $self->stash('q_order', $q_order);
+    my $q_page = $self->param('q_page');
+    $q_page = 1 if not defined $q_page or $q_page !~ /^\d+$/ or $q_page < 1;
+    $self->stash('q_page', $q_page);
+
+    # output error and return if q_script not set
+    if (not defined $q_script or $q_script !~ /\S/) {
+        $self->render('error',
+            error => 'script not set for report page',
+        );
+        return;
+    }
+
+    # output error and return if q_label not set
+    if (not defined $q_label or $q_label !~ /\S/) {
+        $self->render('error',
+            error => 'label not set for report page',
+        );
+        return;
+    }
+
+    # output page
+    $self->render('report');
+
+    # finished mojo report route 
+    return;
+};
+
+
+
+# mojo route for report labels page
+any 'report_csv' => sub {
+    my $self = shift;
+
+    # output error and return if db-name not configured
+    if (not defined $cfg->{'data-dir'}) {
+        $self->render('error',
+            error => 'data-dir not set for report_csv page',
+        );
+        return;
+    }
+
+    # initialize query stash inputs
+    my $q_script = $self->param('q_script');
+    $self->stash('q_script', $q_script);
+
+    # output error and return if q_script not set
+    if (not defined $q_script or $q_script !~ /\S/) {
+        $self->render('error',
+            error => 'script not set for report_csv page',
+        );
+        return;
+    }
+
+    # render script .csv file, if present in the data-dir directory
+    my $file = "$cfg->{'data-dir'}/${q_script}.csv";
+    if (open(my $fh, $file)) {
+        my $csv = "";
+        $csv .= $_ while <$fh>;
+        close $fh;
+        my $date = (stat($file))[9];
+        $date = lc(localtime($date)) if $date;
+        $date = "$3$1$2" if $date
+            and $date =~ /^\S+\s+(\S+)\s+(\d+)\s.+\s(\d+)/;
+        $date =~ s/jan/-01-/;
+        $date =~ s/feb/-02-/;
+        $date =~ s/mar/-03-/;
+        $date =~ s/apr/-04-/;
+        $date =~ s/may/-05-/;
+        $date =~ s/jun/-06-/;
+        $date =~ s/jul/-07-/;
+        $date =~ s/aug/-08-/;
+        $date =~ s/sep/-09-/;
+        $date =~ s/oct/-10-/;
+        $date =~ s/nov/-11-/;
+        $date =~ s/dec/-12-/;
+        $self->res->headers->content_disposition(
+            "attachment; filename=\"${q_script}.$date.csv\""
+        );
+        $self->render(text => $csv, format => 'csv');
+
+    # output an error if report script csv file could not be opened
+    } else {
+        $self->render('error',
+            error => 'report_csv error loading ${q_script}.csv, $!',
+        );
+        return;
+    }
+};
+
+
+
+# mojo route for report labels page
+any '/report_labels' => sub {
+    my $self = shift;
+
+    # output error and return if db-name not configured
+    if (not defined $cfg->{'db-name'}) {
+        $self->render('error',
+            error => 'db-name not set for report_labels page',
+        );
+        return;
+    }
+
+    # initialize query stash inputs
+    my $q_script = $self->param('q_script');
+    $self->stash('q_script', $q_script);
+
+    # output error and return if q_script not set
+    if (not defined $q_script or $q_script !~ /\S/) {
+        $self->render('error',
+            error => 'script not set for report_labels page',
+        );
+        return;
+    }
+
+    # stash list of labels
+    my $labels = &Mnet::Report::report_query_script($q_script);
+    $self->stash('q_labels', $labels);
+
+    # set timestamp for script .csv file, if present in the data-dir directory
+    my $file = "";
+    if ($cfg->{'data-dir'} and -f "$cfg->{'data-dir'}/${q_script}.csv") {
+        $file = (stat("$cfg->{'data-dir'}/${q_script}.csv"))[9];
+        $file = lc(localtime($file));
+    }        
+    $self->stash('q_file', $file);
+
+    # render report labels route
+    $self->render('report_labels');
+};
+
+
+
+# mojo route for rrd graphs
+any '/rrd' => sub {
+
+    # read mojo object
+    my $self = shift;
+
+    # output error and return if data-dir is not configured
+    if (not defined $cfg->{'data-dir'}) {
+        $self->render('error',
+            error => 'data-dir not set for rrd page',
+        );
+        return;
+    }
+
+    # initialize rrd png input, including required object
+    my $input = {
+        'object'    => $self->param('q_object'),
+        'period'    => 'short',
+        'height'    => $cfg->{'web-rrd-height'},
+        'width'     => $cfg->{'web-rrd-width'},
+    };
+
+    # defined required rrd input
+    #$input->{'rrd'} = $cfg->{'data-dir'} . "/"
+    #    . $self->param('q_object') . "/" . $self->param('q_rrd');
+    $input->{'rrd'} = $self->param('q_rrd');
+
+    # set other optional rrd inputs
+    $input->{'cfunction'} = $self->param('q_cfunction')
+        if $self->param('q_cfunction');
+    $input->{'height'} = $self->param('q_height')
+        if $self->param('q_height');
+    $input->{'period'} = $self->param('q_period')
+        if $self->param('q_period');
+    $input->{'start'} = $self->param('q_start')
+        if $self->param('q_start');
+    $input->{'width'} = $self->param('q_width')
+        if $self->param('q_width');
+
+    # retrieve rrd png
+    my $png = &Mnet::RRD::rrd_png($input);
+
+    # output png
+    $self->render(format => 'png', data => $png);
+
+    # finished mojo object route
+    return;
+};
+
+
+
+# output web data
+app->start;
+
+
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2006, 2013-2014 Michael J. Menza Jr.
+Refer to `perldoc Mnet` for more information.
+
+=head1 SEE ALSO
+
+Mnet
+
+=cut
+
+
+
+# start of mojolicious template data
+
+__DATA__
+
+@@ layouts/page.html.ep
+<!DOCTYPE html>
+<html>
+    <head>
+        <title><%= $web_page_title %></title>
+        <meta http-equiv="refresh" content="<%= $p_refresh %>">
+        <meta http-equiv="pragma" content=nocache>
+        <meta http-equiv="expires" content="Tue, 20 Aug 1996 14:25:27 GMT">
+        <meta name="robots" content="noindex,nofollow">
+        <style type="text/css">
+            HTML {
+                height:100%;
+                margin-bottom:1px;
+            }
+            BODY {
+                min-height:100%;
+                color:black;
+                background-color:white;
+                background-image:url("texture.jpg");
+                font-family:serif;
+                font-size:9pt;
+                font-weight=400;
+            }
+            H1 {
+                font-family:sans-serif;
+                font-size:14pt;
+                font-weight:900;
+                margin-top:0px;
+                padding-top:2px;
+                margin-bottom:0px;
+                padding-bottom:2px;
+            }
+            H2 {
+                font-family:sans-serif;
+                font-size:12pt;
+                font-weight:900;
+                margin-top:0px;
+                padding-top:2px;
+                margin-bottom:0px;
+                padding-bottom:2px;
+            }
+            A:link {
+                color:black;
+            }
+            A:visited {
+                color:black;
+            }
+            A:active {
+                color:black;
+            }
+            .small, .small TD, .small TH {
+                font-size:7pt;
+            }
+            .normal, .normal TD, .normal TH {
+                font-size:9pt;
+            }
+        </style>
+    </head>
+    <body>
+        <table border="0" cellspacing="0" cellpadding="0" width="100%" cols="2">
+            <tr>
+                <td align="left" valign="bottom">
+                    <a href="/"><nobr>Mnet - <%= $web_page_title %></nobr></a>
+                </td>
+                </td>
+                <td align="right" valign="bottom">
+                    <nobr><%= $dtime %></nobr>
+                </td>
+            </tr>
+            <tr bgcolor="<%= $web_navbar_color %>">
+                <td height="4" colspan="3"> </td>
+            </tr>
+            <tr>
+                <td align="right" valign="top" colspan="2" class="small">
+                    <a href="/alerts">alerts</a>
+                    <a href="/logs">logs</a>
+                    <a href="/objects">objects</a>
+                </td>
+            </tr>
+        </table>
+        <h1><%= $p_heading %></h1>
+<%= content %>
+    </body>
+</html>
+
+
+
+@@ data.html.ep
+% layout 'page', p_heading => "$q_object - $q_key data";
+<%
+    if ($q_key eq 'report') {
+%>
+        <table border="1" width="100%">
+            <tr>
+                <th align="left" width="100"><nobr>time</nobr></th>
+                <th align="left" width="100"><nobr>script</nobr></th>
+                <th align="left" width="100"><nobr>subitem</nobr></th>
+                <th align="left" width="100"><nobr>label</nobr></th>
+                <th align="left"><nobr>value</nobr></th>
+            </tr>
+<%
+        foreach my $report (@$q_data) {
+%>
+            <tr>
+                <td><nobr><%= $report->{'dtime'} %></nobr></td>
+                <td><nobr><%= $report->{'script'} %></nobr></td>
+                <td><nobr><%= $report->{'subitem'} %></nobr></td>
+                <td><nobr><%= $report->{'label'} %></nobr></td>
+                <td><%= $report->{'value'} %></td>
+            </tr>
+<%
+        }
+%>
+        </table>
+<%
+    } else {
+        my $dump = Data::Dumper::Dumper($q_data);
+%>
+        <pre><%== $dump %></pre>
+<%
+    }
+%>
+
+
+@@ error.html.ep
+% layout 'page', p_heading => 'Error';
+Error: <%= $error %>
+
+
+
+@@ file.html.ep
+% layout 'page', p_heading => "$q_object - $q_file";
+<%== $q_data %>
+
+
+
+@@ home.html.ep
+% layout 'page', p_heading => 'Home';
+<%
+    if (@$q_reports) {
+%>
+        <p>
+        Available reports:
+        </p>
+<%
+        foreach my $report (@$q_reports) {
+%>
+            &nbsp; &nbsp;
+            <a href="/report_labels?q_script=<%= $report %>" title="">
+                <%= $report %>
+            </a><br>
+<%
+        }
+    }
+%>
+
+
+@@ login.html.ep
+% layout 'page', p_heading => "Login";
+<br>
+#? login page template would go here
+
+
+
+@@ alerts.html.ep
+% layout 'page', p_heading => "Alerts";
+<form name="alerts_form" action="/alerts" method="get">
+    <table border="0" cellpadding="0" cellspacing="1" width="100%" cols="7">
+        <tr>
+            <td align="left" style="width:92px">
+                <input name="q_time" tabindex="4" value="<%= $q_time %>"
+                    style="width:100%;background:none">
+            </td>
+            <td align="left" style="width:92px">
+                <input name="q_object" tabindex="5" value="<%= $q_object %>"
+                    style="width:100%;background:none">
+            </td>
+            <td align="left" style="width:92px">
+                <input name="q_script" tabindex="6" value="<%= $q_script %>"
+                    style="width:100%;background:none">
+            </td>
+            <td align="left">
+                <input name="q_info" tabindex="7" value="<%= $q_info %>"
+                        style="width:100%;background:none">
+            <td align="left" style="width:1px">
+                <select name="q_sev" tabindex="1" 
+                    style="width:62px;background:none">
+                    <%
+                        foreach my $sev (0..7) {
+                            my $selected = "";
+                            $selected .= "selected" if $sev eq $q_sev;
+                    %>
+                            <option <%= $selected %>>sev <%= $sev %></option>
+                    <%
+                        }
+                    %>
+                </select>
+            </td>
+            <td align="right" style="width:1px">
+                <input type="submit" tabindex="2" value="Refresh"
+                    style="width:75px">
+            </td>
+            <td align="right" style="width:1px">
+                <input type="submit" tabindex="3" value="Clear"
+                    onclick="q_time.value=''; q_object.value='';
+                    q_script.value=''; q_info.value='';" style="width:75px">
+            </td>
+        </tr>
+        <tr bgcolor="gray" valign="top">
+            <th align="left"><nobr><b>Time</b></nobr></th>
+            <th align="left"><nobr><b>Object</b></nobr></th>
+            <th align="left"><nobr><b>Script</b></nobr></th>
+            <th align="left" colspan="4"><nobr><b>Information</b></nobr></th>
+        </tr>
+        <%
+            my $alerts = &Mnet::Model::alert_query({
+                'info'   => $q_info,
+                'object' => $q_object,
+                'script' => $q_script,
+                'sev'    => $q_sev,
+                'time'   => $q_time,
+            });
+            my $count = 0;
+            foreach my $item (@$alerts) {
+                $count++;
+                my ($o_color_age, $o_color_sev) = ('ff0000', 'ff0000');
+                my ($o_dtime, $o_info, $o_object, $o_script) = ('', '', '', '');
+                $o_color_age = $item->{'color_age'};
+                $o_color_sev = $item->{'color_sev'};
+                $o_dtime = $item->{'dtime'};
+                $o_info = $item->{'info'};
+                $o_object = $item->{'object'};
+                $o_script = $item->{'script'};
+        %>
+                <tr valign="top" bgcolor="#<%= $o_color_sev %>">
+                    <td align="left" style="width:94px"
+                        bgcolor="#<%= $o_color_age %>">
+                        <nobr>
+                            <%= $o_dtime %>
+                            &nbsp;
+                        </nobr>
+                    </td>
+                    <td align="left" style="width:94px">
+                        <nobr>
+                            <a href="/object?q_object=<%= $o_object %>"
+                                title=""><%= $o_object %></a>
+                            &nbsp;
+                        </nobr>
+                    </td>
+                    <td align="left" style="width:94px">
+                        <nobr>
+                            <%= $o_script %>
+                            &nbsp;
+                        </nobr>
+                    </td>
+                    <td align="left" colspan="4"><%= $o_info %></td>
+                </tr>
+        <%
+            }
+            if (not $count) {
+        %>
+                <tr valign="top">
+                    <td colspan="7" bgcolor="white" align="center">
+                        <br><b>No matching alert entries.</b><br><br>
+                    </td>
+                </tr>
+        <%
+            }
+        %>
+    </table>
+</form>
+
+
+
+@@ logs.html.ep
+% layout 'page', p_heading => "Logs";
+<form name="logs_form" action="/logs" method="get">
+    <input type=hidden name="q_page" value="<%= $q_page %>">
+    <table border="0" cellpadding="0" cellspacing="1" width="100%" cols="8">
+        <tr>
+            <td align="left" style="width:92px">
+                <input name="q_time" tabindex="4" value="<%= $q_time %>"
+                    style="width:100%;background:none">
+            </td>
+            <td align="left" style="width:92px">
+                <input name="q_object" tabindex="5" value="<%= $q_object %>"
+                    style="width:100%;background:none">
+            </td>
+            <td align="left" style="width:92px">
+                <input name="q_script" tabindex="6" value="<%= $q_script %>"
+                    style="width:100%;background:none">
+            </td>
+            <td align="left" style="width:62px">
+                <input name="q_type" tabindex="7" value="<%= $q_type %>"
+                    style="width:100%;background:none">
+            </td>
+            <td align="left">
+                <input name="q_info" tabindex="8" value="<%= $q_info %>"
+                    style="width:100%;background:none">
+            </td>
+            <td align="left" style="width:1px">
+                <select name="q_sev" tabindex="1"
+                    style="width:62px;background:none">
+                    <%
+                        foreach my $sev (0..7) {
+                            my $selected = "";
+                            $selected .= "selected" if $sev eq $q_sev;
+                    %>
+                            <option <%= $selected %>>sev <%= $sev %></option>
+                    <%
+                        }
+                    %>
+                </select>
+            </td>
+            <td align="right" style="width:1px">
+                <input type="submit" tabindex="2" value="Refresh"
+                    style="width:75px">
+            </td>
+            <td align="right" style="width=1px">
+                <input type="submit" tabindex="3" value="Clear"
+                    onclick="q_page.value='1'; q_script.value='';
+                    q_time.value=''; q_type.value=''; q_info.value='';
+                    q_object.value='';" style="width:75px">
+            </td>
+        </tr>
+        <tr bgcolor="gray" valign="top">
+            <th align="left" style="width:94px"><nobr><b>Time</b></nobr></th>
+            <th align="left" style="width:94px"><nobr><b>Object</b></nobr></th>
+            <th align="left" style="width:94px"><nobr><b>Script</b></nobr></th>
+            <th align="left" style="width:64px"><nobr><b>Type</b></nobr></th>
+            <th align="left" colspan="3">
+                <nobr>
+                    <div style="float:left"><b>Information</b></div>
+                </nobr>
+                <input type="submit" tabindex="9" value=">" class="small"
+                    onclick="q_page.value='<%= $q_page + 1 %>';"
+                    style="background:none;border:0;width:15px;float:right">
+                <div class="small" style="float:right">page <%= $q_page %></div>
+                <input type="submit" tabindex="10" value="<" class="small"
+                    onclick="q_page.value='<%= $q_page - 1 %>';"
+                    style="background:none;border:0;width:15px;float:right">
+            </th>
+            <th align="left" style="width:64px"><nobr><b>Pid</b></nobr></th>
+        </tr>
+        <%
+            my $logs = &Mnet::Model::log_query({
+                'info'   => $q_info,
+                'limit'  => $web_page_limit,
+                'object' => $q_object,
+                'order'  => 'desc',
+                'page'   => $q_page,
+                'script' => $q_script,
+                'sev'    => $q_sev,
+                'time'   => $q_time,
+                'type'   => $q_type,
+            });
+            my $count = 0;
+            foreach my $item (@$logs) {
+                $count++;
+                my ($o_color_sev, $o_color_type) = ('ff0000', 'ff0000');
+                my ($o_dtime, $o_info, $o_object, $o_pid, $o_script, $o_type)
+                    = ('', '', '', '', '', '');
+                $o_color_sev = $item->{'color_sev'};
+                $o_dtime = $item->{'dtime'};
+                $o_info = $item->{'info'};
+                $o_object = $item->{'object'};
+                $o_pid = $item->{'pid'};
+                $o_script = $item->{'script'};
+                $o_type = $item->{'type'};
+                $o_color_type = $o_color_sev;
+                $o_color_type = "ffffff" if $o_type =~ /^clr$/i; 
+        %>
+                <tr valign="top" bgcolor="#<%= $o_color_sev %>">
+                    <td align="left" style="width:94px">
+                        <nobr>
+                            <%= $o_dtime %>
+                            &nbsp;
+                        </nobr>
+                    </td>
+                    <td align="left" style="width:94px">
+                        <nobr>
+                            <a href="/object?q_object=<%= $o_object %>"
+                                title=""><%= $o_object %></a>
+                            &nbsp;
+                        </nobr>
+                    </td>
+                    <td align="left"  tyle="width:94px"">
+                        <nobr>
+                            <%= $o_script %>
+                            &nbsp;
+                        </nobr>
+                    </td>
+                    <td align="left" style="width:64px"
+                        bgcolor="#<%= $o_color_type %>">
+                        <nobr>
+                            <%= $o_type %>
+                            &nbsp;
+                        </nobr>
+                    </td>
+                    <td align="left" colspan="3">
+                        <%= $o_info %>
+                        &nbsp;
+                    </td>
+                    <td align="left" style="width:75px">
+                        <nobr><%= $o_pid %></nobr>
+                    </td>
+                </tr>
+        <%
+            }
+            if (not $count and $q_page eq '1') {
+        %>
+                <tr valign="top">
+                    <td colspan="8" bgcolor="white" align="center">
+                        <br><b>No matching log entries.</b><br><br>
+                    </td>
+                </tr>
+        <%
+            } elsif (not $count) {
+        %>
+                <tr valign="top">
+                    <td colspan="8" bgcolor="white" align="center">
+                        <br><b>No matching log entries on this page.</b><br><br>
+                    </td>
+                </tr>
+        <%
+            }
+        %>
+    </table>
+</form>
+
+
+
+@@ object.html.ep
+% layout 'page', p_heading => "$q_object";
+<br>
+<%
+    my $info = &Mnet::Model::object_info({
+        'object' => $q_object,
+    });
+    my $files = {};
+    foreach my $file (@{$info->{'files'}}) {
+        $files->{$file} = 1;
+    }
+    # output poll module data, if present
+    if ($info->{'poll'}) {
+%>
+        <table border="0" cols="3"><tr><td valign="top">
+            <h2>poll data</h2>
+            <table border="0" cols="3">
+<%
+            foreach my $key (sort keys %{$info->{'poll'}->{'poll'}}) {
+                my $value = $info->{'poll'}->{'poll'}->{$key};
+                $value = "undef" if not defined $value;
+                if ($key eq 'last' or $key eq 'time') {
+                    $value = lc(localtime($value));
+                    $value =~ s/(\d\d:\d\d):\d\d/$1/;
+                }
+%>
+                <tr>
+                    <td><nobr><%= $key %></nobr></td>
+                    <td width="20"></td>
+                    <td><nobr><%= $value %></nobr></td>
+                </tr>
+<%
+            }
+%>
+        </table>
+        </td><td width="100"></td><td valign="top">
+            <h2>sys data</h2>
+            <table border="0" cols="3">
+<%
+            foreach my $key (sort keys %{$info->{'poll'}->{'sys'}}) {
+                my $value = $info->{'poll'}->{'sys'}->{$key};
+                $value = "undef" if not defined $value;
+%>
+                <tr>
+                    <td><nobr><%= $key %></nobr></td>
+                    <td width="20"> </td>
+                    <td><nobr><%= $value %></nobr></td>
+                </tr>
+<%
+        }
+%>
+        </table>
+    </td></tr></table>
+    <br>
+<%
+    }
+%>
+<h2>alerts</h2>
+<table border="0" cols="3">
+    <tr bgcolor="gray" valign="top">
+        <th align="left" style="width:94px"><nobr><b>Time</b></nobr></th>
+        <th align="left" style="width:94px"><nobr><b>Script</b></nobr></th>
+        <th align="left" style="width:600px">
+            <nobr><b>Information</b></nobr>
+        </th>
+    </tr>
+    <%
+        my $alerts = &Mnet::Model::alert_query({
+            'object' => $q_object,
+            'sev'    => 7,
+        });
+        my $count = 0;
+        foreach my $item (@$alerts) {
+            $count++;
+            my ($o_color_age, $o_color_sev) = ('ff0000', 'ff0000');
+            my ($o_dtime, $o_info, $o_script) = ('', '', '', '');
+            $o_color_age = $item->{'color_age'};
+            $o_color_sev = $item->{'color_sev'};
+            $o_dtime = $item->{'dtime'};
+            $o_info = $item->{'info'};
+            $o_script = $item->{'script'};
+    %>
+            <tr valign="top" bgcolor="#<%= $o_color_sev %>">
+                <td style="width:94px" bgcolor="#<%= $o_color_age %>">
+                    <nobr>
+                        <%= $o_dtime %>
+                        &nbsp;
+                    </nobr>
+                </td>
+                <td style="width:94px">
+                    <nobr>
+                        <%= $o_script %>
+                        &nbsp;
+                    </nobr>
+                </td>
+                <td>
+                    <%= $o_info %>
+                </td>
+            </tr>
+    <%
+        }
+    if (not $count) {
+    %>
+            <tr valign="top">
+                <td colspan="3" bgcolor="white" align="center">
+                    <br><b>No matching alert entries.</b><br><br>
+                </td>
+            </tr>
+    <%
+        }
+    %>
+</table>
+<br><br>
+<h2>graph periods</h2>
+<form name="object_form" action="/object" method="get">
+    <input type="hidden" name=q_object value="<%= $q_object %>">
+    <select name="q_period" tabindex="1" style="width:100px;background:none">
+        <%
+            foreach my $period (qw/short medium long-avg long-max/) {
+                my $selected = "";
+                $selected .= "selected" if $period eq $q_period;
+        %>
+                <option <%= $selected %>><%= $period %></option>
+        <%
+            }
+        %>
+    </select>
+    <input type="submit" tabindex="2" value="Refresh" style="width:75px">
+</form>
+<br><br>
+<%
+    # display rrd value file graph data
+    foreach my $file (sort keys %{$files}) {
+        next if not $files->{$file};
+        next if $file !~ /(.+)\.val\.rrd$/i;
+        my ($name, $prefix) = ($1, 'val');
+        $files->{$file} = 0;
+%>
+        <h2><%= $prefix %> <%= $name %></h2>
+        <img src="/rrd?q_object=<%= $q_object %>&q_rrd=<%= $file %>&q_period=<%= $q_period %>""
+            height="<%= $web_rrd_height %>" width="<%= $web_rrd_width %> alt="">
+        <br><br>
+<%
+    }
+    # display interface polling data, including related rrd files
+    if ($info->{'poll'}->{'int'}) {
+        my @admin_oper = ('undefined', 'up', 'down', 'testing', 'unknown',
+            'dormant', 'not present', 'lower layer down');
+        foreach my $key (sort keys %{$info->{'poll'}->{'int'}}) {
+            my $int = $info->{'poll'}->{'int'}->{$key};
+            my ($alerts, $alias, $admin, $descr, $epmi) = qw/? ? ? ? ?/;
+            my ($ipv4, $fast, $mtype, $oper, $pcti, $pcto) = qw/? ? ? ? ? ?/;
+            my ($ppsi, $ppso, $rrd, $status) = qw/? ? ? ?/;
+            $alerts = $int->{'alerts'} if defined $int->{'alerts'};
+            $alias = '';
+            $alias = $int->{'alias'} if defined $int->{'alias'}
+                and $int->{'alias'} ne '';
+            $admin = $int->{'admin'} if defined $int->{'admin'};
+            $admin = $admin_oper[$admin] if $admin_oper[$admin];
+            $descr = $int->{'descr'} if defined $int->{'descr'};
+            $epmi = $int->{'epmi'} if defined $int->{'epmi'};
+            $ipv4 = "not present";
+            $ipv4 = $int->{'ipv4'} if defined $int->{'ipv4'};
+            $fast = $int->{'fast'} if defined $int->{'fast'};
+            $mtype = $int->{'mtype'} if defined $int->{'mtype'};
+            $oper = $int->{'oper'} if defined $int->{'oper'};
+            $oper = $admin_oper[$oper] if defined $admin_oper[$oper];
+            $pcti = $int->{'pcti'} if defined $int->{'pcti'};
+            $pcto = $int->{'pcto'} if defined $int->{'pcto'};
+            $ppsi = $int->{'ppsi'} if defined $int->{'ppsi'};
+            $ppso = $int->{'ppso'} if defined $int->{'ppso'};
+            $rrd = $int->{'rrd'} if defined $int->{'rrd'};
+            $status = $int->{'status'} if defined $int->{'status'};
+            if (not defined $int->{'status'}) {
+                $status = "unknown";
+            } elsif ($int->{'status'}) {
+                $status = "ok";
+            } else {
+                $status = "problem";
+            }
+
+%>
+            <h2>int <%= $descr %></h2>
+<%
+            if ($status eq 'ok') {
+%>
+                status <%= $status %>, <%= $alerts %>
+<%
+            } else {
+%>
+                <font color="red">status <%= $status %>, <%= $alerts %></font>
+<%
+            }
+%>
+            <br>
+            mtype <%= $mtype %>, speed <%= $fast %>,
+            admin <%= $admin %>, oper <%= $oper %>, ipv4 <%= $ipv4 %>
+            <br>
+            errors/min <%= $epmi %>,
+            packets/sec <%= $ppsi %>/<%= $ppso %> in/out
+<%
+            if ($pcti ne '?' or $pcto ne '?') {
+%>
+                , utilization <%= $pcti %>/<%= $pcto %>% in/out
+<%
+            }
+%>
+                <br>
+<%
+            if ($alias) {
+%>
+                alias <%= $alias %>
+                <br>
+<%
+            }
+            if ($rrd ne '?') {
+                $files->{$rrd} = 0;
+%>
+
+                <img src="/rrd?q_object=<%= $q_object %>&q_rrd=<%= $rrd %>&q_period=<%= $q_period %>"
+                    height="<%= $web_rrd_height %>"
+                    width="<%= $web_rrd_width %> alt="">
+                <br>
+<%
+            }
+%>
+            </font>
+            <br><br>
+<%
+        }
+    }
+    # display html file contents inline
+    foreach my $file (sort keys %{$files}) {
+        next if not $files->{$file};
+        next if $file !~ /(.+)\.html$/i;
+        my $name = $1;
+        $files->{$file} = 0;
+        my $data =  &Mnet::Model::file_data({
+            'object' => $q_object,
+            'file'   => $file,
+        });
+        $data = "unable to open $file" if not defined $data;
+%>
+        <h2><%= $name %></h2>
+        <%== $data %><br>
+        <br><br>
+<%
+    }
+%>
+        <h2>other</h2>
+        <table border="0" cols="3">
+            <tr>
+                <td>
+                    <a href="/data?q_object=<%= $q_object %>">
+                        <nobr>all object data</nobr>
+                    </a>
+                </td><td width=20></td><td>
+                    dump of all current data for object <%= $q_object %>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <a href="/data?q_object=<%= $q_object %>&q_key=poll">
+                        <nobr>object poll data</nobr>
+                    </a>
+                </td><td width=20></td><td>
+                    dump current poll data for object <%= $q_object %>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <a href="/data?q_object=<%= $q_object %>&q_key=report">
+                        <nobr>object report data</nobr>
+                    </a>
+                </td><td width=20></td><td>
+                    dump current report data for object <%= $q_object %>
+                </td>
+            </tr>
+<%
+    # display links to persistent data subitems
+    foreach my $key (sort keys %{$info->{'persist'}}) {
+%>
+            <tr>
+                <td>
+                    <a href="/data?q_object=<%= $q_object %>&q_key=<%= $key %>">
+                        <nobr><%= $key %> data</nobr>
+                    </a>
+                </td><td width=20></td><td>
+                    dump object persistent <%= $key %> data
+                </td>
+            </tr>
+<%
+    }
+    # display links to other (text) files
+    foreach my $file (sort keys %{$files}) {
+        next if $file =~ /\.rrd$/i;
+        next if not $files->{$file};
+        $files->{$file} = 0;
+        $count++;
+        my ($size, $last) = ('?', '?');
+        $size = (stat("$info->{'dir'}/$file"))[7];
+        $size = int($size/1024);
+        $last = lc(localtime((stat("$info->{'dir'}/$file"))[9]));
+        $last =~ s/(\d\d:\d\d):\d\d/$1/;
+%>
+            <tr><td>
+                <a href="/file?q_object=<%= $q_object %>&q_file=<%= $file %>">
+                    <nobr><%= $file %></nobr>
+                </a>
+            </td><td width=20></td><td>
+                <%= $size %> kilobytes, last modified <%= $last %>
+            </td></tr>
+<%
+    }
+%>
+        </table>
+        <br><br>
+
+
+
+@@ objects.html.ep
+% layout 'page', p_heading => "Objects";
+<form name="objects_form" action="/objects" method="get">
+    <table border="0" cellpadding="0" cellspacing="1" width="100%" cols="5">
+        <tr>
+            <td align="left" style="width:92px">
+                <%
+                    my $temp_object = $q_object;
+                    $temp_object = '*' if $temp_object !~ /\S/;
+                %>
+                <input name="q_object" tabindex="1" value="<%= $temp_object %>"
+                    style="width:100%;background:none">
+            </td>
+            <td align="left">
+                <input name="q_info" tabindex="2" value="<%= $q_info %>"
+                        style="width:100%;background:none">
+            </td>
+            <td align="left" style="width:1px">
+                <select name="q_sev" tabindex="3" 
+                    style="width:62px;background:none">
+                <%
+                    foreach my $sev ('all', 0..7) {
+                        my $selected = "";
+                        $selected .= "selected" if $sev eq $q_sev;
+                        my $dsev = $sev;
+                        $dsev = "sev $dsev" if $dsev =~ /\d/;
+                %>
+                        <option <%= $selected %>><%= $dsev %></option>
+                <%
+                    }
+                %>
+                </select>
+            </td>
+            <td align="right" style="width:1px">
+                <input type="submit" tabindex="4" value="Refresh"
+                    style="width:75px">
+            </td>
+            <td align="right" style="width:1px">
+                <input type="submit" tabindex="5" value="Clear"
+                    onclick="q_object.value=''; q_info.value='';
+                    q_sev.value='sev 7';" style="width:75px">
+            </td>
+        </tr>
+        <tr bgcolor="gray" valign="top">
+            <th align="left"><nobr><b>Object</b></nobr></th>
+            <th align="left" colspan="4"><nobr><b>Alert Sumamry</b></nobr></th>
+        </tr>
+        <%
+            my $objects = [];
+            $objects = &Mnet::Model::object_query({
+                'info'   => $q_info,
+                'limit'  => 0,
+                'object' => $q_object,
+                'sev'    => $q_sev,
+            }) if $q_info =~ /\S/ or $q_object =~ /\S/;
+            my $count = 0;
+            foreach my $item (@$objects) {
+                $count++;
+                my ($o_color_sev, $o_info, $o_object) = ('ff0000', '', '');
+                $o_color_sev = $item->{'color_sev'};
+                $o_info = $item->{'info'};
+                $o_object = $item->{'object'};
+        %>
+                <tr align="left" valign="top" bgcolor="#<%= $o_color_sev %>">
+                    <td align="left">
+                        <nobr>
+                            <a href="/object?q_object=<%= $o_object %>"
+                                title=""><%= $o_object %></a>
+                            &nbsp;
+                        </nobr>
+                    </td>
+                    <td align="left" colspan="4"><%= $o_info %></td>
+                </tr>
+        <%
+            }
+            if ($q_info !~ /\S/ and $q_object !~ /\S/) {
+        %>
+                <tr valign="top">
+                    <td colspan="5" bgcolor="white" align="center">
+                        <br><b>Enter object or summary to search.</b><br><br>
+                    </td>
+                </tr>
+        <%
+            } elsif (not $count) {
+        %>
+                <tr valign="top">
+                    <td colspan="5" bgcolor="white" align="center">
+                        <br><b>No matching object entries.</b><br><br>
+                    </td>
+                </tr>
+        <%
+            }
+        %>
+    </table>
+</form>
+
+
+
+@@ report.html.ep
+% layout 'page', p_heading => "report - $q_script";
+    <p>
+    <table border="1" width="100%">
+        <tr valign="top" bgcolor="gray">
+            <th align="left" width="100"><nobr>time</nobr></th>
+            <th align="left" width="100">
+                <nobr>
+<%
+                    my $args = "q_script=$q_script";
+                    $args .= "&q_label=$q_label";
+%>
+                    <a href="/report?<%= $args %>&q_order=object" title="">
+                        object
+                    </a>
+                </nobr>
+            </th>
+            <th align="left" width="100"><nobr>subitem</nobr></th>
+            <th align="left">
+                <nobr>
+                    <div style="float:left">
+<%
+                        $args .= "&q_order=desc"
+                            if not $q_order or $q_order eq 'asc';
+%>
+                        <a href="/report?<%= $args %>" title="">
+                            <%= $q_label %>
+                        </a>
+                    </div>
+                </nobr>
+                <form name="report_form" action="/report" method="get">
+                <input type=hidden name="q_script" value="<%= $q_script %>">
+                <input type=hidden name="q_label" value="<%= $q_label %>">
+                <input type=hidden name="q_order" value="<%= $q_order %>">
+                <input type=hidden name="q_page" value="<%= $q_page %>">
+                <input type="submit" tabindex="9" value=">" class="small"
+                    onclick="q_page.value='<%= $q_page + 1 %>';"
+                    style="background:none;border:0;width:15px;float:right">
+                <div class="small" style="float:right">page <%= $q_page %></div>
+                <input type="submit" tabindex="10" value="<" class="small"
+                    onclick="q_page.value='<%= $q_page - 1 %>';"
+                    style="background:none;border:0;width:15px;float:right">
+                </form>
+            </th>
+        </tr>
+<%
+    my $q_report = &Mnet::Report::report_query_script(
+        $q_script, $q_label, $q_order, $q_page, $web_page_limit
+    );
+    foreach my $report (@$q_report) {
+%>
+        <tr>
+            <td><nobr><%= $report->{'dtime'} %></nobr></td>
+            <td>
+                <nobr>
+                    <a href="/object?q_object=<%= $report->{'object'} %>"
+                        title=""><%= $report->{'object'} %>
+                    </a>
+                </nobr>
+            </td>
+            <td><nobr><%= $report->{'subitem'} %></nobr></td>
+            <td><%= $report->{'value'} %></td>
+        </tr>
+<%
+    }
+%>
+    </table>
+    </p>
+
+
+
+@@ report_labels.html.ep
+% layout 'page', p_heading => "report - $q_script";
+<p>
+    Choose a report label to view:
+</p>
+<%
+    foreach my $label (@$q_labels) {
+%>
+        &nbsp; &nbsp;
+        <a href="/report?q_script=<%= $q_script %>&q_label=<%= $label %>"
+            title="">
+            <%= $label %>
+        </a><br>
+<%
+    }
+    if ($q_file) {
+%>
+        <p>
+            Retrieve entire report in
+            <a href="/report_csv?q_script=<%= $q_script %>" title="">csv</a>
+            format, updated <%= $q_file %>.
+        </p>
+<%
+    }
+%>
+
+
+
+@@ texture.jpg (base64)
+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
+

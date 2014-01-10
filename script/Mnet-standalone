@@ -1,0 +1,540 @@
+#!/usr/bin/perl
+
+=head1 NAME
+
+Mnet::script::Mnet-standalone - network automation script
+
+=cut
+
+# Copyright 2006, 2013-2014 Michael J. Menza Jr.
+# Refer to `perldoc Mnet` for more information.
+
+=head1 SYNOPSIS
+
+Usage example:
+
+ Mnet-standalone \
+    --standalone-src original.pl \
+    --standalone-dst standalone.pl \
+    --standalone-path-Mnet Mnet-x.y.tar.gz \
+
+=head1 DESCRIPTION
+
+This script attempts to create a standalone-dst output script from the
+standalone-src script. The standalone-dst output script will contain
+embedded copies of perl modules used by the source script.
+
+Not all modules will necessarily be embedded. By default Mnet modules
+used in the source script are embedded, copied from same perl library
+path used from @INC. Different and/or other standalone-path settings
+can be used to embed older versions of the mnet perl modules, or other
+custom modules used by the source script.
+
+The goal is to output a standalone-dst script that can be tested and
+be independent of changes to the mnet or other custom perl modules.
+
+The --standalone-src setting is used to specify the target script that
+will have modules embedded into it. Modules that get embedded will be
+inserted just before the first use or require statement. Embeddable
+modules used by other embedded modules should also get embedded.
+
+The --standalone-dst setting is used to specify the output file. This
+file should be thoroughly tested. The goal is that the method of
+embedding dows not change functionality.
+
+The --standalone-path-* settings can be used to specify the location
+source code for modules that will be embedded if used in the source
+script. The location can be a path or a .tar.gz file where the module
+.pm file is located. The default is for standalone-path-Mnet to be
+set from the %INC{'Mnet.pm'} perl variable. This can be changed to
+an older version of the mnet module. Or another path can be added to
+embed addtional custom modules. The module name portion of this
+setting is case sensitive. For example, standalone-path-Mnet_Client
+will match use Mnet_Client::Notify, but not Mnet_client::Expect.
+
+If the Mnet::Poll module is embedded, then all submodules in the
+Poll subdirectory under the standalone-path-Mnet setting will also
+be embedded. Furthermore other standalone-path-* Poll subdirectories
+will also have their custom poll modules embedded.
+
+=head1 LIMITATIONS
+
+This script looks at use and require statements in the source script.
+If it finds modules that are in a configured standalone-path then it
+embedds them. Modules that are embedded also get checked for use and
+require statements, possibly leading to more embedded modules.
+
+This script does not look at 'use lib' commands. The libraries to be
+embedded should be specified with standalone-path settings.
+
+This script cannot handle use and require statements that point to
+runtime variables. A log notice severity 5 warning will be generated
+in these cases.
+
+=head1 BEST PRACTICES
+
+Updated distributions of the Mnet network perl scripting library may
+be released from time to time.
+
+Custom modules specific to a client installation may also exist, and
+be updated from time to time. These client modules may contain code
+for custom connectivy, constants, verification processes, etc.
+
+Individual script to perform network management tasks may require
+periodic updates, for example to handle changing network conditions.
+
+It is prudent to thoroughly test script operation before certifying
+for use on a production network. Updates to modules used by already
+certified scripts could cause script behaviour to change.
+
+It is also desirable to develop new scripts using the latest versions
+of the Mnet and any custom client modules.
+
+Using the Mnet-standalone script to embed all of the Mnet and custom
+client modules used by a script into that script allows for these
+modules to be updated without affecting the operation of already
+certified standalone scripts.
+
+The Mnet-standalone script can embed older version of modules from
+distribution .tar.gz files.
+
+Client code should be kept in a repository separate from the Mnet
+code base. Client library modules could be setup for distribution,
+or perhaps just executed with the scripts from working copy of the
+client code repository.
+
+All client modules should be kept inside the client directory. This
+directory may contain a Poll subdirectory for custom polling modules.
+That means that there cannot be a Mnet_Client.pm, but there may be a
+Mnet_Client::Expect module, and a Mnet_Client::Poll::Custom module.
+In these cases standalone-path-Mnet_Client gets set to ./Mnet_Client.
+
+Older versions of the Mnet code base and/or older versions of any
+custom client perl modules should be usable without interfering with
+any version of those same modules installed on a system. To do this
+either pull down a working copy of the code repository to a set aside
+directory, or execute `perl Makefile.PL INSTALL_BASE=directory` in a
+distribution .tar.gz archive. The 'use lib' commands can be used in
+the main script to direct that modules be loaded from these other
+locations.
+
+=cut
+
+# use modules
+use warnings;
+use strict;
+use Mnet;
+
+# read config
+our $cfg = &config({
+    'main-version'  => '+++VERSION+++',
+});
+
+# validate inputs
+die "missing --standalone-src <original.pl> argument" 
+    if not $cfg->{'standalone-src'};
+die "missing --standalone-dst <destination.pl> argument" 
+    if not $cfg->{'standalone-dst'};
+
+# set default directory for mnet module to file used by this script
+if (not $cfg->{'standalone-path-Mnet'}) {
+    $cfg->{'standalone-path-Mnet'} = $INC{'Mnet.pm'};
+    $cfg->{'standalone-path-Mnet'} =~ s/\/?Mnet\.pm$//;
+    &inf("default standalone-path-Mnet set $cfg->{'standalone-path-Mnet'}");
+}
+
+# initialize embedded module text
+my $embedded = "";
+
+# read source file
+&log("reading standalone-src file $cfg->{'standalone-src'}");
+my $source_file = "";
+open(FILE, $cfg->{'standalone-src'})
+    or die "unable to open standalone-src $cfg->{'standalone-src'}, $!";
+$source_file .= $_ while <FILE>;
+close FILE;
+
+# create output by recursively processing source file
+my $modified_source = &process_code($source_file, $cfg->{'standalone-src'});
+
+# combine embedded output with source file output
+my ($output, $embed_flag) = ("", 0);
+foreach my $line (split(/\n/, $modified_source)) {
+    my $clean = $line;
+    $clean =~ s/#.*//;
+    if (not $embed_flag and $clean =~ /(^|;)\s*(use|require)\s/
+        or not $embed_flag and $clean =~ /(^|;)\s*\S+-.import\s*;/) {
+        $output .= $embedded . "\n"; 
+        $output .= "package main;\n\n";
+        $embed_flag = 1;
+    }
+    $output .= $line . "\n";
+} 
+
+# warn if not able to insert embedded section into source file
+warn "could not place embedded code into source file" if not $embed_flag;
+
+# write output destination file
+&log("writing standalone-dst file $cfg->{'standalone-dst'}");
+open(FILE, ">$cfg->{'standalone-dst'}")
+    or die "unable to open standalone-dst $cfg->{'standalone-dst'}, $!";
+print FILE $output;
+close FILE;
+
+# finished
+exit;
+
+
+
+sub add_embedded {
+
+    # &add_embedded($module_inc, $embed_code);
+    # purpose: added $module_inc path embedded $embed_code to global $embedded
+
+    # read inputs
+    &dbg("add_embedded sub called from " . lc(caller));
+    my $module_inc = shift or die "add_embedded missing module_inc arg";
+    my $embed_code = shift or die "add_embedded missing clean_code arg";
+    &inf("embedding $module_inc");
+    
+    # append new clean embed code to global embedded variable
+    $embedded .= "\n"
+        . "#" x 79 . "\n"
+        . "# embedded $module_inc starting here\n"
+        . "#" x 79 . "\n"
+        . "BEGIN { \$INC{'$module_inc'} = __FILE__;\n"
+        . "$embed_code\n}\n"
+        . "#" x 79 . "\n"
+        . "# embedded $module_inc finished here\n"
+        . "#" x 79 . "\n";
+
+    # finished
+    &dtl("add_embedded finished");
+    return;
+}
+
+
+
+sub already_embedded {
+
+    # $boolean = &already_embedded($module);
+    # purpose: determine if specified module has already been embedded
+
+    # read input module name
+    &dbg("already_embedded sub called from " . lc(caller));
+    my $module = shift or die "already_embedded missing module arg\n";
+
+    # look for module in global output text, return negative answer if not found
+    if ($output !~ /(^|;)\s*package\s+\Q$module\E\s*;/m) {
+        &dbg("already_embedded module $module = negative");
+        return 0;
+    }
+
+    # finished already_embedded, returning affirmative answer
+    &dbg("already_embedded module $module = affirmative");
+    return 1;
+}
+
+
+
+sub process_code {
+
+    # $output = &process_code($code, $file)
+    # purpose: recursively process code, looking for modules to embed
+
+    # read input code text that will be examined for use commands
+    &dbg("process_code sub called from " . lc(caller));
+    my $code = shift or die "process_code missing code arg\n";
+    my $file = shift or die "process_code missing file arg\n";
+    &dbg("process_code $file reading file");
+
+    # initialize output from this function
+    my $output = "";
+
+    # handle embedding poll modules from each standalone-path-* Poll subdir
+    if ($file eq "Mnet/Poll.pm") {
+        foreach my $key (sort keys %$cfg) {
+            next if not $key or $key !~ /^standalone-path-(\S+)/;
+            my $subdir = "$1/Poll";
+            &log(5, "embedding $subdir modules from $cfg->{$key}");
+            &process_modules_dir($cfg->{$key}, $subdir);
+        }
+    }
+
+    # prepare to track pod sections, to skip processing use/require cmds in them
+    my $pod_cut = 0;
+
+    # loop through all lines in input 
+    foreach my $line (split(/\n/, $code)) {
+
+        # remove spaces from end of line
+        $line =~ s/\s+$//;
+
+        # keep a clean copy of line, with comments removed
+        my $clean = $line;
+        $clean =~ s/#.*//;
+
+        # track pod sections and blank out cleaned lines if in one
+        $pod_cut = 1 if $line =~ /^=/;
+        $clean = "" if $pod_cut;
+        $pod_cut = 0 if $line =~ /^=cut/;
+
+        # throw a warning if there looked to be multiple use/require commands
+        warn "skip multiple use/require cmds on a line in $file, '$line'\n"
+            if $file ne 'Mnet/Poll.pm' and $clean
+                =~/(^|;)\s*(eval\s*"?)\s*(use|require)\s.+;\s*(use|require)\s/;
+
+        # if not a use/require cmd then append to output and skip to next line
+        if ($clean !~ /(^|;)\s*(use|require)\s+([^;]+)\s*;/) {
+            &dtl("process_code $file found line with no use");
+            &dtl("process_code $file output $line");
+            $output .= "$line\n";
+            next;
+        }
+
+        # set module name from current use/require statement
+        my $module = $3;
+        &dtl("process_code $file module $module use/require command found");
+
+        # attempt to retrieve module text if it is in a standalone-path
+        my $module_text = &retrieve_module_text($module);
+
+        # log a warning if module name appears to be a variable
+        if ($file ne 'Mnet/Poll.pm' and $module =~ /^(\$|\\|\/)/) {
+            warn "skip use/require cmd with variable in $file, '$line'\n";
+
+        # if already embedded, remove the use command from output
+        } elsif ($embedded =~ /(^|;)\s*package\s+$module\s*/m) {
+            &dbg("process_code $file already embedded module $module");
+            &dtl("process_code $file line was $line");
+            $line =~ s/(\s*use\s+|\s*require\s+)([^;]+\s*);/$2->import;/;
+            &dtl("process_code $file line now $line");
+
+        # don't modify line if module is not covered by standalone-path
+        } elsif (not defined $module_text) {
+            &dbg("process_code $file skip mod $module not a standalone-path");
+
+        # embed this module, skip this use/require statement
+        } else {
+            &dbg("process_code $file found new module $module");
+            &dtl("process_code $file line was $line");
+            $line =~ s/(\s*use\s+|\s*require\s+)([^;]+\s*);/$2->import;/;
+            &dtl("process_code $file line now $line");
+
+            # set module filename for include statement
+            my $module_inc = $module . ".pm";
+            $module_inc =~ s/::/\//g;
+
+            # clean pod and comments from module text before embedding
+            my ($module_clean, $pod_cut) = ("", 0);
+            foreach my $line (split(/\n/,
+                &process_code($module_text, $module_inc))) {
+                my $clean = $line;
+                $pod_cut = 1 if $line =~ /^=/;
+                $clean = "" if $pod_cut;
+                $pod_cut = 0 if $line =~ /^=cut/;
+                # remove comments here, if desired
+                #$clean =~ s/#.*//;
+                next if $clean !~ /\S/;
+                $module_clean .= "$clean\n";
+            }
+            chomp($module_clean);
+
+            # add new cleaned module text to embedded file
+            &add_embedded($module_inc, $module_clean);
+
+        # finished processing use/require command
+        }
+
+        # append to output what is left of line, if anything
+        if ($line =~ /\S/) {
+            &dtl("process_code $file line out $line");
+            $output .= "$line\n";
+        }
+
+    # continue processing input lines
+    }
+
+    # finished process_code function
+    return $output;
+}
+
+
+
+sub process_modules_dir {
+
+    # internal: &process_modules_dir($standalone_path, $subdir)
+    # purpose: &process_code to embed all modules in $standalone_path $subdir
+    
+    # read input, abort if missing
+    &dbg("process_modules_dir sub called from " . lc(caller));
+    my $standalone_path = shift
+        or die "process_modules_dir missing standalone_path arg\n";
+    my $subdir = shift 
+        or die "process_modules_dir missing subdirs arg\n";
+    &dbg("process_modules_dir input $standalone_path, $subdir");
+
+    # handle a standalone path to a zipped tar archive
+    if ($standalone_path =~ /\.tar\.gz$/) {
+
+        # set archive file to look for
+        my $archive_file = $standalone_path;
+        &dbg("process_modules_dir archive_file set $archive_file");
+
+        # retrieve list of perl modules in archive subdir, or return
+        my $tar_cmd = "tar -tzf -";
+        &dbg("process_modules_dir tar_cmd `cat $archive_file | $tar_cmd`");
+        my $tar_out = "";
+        foreach my $line (split(/\n/,
+            `( cat $archive_file | $tar_cmd ) 2>/dev/null`)) {
+            next if $line !~ /.*\/$subdir\/.*\.pm/;
+            $tar_out .= "$line\n";
+        }
+        if (not $tar_out) {
+            &inf("no $subdir modules were found in $archive_file");
+            return;
+        }
+
+        # process each .pm file found in archive subdir
+        foreach my $file (split(/\n/, $tar_out)) {
+            &dbg("process_modules_dir parsing $file");
+            next if $file !~ /(^|\/)$subdir\/([^\/]+)\.pm$/;
+            my $module = "$subdir/$2";
+            my $file = "${module}.pm";
+            $module =~ s/\//::/g;
+            my $code = &retrieve_module_text($module);
+            &inf("embedding $module from $file");
+            my $output = &process_code($code, $file);
+            &add_embedded($file, $output);
+        }
+
+    # handle a standalone path to a directory
+    } else {
+
+        # open specified directory to process all .pm files, or return
+        &dbg("process_modules_dir opening dir $standalone_path/$subdir");
+        opendir(my $dh, "$standalone_path/$subdir");
+        if (not $dh) {
+            &inf("no $subdir modules were found in $standalone_path");
+            return;
+        }
+
+        # process each .pm file found in standalone path subdir
+        foreach my $file (readdir($dh)) {
+            next if $file !~ /\.pm$/;
+            &dbg("process_modules_dir parsing $file");
+            my $file = "$subdir/$file";
+            my $module = $file;
+            $module =~ s/\//::/g;
+            $module =~ s/\.pm$//;
+            my $code = &retrieve_module_text($module);
+            &inf("embedding $module from $file");
+            my $output = &process_code($code, $file);
+            &add_embedded($file, $output);
+        }
+
+    # finished processing
+    }
+
+    # finished
+    &dbg("process_modules_dir finished");
+    return;
+}
+
+
+
+sub retrieve_module_text {
+
+    # internal: $text = &retrieve_module_text($module)
+    # purpose: use standalone-path-* settings to retrieve module text
+    # $module: module name from use or require statement, ex: Mnet or Mnet::IP
+    # $text: unmodified text of specified module, undefined if not embeddable
+    # note: script aborts if file should have been there and couldn't be read
+
+    # read input, abort if missing
+    &dbg("retrieve_module_text sub called from " . lc(caller));
+    my $module = shift or die "retrieve_module_text missing module arg\n";
+    &dbg("retrieve_module_text input module set $module");
+
+    # initialize output text
+    my $text = undef;
+
+    # set the module prefix, ex: Mnet when Mnet::Poll::Cisco is specified
+    my $module_prefix = $module;
+    $module_prefix =~ s/::\S+//;
+    &dbg("retrieve_module_text module_prefix set $module_prefix");
+
+    # set the module suffix, ex: Mnet/Poll/Cisco.pm for Mnet::Poll::Cisco
+    my $module_suffix = $module;
+    $module_suffix =~ s/::/\//g;
+    $module_suffix .= ".pm";
+    &dbg("retrieve_module_text module_suffix set $module_suffix");
+
+    # set standalone_path by matching module prefix to input standalone paths
+    my $standalone_path = undef;
+    foreach my $key (sort keys %$cfg) {
+        next if not $key or $key !~ /^standalone-path-(\S+)$/;
+        my $standalone_key = $1;
+        next if $standalone_key ne $module_prefix;
+        &dbg("retrieve_module_text found standalone_key $standalone_key");
+        $standalone_path = $cfg->{$key};
+        &dbg("retrieve_module_text found standalone_path $standalone_path");
+        last;
+    }
+
+    # no standalone path was configured for this module
+    if (not $standalone_path) {
+        &dbg("retrieve_module_text could not find module $module text");
+
+    # handle a standard path to a zipped tar archive
+    } elsif ($standalone_path =~ /\.tar\.gz$/) {
+
+        # set archive file to look for
+        my $archive_file = $standalone_path;
+        &dbg("retrieve_module_text archive_file set $archive_file");
+
+        # attempt to read module text, abort if nothing found
+        &dbg("reading $module_suffix module text from $archive_file");
+        foreach my $line (split(/\n/,
+            `( cat $archive_file | tar -tzf - ) 2>/dev/null`)) {
+            next if $line !~ /.*\/lib\/\Q$module_suffix\E$/;
+            my $tar_cmd = "tar --to-stdout -xzf - '$line'";
+            $text = `( cat $archive_file | $tar_cmd ) #2>/dev/null`;
+            last;
+        }
+        die "unable to read $module_suffix module text from $archive_file"
+            if not $text;
+
+    # handle a standard path to a directory
+    } elsif ($standalone_path) {
+
+        # set module filename to look for
+        my $module_file = "$standalone_path/$module_suffix";
+        &dbg("retrieve_module_text module_file set $module_file");
+
+        # attempt to read module text, abort if nothing found
+        &dbg("reading module text from $module_file");
+        $text = `( cat $module_file ) 2>/dev/null`;         
+        die "unable to read module text from $module_file"
+            if not $text;
+
+    # finished handling this module
+    }
+
+    # finished retrieve_module_text
+    return $text;
+}
+
+
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2006, 2013-2014 Michael J. Menza Jr.
+Refer to `perldoc Mnet` for more information.
+
+=head1 SEE ALSO
+
+Mnet
+
+=cut
+

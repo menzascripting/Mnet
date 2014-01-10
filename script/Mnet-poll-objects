@@ -1,0 +1,90 @@
+#!/usr/bin/perl
+
+=head1 NAME
+
+Mnet::script::Mnet-poll-objects - network automation script
+
+=cut
+
+# Copyright 2006, 2013-2014 Michael J. Menza Jr.
+# Refer to `perldoc Mnet` for more information.
+
+=head1 SYNOPSIS
+
+Usage example:
+
+ Mnet-poll-objects \
+    --batch-list /etc/hosts --batch-hosts \
+    --data-dir /data/dir --db-name mnet.db \
+    --snmp-community 'public'
+
+=head1 DESCRIPTION
+
+This script uses the Mnet perl modules to poll a batch of objects
+listed in hosts file format. Polling data is saved in the specified
+data directory and in a database file.
+
+The default behavior is to ping and snmp poll all line items in the
+standard system /etc/hosts file every five minutes. Utilization graph
+data is saved in the specified data directory. Alerts and log entries
+are saved in the specified database. 
+
+Refer to the Mnet::script::Mnet-web-mojo script for displaying poll
+data in a web application.
+
+=head1 CONFIGURATION
+
+List of config settings supported by this script:
+
+ --object-address <addr>     specify address of one object to poll
+ --object-name <name>        specify name of one object to poll
+ --batch-list <file>         specify list of objects and addresses
+ --batch-hosts               batch file will be in hosts file format
+ --batch-procs <count>       default 5 batch mode child processes
+ --batch-repeat <secs>       batch or object interval, default 300
+ --data-dir <directory>      directory for poll graph data storage
+ --db-name <database>        database for alert and log data
+ --poll-alerts               default enable alerts based on poll data
+ --snmp-community <read>     snmp read community
+
+Refer to the documentation for the Mnet, Mnet::Poll and Mnet::SNMP
+modules for a complete list of configuration options.
+
+=cut
+
+# use modules
+use warnings;
+use strict;
+use Data::Dumper;
+use Mnet;
+use Mnet::Poll;
+
+
+# read object
+our $cfg = &object({
+    'main-version'      => '+++VERSION+++',
+    'batch-procs'       => 5,
+    'batch-repeat'      => 300,
+    'poll-alerts'       => 1,
+});
+
+# poll current object
+&poll_data;
+
+# finished
+exit;
+
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2006, 2013-2014 Michael J. Menza Jr.
+Refer to `perldoc Mnet` for more information.
+
+=head1 SEE ALSO
+
+Mnet, Mnet::Poll, Mnet::SNMP
+
+Mnet::script::Mnet-web-mojo
+
+=cut
+

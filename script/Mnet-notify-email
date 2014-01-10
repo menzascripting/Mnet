@@ -1,0 +1,252 @@
+#!/usr/bin/perl
+
+=head1 NAME
+
+Mnet::script::Mnet-notify-email - network automation script
+
+=cut
+
+# Copyright 2006, 2013-2014 Michael J. Menza Jr.
+# Refer to `perldoc Mnet` for more information.
+
+=head1 SYNOPSIS
+
+Usage example:
+
+ # ping objects in batch.list using polling module with notifications
+ perl -e "use Mnet::Poll; &poll_data;" - \
+    --batch-list batch.list --batch-repeat 300 \
+    --mnet-notify 4 \
+    --notify-email-ssl 'smtp.gmail.com' \
+    --notify-email-username 'sender@gmail.com' \
+    --notify-email-password 'secret1234' \ 
+    --notify-email-to '2125551212@txt.att.net'
+
+ Note that it may be convenient to put all of the notify config
+ settings into --conf-file or --conf-auth files.
+
+=head1 DESCRIPTION
+
+The --mnet-notify config setting can be used by any Mnet script to
+generate notifications for log settings more severe than a given
+threshold. By default, this script processes those notifications.
+
+#? to do list for this script:
+#   test ssl
+#       # getting error: Can't locate Authen/SASL/XS.pm in @INC
+#       # Authen::SASL::XS is not in freebsd ports...
+#       ~/work/Mnet/script/Mnet-notify-email \
+#           --notify-email-ssl 'smtp.gmail.com' \
+#           --notify-email-username 'abc123@email.com' \
+#           --notify-email-password 'SECRET' \
+#           --notify-email-to 'abc123@email.com'
+#   test tls
+#       # getting invalid SSL_ version specified error
+#       # this is from IO::Socket::SSL version > 1.68
+#           --notify-email-tsl 'smtp.gmail.com'
+#   test smtp
+#       # not happened yet
+#   finish description pod section in this script
+#   add tutorial section for notifications
+#   add Mnet::script::Mnet-notify-email to see also Tutorial.pm pod section
+#   add faq entry for notifications
+#   add note in Poll.pm description pod section:
+#       Refer to the documentation for the Mnet-notify-email script for
+#       information on setting up notifications for polling scripts.
+#   add Mnet::script::Mnet-notify-email to see also Poll.pm pod section
+#   add Mnet::script::Mnet-notify-email to see also Mnet.pm pod section
+#   add config entries to Mnet.pm configuration pod section:
+#       --mnet-notify <0-7>      notification enabled for specified log level
+#       --mnet-notify-limit      specify count/minutes, default '1/5'
+#       --mnet-notify-script     defaults to Mnet-notify-email, args optional
+#   add notification pod section to Mnet.pm
+#       #? mnet-notify-script can be spec'd with args
+#           defaults to Mnet-notify-email
+#           automatically gets passed conf-file and conf-auth and notify-*
+#           needs to be in path, or have full path to script spec'd
+#       Refer to the documentation for Mnet::script::Mnet-notify-email
+#       for more information.
+#   add defaults to Mnet.pm config_defaults in begin block
+#       'mnet-notify-limit'  => '1/5',
+#       'mnet-notify-script' => 'Mnet-notify-email',
+#   add notification code to Mnet.pm log sub, just before syswrite STDOUT:
+#       # process notification script, if mnet-notify is enabled
+#       if (defined $Mnet::cfg->{'mnet-notify'}
+#           and $sev <= $Mnet::cfg->{'mnet-notify'}) {
+#           #? finish mnet-notify implementation
+#           #   'mnet-notify-limit'  => '1/5',     
+#           #   'mnet-notify-script' => 'Mnet-notify-email',
+#           #   pass $Mnet::cfg->{'conf-auth'} and $Mnet::cfg->{'conf-file'}
+#           #   pass all --notify args, also
+#       }
+#   add Net::SMTP::SSL, Net::SMTP::TLS to README.pod, Net::SMTP comes with perl
+
+=head1 CONFIGURATION
+
+Alphabetical list of config settings supported by this script:
+
+ --notify-email-smtp        required server for smtp email
+ --notify-email-ssl         required server for ssl email
+ --notify-email-tls         required server for tls email
+
+ --notify-email-port        default 25 smtp, 465 ssl, 587 tls
+ --notify-email-timeout     default 30 seconds to connect to server
+
+ --notify-email-username    required username for sending email
+ --notify-email-password    optional login password for serve
+
+ --notify-email-to          required address to send email to
+ --notify-email-subject     specify subject line for email
+ --notify-email-body        specify body text for email
+
+ --main-detail              set to get extra logging detail
+ --main-version             set at compilation to build number
+
+=cut
+
+# use modules
+use warnings;
+use strict;
+use Mnet;
+
+# log that we are starting config push
+&dbg("notify-email starting");
+
+# read config
+our $cfg = &config({
+    'notify-email-timeout'  => 30,
+    'main-version'          => '+++VERSION+++',
+});
+
+# verify that all required settings are configured
+warn "notify-email missing notify-email-to setting"
+    if not $cfg->{'notify-email-to'};
+warn "notify-email missing notify-email-username setting"
+    if not $cfg->{'notify-email-username'};
+
+# verify that either smtp or ssl config option was specified
+warn "notify-email missing notify-email-smtp, ssl or tls setting"
+    if not $cfg->{'notify-email-smtp'}
+    and not $cfg->{'notify-email-ssl'}
+    and not $cfg->{'notify-email-tls'};
+
+# abort execution if there were warnings
+die "notify-email unable to continue due to previous warnings"
+    if $Mnet::error;
+
+# set default port for ssl or smtp, if not already set
+if (not $cfg->{'notify-email-port'}) {
+    if ($cfg->{'notify-email-ssl'}) {
+        $cfg->{'notify-email-port'} = 465;
+    } elsif ($cfg->{'notify-email-tls'}) {
+        $cfg->{'notify-email-port'} = 587;
+    } else {
+        $cfg->{'notify-email-port'} = 25;
+    }
+}
+
+# set default subject, if not already set
+$cfg->{'notify-email-subject'} = 'Mnet-notify-email'
+    if not $cfg->{'notify-email-subject'};
+
+# set default body text, if not already set
+$cfg->{'notify-email-body'} = '' if not $cfg->{'notify-email-body'};
+
+# initialize email object
+my $email = undef;
+
+# connect to specified smtp server, or exit with error
+if ($cfg->{'notify-email-smtp'}) {
+    &dtl("notify-email attempting smtp to $cfg->{'notify-email-smtp'}");
+    use Net::SMTP;
+    $email = Net::SMTP->new($cfg->{'notify-email-smtp'},
+        Port     => $cfg->{'notify-email-port'},
+        Timeout  => $cfg->{'notify-email-timeout'},
+        Debug    => 0,
+    );
+    die "notify-email could not connect via smtp $cfg->{'notify-email-smtp'}"
+        if not $email;
+    &dbg("notify-email connected smtp $cfg->{'notify-email-smtp'}");
+}
+
+# connect to specified ssl server, or exit with error
+if ($cfg->{'notify-email-ssl'}) {
+    &dtl("notify-email attempting ssl to $cfg->{'notify-email-ssl'}");
+    use Net::SMTP::SSL;
+    $email = Net::SMTP::SSL->new($cfg->{'notify-email-ssl'},
+        Port     => $cfg->{'notify-email-port'},
+        Timeout  => $cfg->{'notify-email-timeout'},
+        Debug    => 0,
+    );
+    die "notify-email could not connect via ssl $cfg->{'notify-email-ssl'}"
+        if not $email;
+    &dtl("notify-email connected via ssl $cfg->{'notify-email-ssl'}");
+}
+
+# connect to specified tls server, or exit with error
+if ($cfg->{'notify-email-tls'}) {
+    &dtl("notify-email attempting tls to $cfg->{'notify-email-tls'}");
+    use Net::SMTP::TLS;
+    $email = Net::SMTP::TLS->new($cfg->{'notify-email-tls'},
+        Port     => $cfg->{'notify-email-port'},
+        Timeout  => $cfg->{'notify-email-timeout'},
+        User     => $cfg->{'notify-email-username'},
+        Password => $cfg->{'notify-email-password'},
+    );
+    die "notify-email could not connect via tls $cfg->{'notify-email-tls'}"
+        if not $email;
+    &dtl("notify-email connected via tls $cfg->{'notify-email-tls'}");
+}
+
+# attempt to authenticate to server, die on errors, skip if no password set
+if (defined $cfg->{'notify-email-password'}
+    and not $cfg->{'notify-email-tls'}) {
+    &dtl("notify-email attempting authentication");
+    $email->auth(
+        $cfg->{'notify-email-username'},
+        $cfg->{'notify-email-password'}
+    ) or die "notify-email could not authenticate to server";
+    &dtl("notify-email authentication succeeded");
+} else {
+    &dtl("notify-email skipped authentication, password is not set");
+}
+
+# compose the email message, exit with error if unable to finish
+&dtl("notify-email attempting to send the email");
+$email->mail($cfg->{'notify-email-username'});
+$email->to($cfg->{'notify-email-to'});
+$email->data();
+$email->datasend("To: $cfg->{'notify-email-to'}\n");
+$email->datasend("From: $cfg->{'notify-email-username'}\n");
+$email->datasend("Subject: $cfg->{'notify-email-subject'}\n");
+$email->datasend("\n");
+$email->datasend($cfg->{'notify-email-body'});
+$email->dataend()
+    or die "notify-email failure or timeout sending email";
+
+# finished sending email, close the connection
+&dtl("notify-email finished sending email");
+$email->quit;
+
+# output success log entry
+&inf("notify-email sent notification to $cfg->{'notify-email-to'}, "
+    . "subject: $cfg->{'notify-email-subject'}");
+
+# log that we are done
+&dbg("notify-email finished");
+
+# finished
+exit;
+
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2006, 2013-2014 Michael J. Menza Jr.
+Refer to `perldoc Mnet` for more information.
+
+=head1 SEE ALSO
+
+Mnet, Mnet::Poll
+
+=cut
+

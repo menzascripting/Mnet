@@ -1,0 +1,183 @@
+=head1 NAME
+
+Mnet - network automation scripting readme
+
+=head1 SYNOPSIS
+
+The Mnet module is for perl programmers who want to create network
+automation, reporting, and monitoring scripts.
+
+Almost all routers, switches and servers can be managed from a text
+command line interface. Administrators and engineers using ssh and
+telnet connectivity can examine in great detail the current state of
+these devices and make configuration changes. 
+
+It is possible to automate these activities. Any engineering task that
+can be defined in detail can be automated with a script. Anything from
+password changes to very complex circuit migrations can automated.
+
+For network automation scripts the Mnet perl module is a more complete
+solution than the low level Expect and Net::Telnet libraries. Mnet
+facilitates batch processing, advanced logging, reporting, and
+repeatable testing.
+
+The Mnet perl module is far more flexible and less cumbersome to use
+than larger enterprise management systems for automation scripts -
+getting out of the way and allowing the focus to be on developing
+and testing the engineering logic in a script.
+
+Mnet was made based on expert experience developing supportable
+advanced network automation scripts in a large enterprise environment
+with rigorous risk management and change control procedures. Mnet
+has a number of advantages over other network automation tools when
+it comes to development, testing, and project support.
+
+=head1 FEATURES
+
+The main features of the Mnet network script perl modules are:
+
+- Facilitate easy log, debug, alert and error output from automation
+scripts, output to per-device files, and web server output.
+
+- Automation scripts can run in batch mode to concurrently process a
+list of devices, using a simple command line argument and a device list
+file.
+
+- Flexible config settings via command line arguments, system config
+files, and/or a batch mode device list file.
+
+- Reliable automation of cisco IOS and other command line sessions, including autodetection of ssh and telnet, flexible authentication, bastion host connections, and reliable command prompt handling.
+
+- Record and replay command line sessions, speeding the development
+of automation scripts and allowing for proper regression testing.
+
+- Report data from script can be output as plain .csv files or can
+be viewed from a database web server.
+
+- Ping and snmp functions, basic uptime and interface monitoring, and
+the capability to create custom polling alerts and graphs.
+
+- An included web server can be used to view all output log, alert,
+report and graph data from automation and monitoring scripts.
+
+=head1 SAMPLE
+
+The following sample script illustrates how easy it is to connect to
+a list of devices from a batch list file, gather output, and report
+on some of the data:
+
+    # NOTES:
+    #
+    # Set up a <batch.file> with devices listed one per line:
+    #   --object-name <device-name> --object-address <device-ip>
+    #
+    # The following command will process all those devices
+    #   ./sample.pl --batch-list <batch.file> --db-name <report.db>
+
+    # use the main mnet module, automate expect sessions, and report
+    use Mnet;
+    use Mnet::Expect;
+    use Mnet::Report;
+
+    # read all the config settings for the next device to process
+    my $cfg = &object;
+
+    # open a session to the current device and get command output
+    my $session = new Mnet::Expect;
+    my $sh_ver_out = $session->command("show version");
+
+    # report on configuration register for current device
+    &report("config_register", $1)
+        if $sh_ver_out =~ /configuration register is (\S+)/;
+
+Scripts written using Mnet inherit many features which can be
+accessed via configuration settings without the need to add
+additional code.
+
+For example, the sample script above can process a single device, or
+can be run in batch mode to process thousands of devices. Prompting
+occurs for passwords, or a secure authentication file can be used.
+Summary reports in .csv format can be generated, and/or detailed cli
+session debug output can be saved for all devices. Session data can
+be saved and replayed later for testing. All output can be accessed
+via a web server.
+
+Check out the Mnet::Tutorial documentation for a quick start guide
+to the major features of the Mnet module.
+
+=head1 INSTALLATION
+
+The Mnet perl module should work in just about any unix perl
+environment. This includes the Cygwin Linux API for Windows.
+
+This installation is distributed as an Mnet-X.y.tar.gz file. To
+unpack the distribution and install it use the following commands:
+
+ tar -xf Mnet-X.y.tar.gz
+ cd Mnet-X.y
+ perl Makefile.PL
+ make
+ make test
+ make install
+
+The default Makefile.PL install requires root access to copy files to
+system perl directories. Set perl Makefile.PL INSTALL_BASE=/home/path
+to have everything installed to your home directory.
+
+=head1 DEPENDENCIES
+
+The Mnet module can make use of these other perl modules, if they
+are installed on the system:
+
+ DBD::SQLite                for sqlite log, report, polling database
+ Expect                     for shell telnet and ssh cli automation
+ Mojolicious                for database and output web front end
+ Net::Ping::External        for default non-root external ping
+ Net::SNMP                  for version 2 snmp access from perl
+ Net::Telnet                for native perl cli telnet-only access
+ RRDs                       for graphable numeric poll data storage
+
+It is recommended that all of the above modules be installed to make
+use of all the capabilities of the Mnet perl module.
+
+Most unix distributions include a package manager that will have many,
+if not all, of the above dependencies available for easy installation.
+Modules may also be installed using the cpan perl module repository.
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2006, 2013-2014 Michael J. Menza Jr.
+
+Mnet is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see http://www.gnu.org/licenses/
+
+=head1 AUTHOR
+
+The Mnet perl module has been created and is maintained by Mike Menza.
+Mike can be reached via email at mikemenza@menzascripting.com or
+mmenza@cpan.org.
+
+Send an email to mnet-announce+subscribe@googlegroups.com to receive
+update, problem, and security announcements for the Mnet network perl
+scripting module.
+
+Visit http://menzascripting.com to download the latest release of
+the Mnet network automation scripting perl module or access the latest
+documentation.
+
+=head1 SEE ALSO
+
+Visit http://menzascripting.com/Documentation to learn more.
+
+=cut
+

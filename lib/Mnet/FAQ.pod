@@ -1,0 +1,67 @@
+=head1 NAME
+
+Mnet::FAQ - network automation scripting faq
+
+=head1 SYNOPSIS
+
+This document contains answers to the most frequently asked questions
+about the Mnet network perl scripting module.
+
+=head1 QUESTIONS
+
+Also refer to the latest release of the Mnet network automation perl
+scripting module and documention located at http://menzascripting.com 
+
+=head2 Why not use existing telnet, ssh and/or cisco modules?
+
+Existing perl modules are not complete solutions for custom network
+management. The Mnet network perl scripting module includes facilites
+for logging, flexible configuration, automatic ssh/telnet fallback,
+complex authentication, batch processing, reporting, snmp and custom
+monitoring and alerts, and database and web capabilities.
+
+=head2 How best to organize Mnet config settings?
+
+Mnet scripts can specify config settings in a number of places. For
+quick scripts it may be easiest to specify settings on the command
+line or in the script as part of an object function call.
+
+The default --conf-etc setting directs all scripts to read settings
+from an /usr/local/etc/Mnet.conf file, if it exists. This file can
+contain a number of default settings for use by all scripts. Settings
+from this file can be overridden on a script's command line.
+
+An --conf-auth file may be specified, referring to a file with
+restricted permissions allowing for scripts scheduled to run in the
+backround to have secure access to passwords.
+
+More details about how Mnet config settings are applied can be found
+in the Mnet module documentation.
+
+=head2 Does Mnet work with IPv6 addresses?
+
+The Mnet::Expect module can connect to ipv6 addresses. By default the
+Mnet::Expect module uses the system ssh and telnet commands. These
+normally accept either ipv4, ipv6 or resolvable hostnames with the
+input object-address setting. The behavior of this module can even be
+be customized to use other system commands and address families.
+
+The Mnet::Ping module does not support ipv6 at this time. A custom
+module could be created that executes a local system ping6 command.
+
+The Mnet::SNMP module should support ipv6. The Socket6 perl module
+must be installed for ipv6 to function. This module will set the
+snmp-domain to udp6/tcp6 if a colon is detected in the object-address
+and the snmp-domain was not explicitly set tp udp4/tcp4/udp6/tcp6.
+
+The Mnet::Poll module should work with an ipv6 object-address. The
+poll-ping config setting should be cleared. Mnet::SNMP only will then
+be used for polling. Note that the standard interface mib does not
+include ipv6 addresses. Refer to the Mnet::Poll module documentation
+for more details.
+
+=head1 SEE ALSO
+
+Mnet
+
+=cut
