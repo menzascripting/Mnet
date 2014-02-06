@@ -47,9 +47,7 @@ timeout, etc. can be set or changed from default. Refer to the
 configation section below for more information.
 
 A new expect session will attempt to login using the current
-expect-username and expect-password config option values. The
-terminal user may be prompted when connecting to a new expect
-session if they are not set.
+expect-username and expect-password config option values.
 
 The expect-enable setting is ignored if not changed from its
 default value. If set as a value of one then the terminal user
@@ -58,8 +56,10 @@ set for expect-enable is considered the enable password to be
 used when connecting to a new expect session.
 
 The expect-batch option is enabled by default and will prompt the
-user terminal once for the expect-username, password and enable
-mode password while running in batch-list mode.
+user terminal once if the script is run in batch-list mode for
+the expect-username and expect-password, unless they are already
+set. A prompt expect-enable password is generated in batch mode
+if it is set true.
   
 The expect module command method should be used when a command
 prompt is returned after command entry and command output. The
@@ -70,7 +70,9 @@ and methods stored in the objects created by this module.
 The expect-replay and expect-record settings can be used for
 testing. Session activity can be recorded to a file and replayed
 back from the file at a later time. Calls to the new, close and
-command functions can be recorded.
+command functions can be recorded. These arguments would usually
+be used from the command line, but could be passed when creating
+a new Mnet::Expect object.
 
 =head1 CONFIGURATION
 
@@ -92,6 +94,7 @@ Alphabetical list of all config settings supported by this module:
  --expect-detail                  enable for extra expect debug detail
  --expect-detail-clean            enable for expect clean func detail
  --expect-enable <1|pass>         1 will prompt, default disabled
+ --expect-nologin                 disables expect-command login code
  --expect-noverify                set for rsa tokens, no password verify
  --expect-password <pass>         specify password, default will prompt
  --expect-port-ssh <0-65535>      default 22, port connection for ssh
@@ -132,7 +135,6 @@ not expected to change.
 List of hidden properties and methods used by this module:
 
  _expect                   perl Expect module session object
- _expect-replay            recorded expect data parsed for replay
  _expect-logfile-dtl       dtl logs of session activity, not dbg
  _expect-login-auth        set when login authentication in progress
  _expect-telnet            perl Net::Telnet session, if exists
@@ -193,11 +195,15 @@ BEGIN {
         'expect-telnet-timeout'  => 15,
     });
 
+    # init storage for replay file contents
+    my $expect_replay = '';
+
     # set input for username and passwords if batch mode configured
     if ($cfg->{'batch-list'} and $cfg->{'expect-batch'}) {
         &Mnet::input("expect-username");
         &Mnet::input("expect-password", "hide");
-        &Mnet::input("expect-enable", "hide") if $cfg->{'expect-enable'};
+        &Mnet::input("expect-enable", "hide")
+            if $cfg->{'expect-enable'} and $cfg->{'expect-enable'} eq '1';
     }
 
 # end of module initialization
@@ -377,12 +383,12 @@ times out.
     $self->dbg("command '$command' timeout ${timeout}s");
 
     # read command output if expect-replay is enabled
-    if ($self->{'expect-replay'} and $self->{'_expect-replay'}) {
-        $self->{'_expect-replay'} =~ s/^COMMAND:\Q$command\E\n\Q$delim\E\n//
-            or croak "expect-replay expected '$command' as first line";
-        $output = $self->{'_expect-replay'};
+    if ($self->{'expect-replay'} and $Mnet::Expect::expect_replay) {
+        $Mnet::Expect::expect_replay =~ s/^COMMAND:\Q$command\E\n\Q$delim\E\n//
+            or croak "expect-replay expected '$command' as next line";
+        $output = $Mnet::Expect::expect_replay;
         $output =~ s/\Q$delim\E\n((\S|\s)*)$//;
-        $self->{'_expect-replay'} = $1;
+        $Mnet::Expect::expect_replay = $1;
         foreach my $line (split(/\n/, $output)) {
             $self->dbg("|| $line");
         }
@@ -501,14 +507,16 @@ times out.
         $self->dbg("command '$command' returned undefined output");
     }
 
-    # save command output if expect-record is enabled
+    # save command output if expec-record is enabled
     if ($self->{'expect-record'}) {
         my $record_output = $output;
         $record_output = "" if not defined $output;
+        $record_output = "COMMAND:$command\n$delim\n$record_output\n$delim\n";
         open(FILE, ">>$self->{'expect-record'}")
-            or croak "expect-record $self->{'expect-record'} open err $!";
-        print FILE "COMMAND:$command\n$delim\n$record_output\n$delim\n"
+            or croak "expect-record $self->{'expect-record'} append err $!";
+        print FILE $record_output
             and $self->dbg("expect-record saved '$command' output");
+        $Mnet::Expect::expect_replay .= $record_output;
         CORE::close FILE;
     }
 
@@ -545,7 +553,8 @@ sub connect {
     if ($self->{'expect-bastion'} and $self->{'expect-bastion-command'}) {
         my $bastion_cmd = $self->{'expect-bastion-command'};
         $bastion_cmd =~ s/\{([^\}]+)\}/$Mnet::Expect::cfg->{$1}/g;
-        &inf("using bastion host $self->{'expect-bastion'}, $bastion_cmd");
+        $self->inf("using bastion host $self->{'expect-bastion'}");
+        $self->dbg("bastion host $self->{'expect-bastion'} cmd $bastion_cmd");
     }
 
     # initialize connection success flag
@@ -637,7 +646,7 @@ sub expect_connect {
         $start_txt = "net telnet $start_txt";
         $start_txt .= " ($self->{'object-address'})"
             if $self->{'object-address'} ne $self->{'object-name'};
-        &inf("start $start_txt");
+        $self->inf("start $start_txt");
         $self->expect_stderr("\n\nSTART: $start_txt\n\n");
 
         # connect net::telnet to object-address on expect-port-telnet
@@ -668,10 +677,14 @@ sub expect_connect {
         $self->{'_expect'}->log_file(sub { &expect_logfile($self, shift); })
             or return $self->expect_err("expect logging init error $!");
 
-        # handle login if username or password is set
-        if ($self->{'expect-username'} or $self->{'expect-password'}
-            or not defined $self->{'expect-username'}
-            or not defined $self->{'expect-password'}) {
+        # handle expect-nologin, or null username and password
+        if ($self->{'expect-nologin'}
+            or $self->{'expect-username'} eq ''
+            and $self->{'expect-password'} eq '') {
+            $self->inf("connected to $self->{'object-name'}");
+
+        # handle expect-command with normal username/password/enable login code
+        } else {
             $self->expect_login(
                 'expect-username',
                 'expect-password',
@@ -679,8 +692,6 @@ sub expect_connect {
                 $start_txt,
             ) or return undef;
             $self->inf("logged into $self->{'object-name'}");
-        } else {
-            $self->inf("connected to $self->{'object-name'}");
         }
 
         # log new expect session initiated and return
@@ -691,7 +702,7 @@ sub expect_connect {
         and not $self->{'bastion-host'}) {
 
         # log new expect session initiated and return
-        $self->info("connected to empty session");
+        $self->inf("connected to empty session");
         return $self;
 
     # continue with more flexible expect-command and optional expect-bastion
@@ -750,22 +761,38 @@ sub expect_connect {
         $expect_cmd = $expect_command;
         $expect_cmd =~ s/\{([^\}]+)\}/$Mnet::Expect::cfg->{$1}/g;
         ($command, @parameters) = (split(/\s+/, $expect_cmd));
-        $start_txt = "bastion command '$command @parameters' $start_txt";
-        &inf("start $start_txt");
+        $start_txt = "bastion command connect $start_txt";
+        $self->inf("start $start_txt");
+        $self->dbg("sending bastion command '$command @parameters'");
         $self->{'_expect'}->send("$expect_cmd\r");
-        $self->dbg("command $command initiated");
         
     # command spawn
     } else {
 
         # attempt to initiate session using expect-command, if configured
-        $self->dbg("command '$expect_command' initiating");
+        $self->dbg("expect command '$expect_command' initiating");
         my $expect_cmd = $expect_command;
-        $expect_cmd =~ s/\{([^\}]+)\}/$Mnet::Expect::cfg->{$1}/g;
+        while ($expect_cmd =~ /\{([^\}]+)\}/) {
+            my $tmp = $1;
+            if (not defined $Mnet::Expect::cfg->{$tmp}
+                and $tmp eq 'expect-username') {
+                my $user = $ENV{'USER'};
+                my $err = "'$expect_command' requires $tmp to be available";
+                return $self->expect_err("expect-command $err")
+                    if not defined $user;
+                $expect_cmd =~ s/\{\Q$tmp\E\}/$user/g;
+            } elsif (not defined $Mnet::Expect::cfg->{$tmp}) {
+                my $err = "'$expect_command' requires $tmp to be configured";
+                return $self->expect_err("expect-command $err");
+                $expect_cmd =~ s/\{\Q$tmp\E\}//g;
+            } else {
+                $expect_cmd =~ s/\{\Q$tmp\E\}/$Mnet::Expect::cfg->{$tmp}/g;
+            }
+        }
         my ($command, @parameters) = (split(/\s+/, $expect_cmd));
-        $self->dbg("command $command, parameters '@parameters'");
+        $self->inf("start $command $start_txt");
         $start_txt = "command '$command @parameters' $start_txt";
-        &inf("start $start_txt");
+        $self->dbg("spawning command '$command @parameters' $start_txt");
         $self->expect_stderr("\n\nSTART: $start_txt\n\n");
         $self->{'_expect'} = Expect->spawn($command, @parameters)
             or return $self->expect_err("spawn error to command $command");
@@ -782,9 +809,9 @@ sub expect_connect {
     }
 
     # handle login if username or password is set
-    if ($self->{'expect-username'} or $self->{'expect-password'}
-        or not defined $self->{'expect-username'}
-        or not defined $self->{'expect-password'}) {
+    if ($self->{'expect-nologin'}) {
+        $self->inf("connected to $self->{'object-name'}");
+    } else {
         $self->expect_login(
             'expect-username',
             'expect-password',
@@ -792,8 +819,6 @@ sub expect_connect {
             $start_txt,
         ) or return undef;
         $self->inf("logged into $self->{'object-name'}");
-    } else {
-        $self->inf("connected to $self->{'object-name'}");
     }
 
     # log new expect session initiated, and return
@@ -935,7 +960,7 @@ sub expect_login {
                 '-re', $self->{'expect-prompt-goodpass'},
                 '-re', $self->{'expect-prompt-command'},
             ) or return $self->expect_err("no next prompt");
-            }
+        }
 
     # finished handling first username prompt
     }
@@ -1080,18 +1105,23 @@ session using something besides telnet, such as ssh.
 
     # read expect-replay file and return right away
     if ($self->{'expect-replay'}) {
-        $self->{'_expect-replay'} = '';
-        $self->dbg("reading expect-replay $self->{'expect-replay'}");
-        open(FILE, $self->{'expect-replay'})
-            or croak "expect-replay file $self->{'expect-replay'} open err $!";
-        while (<FILE>) { $self->{'_expect-replay'} .= $_; }
-        CORE::close FILE;
-        $self->dbg("finished reading expect-replay file");
+        if (not $Mnet::Expect::expect_replay or $args->{'expect-replay'}) {
+            $Mnet::Expect::expect_replay = '';
+            $self->dbg("reading expect-replay $self->{'expect-replay'}");
+            open(FILE, $self->{'expect-replay'}) or croak
+                "expect-replay file $self->{'expect-replay'} open err $!";
+            while (<FILE>) { $Mnet::Expect::expect_replay .= $_; }
+            CORE::close FILE;
+            $self->dbg("finished reading expect-replay file");
+        }
+        $self->dbg("returning new expect-replay session");
         return $self;
     }
 
     # remove any old expect-record file
-    if ($self->{'expect-record'}) {
+    if ($self->{'expect-record'} and not $Mnet::Expect::expect_replay
+        or $args->{'expect-replay'}) {
+        $Mnet::Expect::expect_replay = '';
         $self->dbg("creating expect-record $self->{'expect-record'}");
         unlink($self->{'expect-record'})
             or croak "expect-record $self->{'expect-record'} del err $!"
@@ -1102,7 +1132,7 @@ session using something besides telnet, such as ssh.
     # return undefined if unable to connect to expect session
     return undef if not $self->connect;
 
-    # return
+    # finished new classs method
     return $self;
 }
 
@@ -1176,7 +1206,6 @@ sub prompt {
     }
 
     # remove suffix characters from prompt and store
-    #? $prompt1 =~ s/\s*(>|\$|#|\(|\%).*$//;
     $prompt1 =~ s/$self->{'expect-prompt-command'}/$1/;
 
     # output debug log entry
@@ -1255,7 +1284,7 @@ Refer to `perldoc Mnet` for more information.
 
 =head1 SEE ALSO
 
-Expect, Mnet, Net::Telnet
+Expect, Mnet, Mnet::Expect::IOS, Net::Telnet
 
 =cut
 

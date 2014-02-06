@@ -11,6 +11,9 @@ Mnet::script::Mnet-config-push - network automation script
 
 =head1 SYNOPSIS
 
+This script uses the Mnet::Expect perl module to examine and make
+changes to one or more objects.
+
 Usage example:
 
  Mnet-config-push \
@@ -28,8 +31,10 @@ Usage example:
 
 =head1 DESCRIPTION
 
-This script used the Mnet perl modules to examine and make changes to
-one or more objects.
+This script can log into a list of devices and possibly push a list
+of config-push-commands to each devices. Before pushing the config
+commands a config-push-check can be used to see if the config already
+appears to be present in the device.
 
 The batch-list and batch-hosts arguments will instruct the script to
 connect to all entries in the system /etc/hosts file for the config

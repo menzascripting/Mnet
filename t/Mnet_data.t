@@ -8,8 +8,7 @@ use Test::More;
 delete $ENV{'MNET'};
 
 # test for some modules
-eval { require File::Temp; };
-&plan(skip_all => "perl File::Temp module not installed") if $@;
+eval { require File::Temp; } or die "perl File::Temp module not found";
 
 # Insert your test code below, refer to Test::More man page
 
@@ -29,6 +28,7 @@ my $perl_test_data = '
 
 # create temp directory for data-dir testing
 my $dir_data = File::Temp->newdir(TMPDIR => 1); 
+
 # test data-dir
 $cmd = "$perl_test_data --data-dir $dir_data --object-name test";
 $out = &output($cmd);

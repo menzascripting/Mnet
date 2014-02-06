@@ -19,15 +19,14 @@ already configured.
 Usage examples:
 
  use Mnet;
- use SNMP;
+ use Mnet::SNMP;
  my $cfg = &object({
      'object-address' => 'hub1-rtr',
      'snmp-community' => 'secret',
  });
  my $oid1 = '.1.3.6.1.2.1.1.5.0';
  my $value = &snmp_get($oid1);
- my $value = &snmp_get($oid1, {'snmp-retries' => 1});
- my %table = {};
+ my %table = ();
  my @oids = ('.1.3.6.1.2.1.1.1.0', '.1.3.6.1.2.1.1.5.0');
  &snmp_bulkget(\@oids, \%table);
  my $oid = '.1.3.6.1.2.1.2.2.1';
@@ -129,12 +128,10 @@ BEGIN {
         and not $cfg->{'snmp-replay'};
 
     # remove any old snmp-record file
-    if ($cfg->{'snmp-record'}) {
+    if ($cfg->{'snmp-record'} and -e $cfg->{'snmp-record'}) {
         &dbg("deleting snmp-record file $cfg->{'snmp-record'}");
         unlink($cfg->{'snmp-record'})
-            or croak "snmp-record $cfg->{'snmp-record'} del err $!"
-            if -e $cfg->{'snmp-record'};
-        &dtl("old snmp-record $cfg->{'snmp-record'} deleted");
+            or croak "snmp-record $cfg->{'snmp-record'} del err $!";
     }
 
 # end of module initialization
@@ -473,9 +470,8 @@ the query result.
 
     # log and optionally record snmp value
     } else {
-        &dbg("$log snmp-record oid $oid value = '$result->{$oid}'");
+        &dbg("$log oid $oid value = '$result->{$oid}'");
         if ($args->{'snmp-record'}) {
-            &dbg("$log snmp-record oid $oid value = '$result->{$oid}'");
             &snmp_record($args->{'snmp-record'}, $oid, $result->{$oid});
         }
     }

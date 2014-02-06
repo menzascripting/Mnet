@@ -44,7 +44,7 @@ Usage examples:
  # issue and confirm a timed reload
  $session->reload_in(5) or die;
 
- # gather stanza config and set all staza related data properties
+ # gather stanza config and set all stanza related data properties
  my $int_cfg = $session->show_stanza("interface FastEthernet0/0");
 
  # push new config to ios device, return on error, backout optional
@@ -64,31 +64,32 @@ Usage examples:
  $session->close;
 
 Refer also to the stanza_* methods in this documentation for info
-on how to check and update interface, access-list, class-map, etc
+on how to check and update interface, access-list, class-map, etc.
 config stanzas.
 
 =head1 DESCRIPTION
 
-This module can be used to communicate with IOS devices.
+This module can be used to interact with IOS devices.
 
 This module inherits all of the Mnet::Expect module methods and
 properties. Refer to the documentation for that module. Methods
 and properties specific to this module are described below.
 
-Other functions exist to implement config changes with the ability to
-detect errors and backout the config, to reload the router, execute
-pings, etc. Refer to the documentation below for a description of all
-fucntions and how to use them.
+Functions exist to implement config changes with the ability to detect
+errors and backout the config, to reload the router, execute pings,
+etc. Refer to the documentation below for a description of all
+functions and how to use them.
 
 =head1 CONFIGURATION
 
 Alphabetical list of all config settings supported by this module:
 
- --ios-config-ignore     set regex for config push errors to ignor
- --ios-detail            enable extra debug detail
+ --ios-config-ignore     set regex for config push errors to ignore
+ --ios-detail            enable extra debug detail from this module
  --ios-ints-lan-re       default regex '(atm|multi|pos|serial|tunnel)'
  --ios-ints-wan-re       default regex '(ethernet|token)'
  --ios-no-term-length    set true to skip term len 0 after login
+ --ios-tab-strip         default strips leading groups of 4 spaces
  --ios-version           set at compilation to build number
 
 =head1 EXPORTED FUNCTIONS
@@ -145,7 +146,8 @@ warnings or errors. This property is cleared when the change method
 is finished.
 
 Note that a timeout will cause script errors. The Mnet::Expect
-command method can be used to work around an expected timeout.
+command method can be used instead of this method to work around an
+expected timeout.
 
 The implemenation and backout arguments may be specified either as
 strings with linefeeds, or as referenced arrays of command lines.
@@ -260,7 +262,7 @@ file specifications. An optional verifiy argument can be used to confirm
 that the copy was successful.
 
 Note that the verify argument can be set to '1' or to an md5 checksum.
-If the verify arg is set to a value of one then a simplier checksum
+If the verify arg is set to a value of '1' then a simple checksum
 verification will be attempted using the ios verify command. If an md5
 value is supplied as the verify arg then an ios verify with the /md5
 flag will be used to check the destination file. If the /md5 option
@@ -268,21 +270,22 @@ is not available on a device then checksum verification will be used
 as a fallback.
 
 This method will return a value of true if the copy and optional verify
-succeeded. If the copy of the verify fails the result will be undefined.
+succeeded. If the copy or the verify fails the result will be undefined.
 
 Note that source and destinations can be specified as filepaths on local
-filesystems, such as nvram:startup-config or flash:/path/file or network
-filespecs, such as tftp://10.9.8.7/boot/router1.cfg.
+filesystems, such as nvram:startup-config or flash:/path/file, or network
+filespecs such as tftp://10.9.8.7/boot/router1.cfg.
 
 The ios device may prompt to erase the destination filesystem as part
 of the copy. The script will always answer 'n' (no) to this prompt.
 
 The ios device may prompt to overwrite the destination file, if it
-exists. The script will answer yes if no verify argument was supplied.
-If a verify argument was supplied then the script will answer yes.
+exists. The script will answer 'y' (yes) if no verify argument was
+supplied. If a verify argument was supplied then the script will
+answer 'n' (no).
 
-If the verify arg is set a destination file fails verification it will
-be deleted.
+If the verify arg is set and a destination file fails verification
+it will be deleted.
 
 =cut
 
@@ -559,7 +562,7 @@ connected ios device.
 
 A value of true is returned by this method when the reload is
 confirmed as canceled.  A log warning is otherwise generated
-an undefined value returned.
+and an undefined value returned.
 
 =cut
 
@@ -605,8 +608,8 @@ The config will not be saved. The `show reload` command will be
 used to confirm that a reload is scheduled.
 
 A value of true is returned by this method when the reload is
-confirmed as succeeded.  A log warning is otherwise generated
-an undefined value returned.
+confirmed as scheduled.  A log warning is otherwise generated
+and an undefined value returned.
 
 =cut
 
@@ -656,7 +659,7 @@ Normally the 'write memory' command is issued first. The optional
 no_write_mem argument, if set to true, will cause the ios device to
 be reloaded without saving the currently running configuration.
 
-It is expected that the reload command will timout without returning
+It is expected that the reload command will timeout without returning
 to a command prompt and that the Mnet::Expect session will need to be
 re-established to the target device. There is a one minute pause
 before attempting to reconnect on the new session. Reconnect attempts

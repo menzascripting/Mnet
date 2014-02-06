@@ -8,12 +8,10 @@ use Test::More;
 delete $ENV{'MNET'};
 
 # test for some modules
-eval { require File::Temp; };
-&plan(skip_all => "perl File::Temp module not installed") if $@;
+eval { require File::Temp; } or die "perl File::Temp module not found";
 
 # requires mnet silent module
-eval { require Mnet::Silent; };
-&plan(skip_all => "perl Mnet::Silent module not installed") if $@;
+eval { require Mnet::Silent; } or die "perl Mnet::Silent module not found";
 
 # Insert your test code below, refer to Test::More man page
 

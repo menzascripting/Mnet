@@ -148,7 +148,7 @@ List of all config settings supported by this module:
  --data-dir </path/dir>   specify object data subdirectories location
 
  --log-detail-all         enable for extra debug detail for everything
- --log-diff               zero stdout log times, no summary, for diffs
+ --log-diff               zero out log times, elapsed times, and pids
  --log-filter             default '^(?i)\S+-(enable|md5|pass|secret)'
  --log-level <0-7>        default sev 6, controls logging except stderr
  --log-long               enable to force object in log file output
@@ -1625,7 +1625,7 @@ first object call this function prompts terminal standard error.
         if not defined $object or $object !~ /\S/;
 
     # output log message
-    &dbg("input $object $option from terminal");
+    &dbg("input ${object}$option from terminal");
 
     # initialize input variables, echo suppression and verification loop
     my ($input1, $input2) = ("", "");
@@ -2205,9 +2205,6 @@ END {
         $exit = "script $Mnet::cfg->{'mnet-script'} clean exit, $exit";
     }
 
-    # remove log summary if running with log-diff set
-    $Mnet::log_summary = "" if $Mnet::cfg->{'log-diff'};
-
     # if mnet error is set then output debug logs to stderr
     if ($Mnet::error and $Mnet::cfg->{'log-stderr'}) {
 
@@ -2294,12 +2291,13 @@ documentation.
 
 Mnet::Cygwin, Mnet::FAQ, Mnet::Support, Mnet::Tutorial
 
-Mnet::Expect, Mnet::IP, Mnet::Model, Mnet::HPNA,
-Mnet::Ping, Mnet::Poll, Mnet::Poll::Cisco, Mnet::Report,
-Mnet::RRD, Mnet::Silent, Mnet::SNMP
+Mnet::Expect, Mnet::Expect::IOS Mnet::IP, Mnet::Model, Mnet::HPNA,
+Mnet::Ping, Mnet::Poll, Mnet::Poll::Cisco, Mnet::Report, Mnet::RRD,
+Mnet::Silent, Mnet::SNMP
 
 Mnet::script::Mnet-config-backup, Mnet::script::Mnet-config-push,
-Mnet::script::Mnet-poll-objects, Mnet::script::Mnet-web-mojo
+Mnet::script::Mnet-poll-objects, Mnet::script::Mnet-test,
+Mnet::script::Mnet-web-mojo
 
 =cut
 

@@ -11,6 +11,11 @@ Mnet::Model - network automation scripting module
 
 =head1 SYNOPSIS
 
+This module is used to retrieve data from a configured db-name
+database and/or a configured data-dir directory.
+
+The data returned from these functions can be used by other scripts.
+
 Usage example:
 
  use Mnet;
@@ -24,15 +29,8 @@ Usage example:
  my $objects = &object_query({'object' => 'router*'});
  my $object = &object_info({'object' => 'router1'});
     
-Refer to the documentation for each function below on valid input
-options and output elements.
-
-=head1 DESCRIPTION
-
-This module is used to retrieve data from an db-name database and/or
-and data-dir directory.
-
-The data returned from each function can be used by other scripts.
+Refer to the function documentation below for valid input options
+and output elements.
 
 =head1 CONFIGURATION
 

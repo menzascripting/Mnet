@@ -4,7 +4,7 @@ Mnet - network automation scripting readme
 
 =head1 SYNOPSIS
 
-The Mnet module is for perl programmers who want to create network
+The Mnet modules are for perl programmers who want to create network
 automation, reporting, and monitoring scripts.
 
 Almost all routers, switches and servers can be managed from a text
@@ -16,15 +16,16 @@ It is possible to automate these activities. Any engineering task that
 can be defined in detail can be automated with a script. Anything from
 password changes to very complex circuit migrations can automated.
 
-For network automation scripts the Mnet perl module is a more complete
-solution than the low level Expect and Net::Telnet libraries. Mnet
-facilitates batch processing, advanced logging, reporting, and
-repeatable testing.
+Many unix management tools do not work on specialized network devices. 
+For network automation scripts the Mnet perl modules are a more
+complete solution than the low level Expect and Net::Telnet
+libraries. Mnet facilitates batch processing, advanced logging,
+reporting, and repeatable testing.
 
-The Mnet perl module is far more flexible and less cumbersome to use
-than larger enterprise management systems for automation scripts -
-getting out of the way and allowing the focus to be on developing
-and testing the engineering logic in a script.
+The Mnet perl modules are far more flexible and less cumbersome to
+use than larger enterprise management systems for automation
+scripts - getting out of the way and allowing the focus to be on
+developing and testing the engineering logic in a script.
 
 Mnet was made based on expert experience developing supportable
 advanced network automation scripts in a large enterprise environment
@@ -46,13 +47,21 @@ file.
 - Flexible config settings via command line arguments, system config
 files, and/or a batch mode device list file.
 
-- Reliable automation of cisco IOS and other command line sessions, including autodetection of ssh and telnet, flexible authentication, bastion host connections, and reliable command prompt handling.
+- Reliable automation of cisco IOS and other command line sessions,
+including autodetection of ssh and telnet, flexible authentication,
+bastion host connections, and reliable command prompt handling.
 
 - Record and replay command line sessions, speeding the development
 of automation scripts and allowing for proper regression testing.
 
 - Report data from script can be output as plain .csv files or can
 be viewed from a database web server.
+
+- Specialized handling of cisco ios devices, including advanced parsing
+and modification of configuration stanzas, scheduled reloads, and more.
+
+- Framework for regression testing of automation scripts, handling
+multiple scenarios, integrated with session record/replay capabilities.
 
 - Ping and snmp functions, basic uptime and interface monitoring, and
 the capability to create custom polling alerts and graphs.

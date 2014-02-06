@@ -5,6 +5,7 @@ Makefile.PL
 README.pod
 lib/Mnet/Cygwin.pod
 lib/Mnet/Expect.pm
+lib/Mnet/Expect/IOS.pm
 lib/Mnet/FAQ.pod
 lib/Mnet/HPNA.pm
 lib/Mnet/IP.pm
@@ -22,7 +23,9 @@ lib/Mnet.pm
 script/Mnet-config-backup
 script/Mnet-config-push
 script/Mnet-poll-objects
+script/Mnet-test
 script/Mnet-web-mojo
+t/Mnet-test.t
 t/Mnet_alert.t
 t/Mnet_batch.t
 t/Mnet_config.t
@@ -30,10 +33,12 @@ t/Mnet_data.t
 t/Mnet_Expect.t
 t/Mnet_HPNA.t
 t/Mnet_input.t
+t/Mnet_IOS.t
 t/Mnet_log.t
 t/Mnet_Poll_Cisco.t
 t/Mnet_Poll.t
 t/Mnet_SNMP.t
+t/data/Mnet-test.pl
 t/data/Mnet_Poll.mods/Mnet_Client/Poll/Custom2.pm
 t/data/Mnet_Poll.snmp
 t/data/Mnet_Poll_Cisco.snmp
