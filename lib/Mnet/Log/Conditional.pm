@@ -24,7 +24,7 @@ use Exporter qw(import);
 use Mnet::Opts::Cli::Cache;
 
 # export function names
-our @EXPORT_OK = qw( DEBUG INFO WARN FATAL );
+our @EXPORT_OK = qw( DEBUG INFO NOTICE WARN FATAL );
 
 
 
@@ -71,9 +71,9 @@ the Mnet::Log module is not loaded then nothing happens.
 
 =cut
 
-    # call Mnet::Log::_output if loaded or return
+    # call Mnet::Log::output if loaded or return
     my ($self, $text) = (shift, shift);
-    return Mnet::Log::_output($self, "dbg", 7, scalar(caller), $text)
+    return Mnet::Log::output($self, "dbg", 7, scalar(caller), $text)
         if $INC{"Mnet/Log.pm"};
     return 1;
 }
@@ -89,9 +89,23 @@ the Mnet::Log module is not loaded then nothing happens.
 
 =cut
 
-    # call Mnet::Log::_output if loaded or return
+    # call Mnet::Log::output if loaded or return
     my ($self, $text) = (shift, shift);
-    return Mnet::Log::_output($self, "inf", 6, scalar(caller), $text)
+    return Mnet::Log::output($self, "inf", 6, scalar(caller), $text)
+        if $INC{"Mnet/Log.pm"};
+    return 1;
+}
+
+
+
+sub notice {
+
+# $self->notice($text)
+# purpose: output notice using Mnet::Log if loaded, otherwise nothing happens
+
+    # call Mnet::Log::output if loaded or return;
+    my ($self, $text) = (shift, shift);
+    return Mnet::Log::output($self, " - ", 5, scalar(caller), $text)
         if $INC{"Mnet/Log.pm"};
     return 1;
 }
@@ -107,9 +121,9 @@ the Mnet::Log module is not loaded then the perl warn command is called.
 
 =cut
 
-    # call Mnet::Log::_output if loaded or warn
+    # call Mnet::Log::output if loaded or warn
     my ($self, $text) = (shift, shift);
-    return Mnet::Log::_output($self, "WRN", 4, scalar(caller), $text)
+    return Mnet::Log::output($self, "WRN", 4, scalar(caller), $text)
         if $INC{"Mnet/Log.pm"};
     warn $text;
     return 1;
@@ -126,9 +140,9 @@ the Mnet::Log module is not loaded then the perl die command is called.
 
 =cut
 
-    # call Mnet::Log_output if loaded or die
+    # call Mnet::Logoutput if loaded or die
     my ($self, $text) = (shift, shift);
-    Mnet::Log::_output($self, "DIE", 2, scalar(caller), $text)
+    Mnet::Log::output($self, "DIE", 2, scalar(caller), $text)
         if $INC{"Mnet/Log.pm"};
     die $text;
 }
@@ -144,9 +158,9 @@ the Mnet::Log module is not loaded then nothing happens.
 
 =cut
 
-    # call Mnet::Log::_output if loaded or return;
+    # call Mnet::Log::output if loaded or return;
     my $text = shift;
-    return Mnet::Log::_output(undef, "dbg", 7, scalar(caller), $text)
+    return Mnet::Log::output(undef, "dbg", 7, scalar(caller), $text)
         if $INC{"Mnet/Log.pm"};
     return 1;
 }
@@ -162,9 +176,23 @@ the Mnet::Log module is not loaded then nothing happens.
 
 =cut
 
-    # call Mnet::Log::_output if loaded or return;
+    # call Mnet::Log::output if loaded or return;
     my $text = shift;
-    return Mnet::Log::_output(undef, "inf", 6, scalar(caller), $text)
+    return Mnet::Log::output(undef, "inf", 6, scalar(caller), $text)
+        if $INC{"Mnet/Log.pm"};
+    return 1;
+}
+
+
+
+sub NOTICE {
+
+# NOTICE($text)
+# purpose: output notice using Mnet::Log if loaded, otherwise nothing happens
+
+    # call Mnet::Log::output if loaded or return;
+    my $text = shift;
+    return Mnet::Log::output(undef, " - ", 5, scalar(caller), $text)
         if $INC{"Mnet/Log.pm"};
     return 1;
 }
@@ -180,9 +208,9 @@ the Mnet::Log module is not loaded then the perl warn command is called.
 
 =cut
 
-    # call Mnet::Log::_output if loaded or warn
+    # call Mnet::Log::output if loaded or warn
     my $text = shift;
-    return Mnet::Log::_output(undef, "WRN", 4, scalar(caller), $text)
+    return Mnet::Log::output(undef, "WRN", 4, scalar(caller), $text)
         if $INC{"Mnet/Log.pm"};
     CORE::warn $text;
     return 1;
@@ -199,9 +227,9 @@ the Mnet::Log module is not loaded then the perl die command is called.
 
 =cut
 
-    # call Mnet::Log::_output if loaded or die
+    # call Mnet::Log::output if loaded or die
     my $text = shift;
-    Mnet::Log::_output(undef, "DIE", 2, scalar(caller), $text)
+    Mnet::Log::output(undef, "DIE", 2, scalar(caller), $text)
         if $INC{"Mnet/Log.pm"};
     exit 1;
 }
@@ -211,6 +239,7 @@ the Mnet::Log module is not loaded then the perl die command is called.
 =head1 SEE ALSO
 
  Mnet
+ Mnet::Opts::Cli::Cache
 
 =cut
 

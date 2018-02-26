@@ -49,6 +49,26 @@ INIT {
 
 
 
+sub set {
+
+# Mnet::Opts::Cli::Cache::set(\%opts, @extras)
+# purpose: called from Mnet::Opts::Cli->new to cache cli opts and extra args
+# \%opts: Mnet::Opts::Cli object parsed by Mnet::Opts::Cli->new
+# @extras: extra cli arguments parsed by Mnet::Opts::Cli->new
+# note: this is meant to be called from Mnet::Opts::Cli only
+
+    # set global cache variables with input opts object and extra args
+    #   output debug if unexpectantly called other than from Mnet::Opts::Cli
+    my ($opts, @extras) = (shift, @_);
+    $Mnet::Opts::Cli::Cache::opts = $opts;
+    $Mnet::Opts::Cli::Cache::extras = @extras;
+    Mnet::Log::Conditional::DEBUG("set called from ".caller)
+        if caller ne "Mnet::Opts::Cli";
+    return;
+}
+
+
+
 sub get {
 
 =head1 \%opts = Mnet::Opts::Cli::Cache::get(\%input);
@@ -88,30 +108,11 @@ Refer to the SYNOPSIS section of this perldoc for usage examples and more info.
 
 
 
-sub set {
-
-# Mnet::Opts::Cli::Cache::set(\%opts, @extras)
-# purpose: called from Mnet::Opts::Cli->new to cache cli opts and extra args
-# \%opts: Mnet::Opts::Cli object parsed by Mnet::Opts::Cli->new
-# @extras: extra cli arguments parsed by Mnet::Opts::Cli->new
-# note: this is meant to be called from Mnet::Opts::Cli->new only
-
-    # set global cache variables with input opts object and extra args
-    #   output debug if unexpectantly called other than from Mnet::Opts::Cli
-    my $opts = shift // croak("missing opts arg");
-    my @extras = @_; 1 while shift;
-    $Mnet::Opts::Cli::Cache::opts = $opts;
-    $Mnet::Opts::Cli::Cache::extras = @extras;
-    Mnet::Log::Conditional::DEBUG("set called from ".caller)
-        if caller ne "Mnet::Opts::Cli";
-    return;
-}
-
-
-
 =head1 SEE ALSO
 
  Mnet
+ Mnet::Log::Conditional
+ Mnet::Opts::Set
 
 =cut
 

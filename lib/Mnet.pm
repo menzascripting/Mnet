@@ -9,16 +9,13 @@ Mnet
 This module can be used as a shortcut to load the following modules and make
 available the following methods:
 
+ use Mnet::Test qw($stderr $stdout);
+
  use Mnet::Opts::Cli;
  my $cli = Mnet->Cli();
 
  use Mnet::Log qw(DEBUG INFO WARN FATAL);
  my $log = Mnet->Log();
-
- use Mnet::Opts;
- my $opts = Mnet->Opts();
-
- use Mnet::Test;
 
 If this doesn't work for you then as an alternative you can load only the
 individual Mnet modules that you need.
@@ -32,9 +29,8 @@ use warnings;
 use strict;
 use Exporter qw( import );
 use Mnet::Log qw( DEBUG INFO WARN FATAL );
-use Mnet::Opts;
 use Mnet::Opts::Cli;
-use Mnet::Test;
+use Mnet::Test qw( $stderr $stdout );
 
 # export function names
 our @EXPORT = qw( DEBUG INFO WARN FATAL );
@@ -48,20 +44,13 @@ sub Opts { shift; return Mnet::Opts->new(@_); }
 
 #? double check all perldoc
 
-#? create Mnet::Batch module
-#   --batch=s, from stdin, named pipe, maybe file or sqlite, or array ref
-#   --watchdog=i, minutes, batch children can have separate --watchdog
-#   how does batch inject new cli opts in coordination with Mnet::Opts
-#       could --batch arg reference an Mnet::Test --record sqlite stash?
-#       also, could --batch arg be a Data::Dumper list? maybe from stash?
-#   have batch parent check error exit status of child, using $?
-#   https://www.safaribooksonline.com/library/view/mastering-perl/9780596527242/ch12.html
-#   $pid = Mnet::Batch::fork(\%opts) # cli --batch opt, maybe others later
-#   $bool = Mnet::Batch::child()
-#   $bool = Mnet::Batch::parent()
-
 #? create Mnet::Expect module
 #   $self = Mnet::Expect->new
+#   add -re '\r\N' progress bar handling
+#       $match = $expect->match;
+#       $match =~ /\N*\r(\N)/$1/;
+#       $match .= $expect->after;
+#       expect->set_accum($match);
 #   how far does this module go?
 #   how can we support weird menus and characters, etc
 #   can we have multiple types of expect wrapper modules?
@@ -114,6 +103,7 @@ this program. If not, see http://www.gnu.org/licenses/
  Mnet::Opts::Set::Quiet
  Mnet::Opts::Set::Silent
  Mnet::Test
+ Mnet::Version
 
 =cut
 

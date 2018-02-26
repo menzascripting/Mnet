@@ -18,6 +18,23 @@ Mnet::Opts::Set pragma sub-modules.
 # required modules
 use warnings;
 use strict;
+use Carp;
+
+
+
+sub enable {
+
+# Mnet::Opts::Set::enable($pragma)
+# purpose: use this function to dynamically load the specified pragma option
+# $pragma: progma option to enable, such as silent, quiet, etc.
+
+    my $pragma = shift // croak "missing pragma arg";
+    my $path = $INC{"Mnet/Opts/Set.pm"};
+    $path =~ s/(Mnet\/Opts\/Set)\.pm$/$1\//;
+    $path .= ucfirst($pragma) . ".pm";
+    $INC{"Mnet/Opts/Set/".ucfirst($pragma).".pm"} = $path;
+    return;
+}
 
 
 

@@ -107,6 +107,9 @@ It is also ok to directly access the values of hash keys in the options object.
 =head1 SEE ALSO
 
  Mnet
+ Mnet::Dump
+ Mnet::Log::Conditional
+ Mnet::Opts::Set
 
 =cut
 

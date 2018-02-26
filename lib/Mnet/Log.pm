@@ -6,6 +6,23 @@ Mnet::Log
 
 =head1 SYNOPSIS
 
+This module supports generating the following types of log entries
+
+ dbg   stdout   detailed info, visible when debug option is set
+ inf   stdout   normal informational entries intended for users
+ log   stdout   reserved for script start and finish log entries
+ WRN   stderr   logged warning entries, execution will continue
+ ERR   stderr   perl die and warn outputs with stack trace
+ DIE   stderr   logged fatal errors, execution aborts
+
+The following options can be used to control log outputs:
+
+ debug      enable dbg log outputs
+ quiet      disable all stdout log outputs
+ silent     disable all stdout and stderr log outputs
+
+Log entries can be called as functions or as methods, as follows:
+
  # imports DEBUG, INFO, WARN, and FATAL
  use Mnet::Log qw(DEBUG INFO WARN FATAL);
 
@@ -38,21 +55,34 @@ Mnet::Log
  FATAL($text);
  $log->fatal($text);
 
- # first line of first error entry
+ # first line of first WRN/ERR/DIE entry
  $text = Mnet::Log::errors();
+
+Note that this module also installed die, warn, int, and term signal handlers,
+in order to augment the logging of these events. These are made to pass through
+compile and eval warn and die events as normal.
+
+=head1 TESTING
+
+When used with the Mnet::Test --record option all stdout and stderr log entry
+output from this module is captured with the exception of dbg and log entries.
+
+Refer to the Mnet::Test module for more information.
 
 =cut
 
 # required modules
+#   perl 5.8 required for decent signal handling, refer to man perlipc
 #   note that Mnet modules should use Mnet::Log::Conditional, not this module
 use warnings;
 use strict;
-use 5.010;
+use 5.008;
 use Carp;
 use Exporter qw( import );
 use Mnet::Opts;
 use Mnet::Opts::Cli;
 use Mnet::Opts::Cli::Cache;
+use Mnet::Version;
 
 # export function names
 our @EXPORT_OK = qw( DEBUG INFO WARN FATAL );
@@ -73,45 +103,57 @@ BEGIN {
     #   should be set for perl warn and die, and warn and fatal Mnet::Log calls
     my $errors = undef;
 
-    # override perl warn command
-    #   we do this so as not to interfere with SIG handlers
-    #   CORE::warn can be used to call original perl warn command
-    #   first goto propagates propagated errors, second handles warn from evals
-    #   carp longmess output as error for first error, otherwise as debug
-    *CORE::GLOBAL::warn = sub {
-        goto &CORE::warn unless @_;
-        goto &CORE::warn if $^S;
-        my $error = "@_";
-        my @trace = split(/\n/, Carp::longmess());
-        $error .= shift(@trace) if $error !~ /\n$/;
-        if (not defined $Mnet::Log::errors) {
-            _output(undef, "ERR", 3, scalar(caller), "perl warning, $error");
-            _output(undef, "err", 3, scalar(caller), "@trace") if $trace[0];
+    # declare sub used by SIG handlers to log error and stack trace info
+    sub _sig_handler {
+        my ($label, $caller, $error, $sev) = (shift, shift, shift, 7);
+        $sev = 3 if not defined $Mnet::Log::errors;
+        output(undef, "ERR", 3, $caller, "$label, $error");
+        output(undef, "err", $sev, $caller, "$label, $_")
+            foreach split(/\n/, Carp::longmess());
+        output(undef, "err", $sev, $caller, "$label, \$! = $!") if $! ne "";
+        output(undef, "err", $sev, $caller, "$label, \$@ = $@") if $@ ne "";
+        output(undef, "err", $sev, $caller, "$label, \$? = $?") if $? ne "";
+        output(undef, "err", $sev, $caller, "$label, \$^E = $^E") if $^E ne "";
+    }
+
+    # trap perl die signal, log as error and exit with a failed status
+    #   CORE::die handles propogated, compile, and eval warnings
+    #   $^S is undef while compiling/parsing, true in eval, false otherwise
+    #   exit with error after _sig_handler call to output error and stack trace
+    $SIG{__DIE__} = sub {
+        if (not @_ or not defined $^S or $^S) {
+            &CORE::die;
         } else {
-            _output(undef, "ERR", 3, scalar(caller), "perl warning, $error");
-            _output(undef, "err", 7, scalar(caller), "@trace") if $trace[0];
+            _sig_handler("perl die", scalar(caller), "@_");
         }
+        exit 1;
     };
 
-    # override perl die command
-    #   we do this so as not to interfere with SIG handlers
-    #   CORE::die can be used to call original perl die command
-    #   first goto propagates propagated errors, second handles die from evals
-    #   carp longmess output as error for first error, otherwise as debug
-    *CORE::GLOBAL::die = sub {
-        goto &CORE::die unless @_;
-        goto &CORE::die if $^S;
-        my $error = "@_";
-        my @trace = split(/\n/, Carp::longmess());
-        $error .= shift(@trace) if $error !~ /\n$/;
-        if (not defined $Mnet::Log::errors) {
-            _output(undef, "ERR", 3, scalar(caller), "perl died, $error");
-            _output(undef, "err", 3, scalar(caller), "@trace") if $trace[0];
+    # trap perl warn signal, log as error and resume execution
+    #   CORE::warn handles propogated, compile, and eval warnings
+    #   $^S is undef while compiling/parsing, true in eval, false otherwise
+    #   return after _sig_handler call to output error and stack trace
+    $SIG{__WARN__} = sub {
+        if (not @_ or not defined $^S or $^S) {
+            &CORE::warn;
         } else {
-            _output(undef, "ERR", 3, scalar(caller), "perl died, $error");
-            _output(undef, "err", 7, scalar(caller), "@trace") if $trace[0];
+            _sig_handler("perl warn", scalar(caller), "@_");
         }
-        exit(1);
+        return 1;
+    };
+
+    # trap system interrupt signal, log as error and exit with failed status
+    #   output a linefeed to stderr after ^C put there by shell
+    $SIG{INT} = sub {
+        syswrite STDERR, "\n";
+        output(undef, "ERR", 3, scalar(caller), "terminate signal received");
+        exit 1;
+    };
+
+    # trap terminate signal, log as error and exit with failed status
+    $SIG{TERM} = sub {
+        output(undef, "ERR", 3, scalar(caller), "terminate signal received");
+        exit 1;
     };
 
 # begin block finished
@@ -119,16 +161,29 @@ BEGIN {
 
 
 
-# init cli options used by this module
+# init debug output and cli options used by this module
 INIT {
+
+    # init stdout file handle to bypass Mnet::Test output capture if loaded
+    our $stdout = undef;
+    if ($INC{"Mnet/Test.pm"}) {
+        $stdout = $Mnet::Test::stdout;
+    } else {
+        open($stdout, ">&STDOUT");
+    }
+
+    # init --debug option
     Mnet::Opts::Cli::define({
         getopt      => 'debug',
         help_tip    => 'set to display extra debug log entries',
         help_text   => '
             note that the --quiet and --silent options override this option
+            refer also to the Mnet::Opts::Set::Debug pragma module
             refer to perldoc Mnet::Log for more information
         ',
     });
+
+    # init --quiet option
     Mnet::Opts::Cli::define({
         getopt      => 'quiet!',
         help_tip    => 'set to suppress terminal standard output',
@@ -136,9 +191,12 @@ INIT {
             suppresses Mnet::Log stdout entries, not necessarily other stdout
             use shell redirection if necessary to suppress all script stdout
             note that setting this option overrides the --silent option
+            refer also to the Mnet::Opts::Set::Quiet pragma module
             refer to perldoc Mnet::Log for more information
         ',
     });
+
+    # init --silent option
     Mnet::Opts::Cli::define({
         getopt      => 'silent!',
         help_tip    => 'set to suppress standard output and error',
@@ -146,9 +204,12 @@ INIT {
             suppresses all Mnet::Log output, but not necessarily other output
             use shell redirection if necessary to suppress all script output
             note that this option can be overridden by the --quiet option
+            refer also to the Mnet::Opts::Set::Silent pragma module
             refer to perldoc Mnet::Log for more information
         ',
     });
+
+# finished init code block
 }
 
 
@@ -208,13 +269,13 @@ A value of undefined is returned if there have not yet been any errors.
 
 
 
-sub _output {
+sub output {
 
-# _output($self, $prefix, $severity, $caller, $text)
+# output($self, $prefix, $severity, $caller, $text)
 # purpose: used by other methods in this module to output Mnet::Log entries
 # $self: object instance passed from public methods in this module, or undef
-# $prefix: set to a keyword used to prefix entry such as dbg, inf, WRN, or ERR
-# $severity: set to 7 for debug, 6 for info, 4 for warn, and 5 for error
+# $prefix: set to keyword dbg, inf, WRN, ERR, or " - " to bypass Mnet::Test
+# $severity: 7=debug, 6=info, 5=notice (no Mnet::Test), 4=warn, 3=error, 2=fatal
 # $caller: original caller of method or function making log entry
 # $text: zero or more lines of log text
 
@@ -229,49 +290,70 @@ sub _output {
     # output first log entry, honoring current logging options
     #   Mnet::Opts::Set pragmas are in effect until Mnet::Opts::Cli->new call
     #   project scripts should call Mnet::Opts::Cli->new before Mnet::Log calls
+    #   output log prefix " - " bypasses Mnet::Test recording of first line
     if (not $Mnet::Log::first) {
         $Mnet::Log::first = 1;
         my $script_name = $0;
         $script_name =~ s/^.*\///;
-        my $pid_time = $self->{test} ? "--test run" : "pid $$, ".localtime;
-        my $text = "script $script_name started, $pid_time";
-        _output($self, "inf", 6, "Mnet::Log", $text);
+        NOTICE("script $script_name started, pid $$, " . localtime);
+        if ($self->{debug}) {
+            output($self, "dbg", 7, "Mnet::Version", Mnet::Version::info());
+        }
     }
 
     # return for debug entries if --debug is not set
     return 1 if $severity > 6 and not $self->{debug};
 
-    # return if --silent is set, unless --quiet is also set
-    return 1
-        if $self->{silent}
-        and (not defined $self->{quiet} or not $self->{quiet});
+    # return if Mnet::Test not used and --silent is set, unless --quiet is set
+    #   if Mnet::Test is loaded we want to allow it to capture all output
+    if (not $INC{"Mnet/Test.pm"}) {
+        if ($self->{silent}) {
+            if (not defined $self->{quiet} or not $self->{quiet}) {
+                return 1;
+            }
+        }
+    }
 
-    # return for non-warning entries if --quiet is set
-    return 1 if $severity > 4 and $self->{quiet};
+    # return for non-warning entries if Mnet::Test not used and --quiet is set
+    #   if Mnet::Test is loaded we want to allow it to capture all output
+    if (not $INC{"Mnet/Test.pm"}) {
+        return 1 if $severity > 4 and $self->{quiet};
+    }
 
     # update global error flag with first line of first error entry
     $Mnet::Log::errors = (split(/\n/, $text))[0]
         if $severity < 5 and not defined $Mnet::Log::errors;
 
     # set hh:mm:ss timestamp for entries
+    #   set timestamp to dummy string if --test or --record are set
     my ($second, $minute, $hour, $mday, $month, $year) = localtime();
     my $timestamp = sprintf("%02d:%02d:%02d", $hour, $minute, $second);
+    $timestamp = "hh:mm:ss" if $self->{test} or $self->{record};
 
     # note identifier for Mnet::Log entries
     my $identifier = $self->{log_identifier} // "-";
 
     # otherwise output entry as lines of text for each line of input entry text
-    #   inf and dbg entries are output to stderr, otherwise output to stderr
+    #   sev 6+ dbg sev 5 log entries bypass Mnet::Test using $stdout filehandle
+    #       prefix - entries used in this module for first and last log entries
+    #       Mnet::Log::stdout could be undef for sig handler compile errors
+    #   inf entries are output to stdout, otherwise output to stderr
     foreach my $line (split(/\n/, $text)) {
         $line = "$timestamp $prefix $identifier $caller $line";
-        if ($severity > 4) {
+        if ($severity > 6 or $severity == 5) {
+            if (not $INC{"Mnet/Opts/Set/Silent.pm"}
+                and not $INC{"Mnet/Opts/Set/Quiet.pm"}
+                and defined $Mnet::Log::stdout) {
+                syswrite $Mnet::Log::stdout, "$line\n";
+            }
+        } elsif ($severity > 4) {
             syswrite STDOUT, "$line\n";
         } else {
             syswrite STDERR, "$line\n";
         }
     }
 
-    # finished _entry sub
+    # finished output function
     return 1;
 }
 
@@ -285,9 +367,9 @@ Method call to output a debug entry to stdout with an Mnet::Log prefix of dbg.
 
 =cut
 
-    # call _output function
+    # call output function
     my ($self, $text) = (shift, shift);
-    return $self->_output("dbg", 7, scalar(caller), $text);
+    return $self->output("dbg", 7, scalar(caller), $text);
 }
 
 
@@ -300,11 +382,22 @@ Method call to output an info entry to stdout with an Mnet::Log prefix of inf.
 
 =cut
 
-    # call _output function
+    # call output function
     my ($self, $text) = (shift, shift);
-    return $self->_output("inf", 6, scalar(caller), $text);
+    return $self->output("inf", 6, scalar(caller), $text);
 }
 
+
+
+sub notice {
+
+# $self->notice($text)
+# purpose: output log text to stdout, bypassing Mnet::Test log capture
+
+    # call output function
+    my ($self, $text) = (shift, shift);
+    return output($self, " - ", 5, scalar(caller), $text);
+}
 
 
 sub warn {
@@ -315,9 +408,9 @@ Method call to output a warn entry to stderr with an Mnet::Log prefix of WRN.
 
 =cut
 
-    # call _output function
+    # call output function
     my ($self, $text) = (shift, shift);
-    return $self->_output("WRN", 4, scalar(caller), $text);
+    return $self->output("WRN", 4, scalar(caller), $text);
 }
 
 
@@ -330,9 +423,9 @@ Method to output a fatal entry to stderr with an Mnet::log prefix of DIE.
 
 =cut
 
-    # call _output function
+    # call output function
     my ($self, $text) = (shift, shift);
-    return $self->_output("DIE", 2, scalar(caller), $text);
+    return $self->output("DIE", 2, scalar(caller), $text);
 }
 
 
@@ -345,9 +438,9 @@ Function to output a debug entry to stdout with an Mnet::Log prefix of dbg.
 
 =cut
 
-    # call _output function
+    # call output function
     my $text = shift;
-    return _output(undef, "dbg", 7, scalar(caller), $text);
+    return output(undef, "dbg", 7, scalar(caller), $text);
 }
 
 
@@ -360,9 +453,21 @@ Function to output an info entry to stdout with an Mnet::Log prefix of inf.
 
 =cut
 
-    # call _output function
+    # call output function
     my $text = shift;
-    return _output(undef, "inf", 6, scalar(caller), $text);
+    return output(undef, "inf", 6, scalar(caller), $text);
+}
+
+
+
+sub NOTICE {
+
+# NOTICE($text)
+# purpose: output log text to stdout, bypassing Mnet::Test log capture
+
+    # call output function
+    my $text = shift;
+    return output(undef, " - ", 5, scalar(caller), $text);
 }
 
 
@@ -375,9 +480,9 @@ Function to output a warn entry to stderr with an Mnet::Log prefix of WRN.
 
 =cut
 
-    # call _output function
+    # call output function
     my $text = shift;
-    return _output(undef, "WRN", 4, scalar(caller), $text);
+    return output(undef, "WRN", 4, scalar(caller), $text);
 }
 
 
@@ -390,9 +495,9 @@ Function to output a fatal entry to stderr with an Mnet::Log prefix of DIE.
 
 =cut
 
-    # call _output function
+    # call output function
     my $text = shift;
-    _output(undef, "DIE", 2, scalar(caller), $text);
+    output(undef, "DIE", 2, scalar(caller), $text);
     exit(1);
 }
 
@@ -400,16 +505,37 @@ Function to output a fatal entry to stderr with an Mnet::Log prefix of DIE.
 
 # output Mnet::Log finished entry at end of script
 #   note that $^T, aka $BASETIME, is the unixtime script started running
+#   output log prefix " - " bypasses Mnet::Test recording of these entries
 END {
-    if ($INC{"Mnet/Log.pm"}) {
-        my $opts = Mnet::Opts::Cli::Cache::get({});
-        my $pid_elapsed = ", pid $$, ".(time-$^T+1)." seconds elapsed";
-        $pid_elapsed = ", --test finished" if $opts->{test};
-        my $errors = "errors";
-        $errors = "no errors" if not defined $Mnet::Log::errors;
-        INFO("finished with " . $errors . $pid_elapsed);
+
+    # note if there were any errors during execution
+    my $errors = "errors";
+    $errors = "no errors" if not defined $Mnet::Log::errors;
+
+    # note pid and elapsed time since execution start time
+    my $pid_elapsed = ", pid $$, ".(time-$^T+1)." seconds elapsed";
+
+    # output last line of log text
+    my $finished_text = "finished with " . $errors . $pid_elapsed;
+    NOTICE($finished_text);
+
+    # call Mnet::Test to process record and test cli options, if loaded
+    #   called here so that tests occur after last line of Mnet::Log output
+    #   --test diff undef if --replay --test diff was not attempted
+    #   --test diff is null for no diff, exit clean even if output had warnings
+    #   --test diff is non-null for failed diff, exit with a failed status
+    if ($INC{"Mnet/Test.pm"}) {
+        my $diff = Mnet::Test::done();
+        if (defined $diff) {
+            exit 0 if not $diff;
+            exit 1 if $diff;
+        }
     }
+
+    # set failed exit status if any errors were caught by signal handlers
     exit 1 if defined $Mnet::Log::errors;
+
+# finished end block
 }
 
 
@@ -417,6 +543,11 @@ END {
 =head1 SEE ALSO
 
  Mnet
+ Mnet::Opts
+ Mnet::Opts::Cli
+ Mnet::Opts::Cli::Cache
+ Mnet::Test
+ Mnet::Version
 
 =cut
 
