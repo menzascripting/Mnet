@@ -81,7 +81,7 @@ used to specify options that will override any cached cli opts.
 
 Note that the returned hash reference of cached cli options will be empty if
 the Mnet::Opts::Cli->new method was not called yet by the running script and
-not input has reference was supplied. This can be used to tell if a script is
+no input hash reference was supplied. This can be used to tell if a script is
 using Mnet::Opts::Cli for command line option parsing.
 
 Also note that this function can be called in list context to return a hash ref

@@ -62,7 +62,7 @@ use strict;
 use 5.010;
 use Data::Dumper;
 use Exporter qw(import);
-use Mnet::Log::Conditional qw( DEBUG INFO WARN FATAL );
+use Mnet::Log::Conditional qw( DEBUG INFO WARN FATAL NOTICE );
 use Mnet::Opts::Cli;
 use Mnet::Opts::Cli::Cache;
 
@@ -187,6 +187,26 @@ The opts hash ref argument is optional, and may be used to specify a replay
 file. Otherwise the --replay option will be checked if the Mnet::Opts::Cli
 is used to parse command line options.
 
+Note that care must be taken to use the hash reference returned from this
+function properly. You want to save data in the returned hash reference, not
+accidently create a new hash reference. For example:
+
+ ok:    my $data = Mnet::Test::data();
+        $data->{sub_hash}->{key} = $value;
+
+ ok:    my $data = Mnet::Test::data();
+        my $sub_hash = \%{$data->{sub_hash}};
+        $sub_hash->{key} = $value;
+
+ ok:    my $sub_hash = \%{Mnet::Test::data()->{sub_hash}};
+        $sub_hash->{key} = $value;
+
+ bad:   Mnet::Test::data()->{sub_hash}->{key} = $value;
+
+ bad:   my $data = Mnet::Test::data();
+        my $sub_hash = $data->{sub_hash};
+        $sub_hash->{key} = $value;
+
 Refer to the TESTING section of this document for more information on how
 modules or scripts should use this function for record/replay test data.
 
@@ -248,20 +268,20 @@ sub _diff {
             if $INC{"Text/Diff.pm"};
     }
 
-    # output detected differences
-    #? need to change test output to account for batch mode execution
-    #   in batch we'll want a single pass/fail line of output for every child
-    syswrite $Mnet::Test::stdout, "\n" . "-" x 79 . "\n";
-    syswrite $Mnet::Test::stdout, "comparing current output to $opts->{replay}";
-    syswrite $Mnet::Test::stdout, "\n" . "-" x 79 . "\n\n";
-    if ($diff) {
-        syswrite $Mnet::Test::stdout, $diff;
-    } else {
-        syswrite $Mnet::Test::stdout, "Test output is identical.\n";
+    # output detected differences, unless running in --batch mode
+    if (not $opts->{batch}) {
+        syswrite $Mnet::Test::stdout, "\n" . "-" x 79 . "\n";
+        syswrite $Mnet::Test::stdout, "diff --test --replay $opts->{replay}";
+        syswrite $Mnet::Test::stdout, "\n" . "-" x 79 . "\n\n";
+        if ($diff) {
+            syswrite $Mnet::Test::stdout, $diff;
+        } else {
+            syswrite $Mnet::Test::stdout, "Test output is identical.\n";
+        }
+        syswrite $Mnet::Test::stdout, "\n";
     }
-    syswrite $Mnet::Test::stdout, "\n";
 
-    # finished diff function
+    # finished _diff function
     return $diff;
 }
 

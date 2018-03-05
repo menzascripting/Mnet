@@ -94,6 +94,7 @@ this program. If not, see http://www.gnu.org/licenses/
  Mnet
  Mnet::Dump
  Mnet::Log
+ Mnet::Log::Test
  Mnet::Log::Conditional
  Mnet::Opts
  Mnet::Opts::Cli

@@ -33,7 +33,7 @@ use warnings;
 use strict;
 use Carp;
 use Mnet::Dump;
-use Mnet::Log::Conditional qw( DEBUG INFO WARN FATAL );
+use Mnet::Log::Conditional qw( DEBUG INFO WARN FATAL NOTICE );
 use Mnet::Opts::Set;
 use Storable;
 

@@ -8,6 +8,8 @@ Mnet::Opts::Set::Silent
 
 Use this module to enable the --silent option for the Mnet::Log module.
 
+Refer to the Mnet::Log module for more information.
+
 =cut
 
 # required modules
@@ -17,6 +19,7 @@ use strict;
 =head1 SEE ALSO
 
  Mnet
+ Mnet::Log
 
 =cut
 

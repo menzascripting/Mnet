@@ -63,6 +63,11 @@ Refer to the SEE ALSO section of this perldoc for a list of these sub-modules.
 =head1 SEE ALSO
 
  Mnet
+ Mnet::Opts::Cli
+ Mnet::Opts::Cli::Cache
+ Mnet::Opts::Set::Debug
+ Mnet::Opts::Set::Quiet
+ Mnet::Opts::Set::Silent
 
 =cut
 

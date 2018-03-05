@@ -62,6 +62,10 @@ Note that this module also installed die, warn, int, and term signal handlers,
 in order to augment the logging of these events. These are made to pass through
 compile and eval warn and die events as normal.
 
+Note that timestamps and other varying data are filtered out of log outputs
+when the --record, --replay, or --test cli options are enabled or if the
+Mnet::Log::Test module is otherwise loaded.
+
 =head1 TESTING
 
 When used with the Mnet::Test --record option all stdout and stderr log entry
@@ -94,6 +98,9 @@ BEGIN {
 
     # autoflush standard output
     $| = 1;
+
+    # note start time of script
+    our $start_time = $^T;
 
     # init global flag to track that first log message was output
     #   this is used to output an informational log entry when script starts
@@ -174,7 +181,7 @@ INIT {
 
     # init --debug option
     Mnet::Opts::Cli::define({
-        getopt      => 'debug',
+        getopt      => 'debug!',
         help_tip    => 'set to display extra debug log entries',
         help_text   => '
             note that the --quiet and --silent options override this option
@@ -252,6 +259,18 @@ Refer to the SYNOPSIS section of this perldoc for more information.
 
 
 
+sub batch_fork {
+
+# Mnet::Log::batch_fork()
+# purpose: called to reset start time for forked batch child
+# note: this is meant to be called from Mnet::Batch::fork only
+
+    # reset start time for forked batch child
+    $Mnet::Log::start_time = time;
+}
+
+
+
 sub errors {
 
 =head1 $error = Mnet::Log::errors();
@@ -291,11 +310,15 @@ sub output {
     #   Mnet::Opts::Set pragmas are in effect until Mnet::Opts::Cli->new call
     #   project scripts should call Mnet::Opts::Cli->new before Mnet::Log calls
     #   output log prefix " - " bypasses Mnet::Test recording of first line
+    #   filter pid if Mnet::Log::Test loaded, perhaps by Mnet::Opts::Cli->new
+    #   set $Mnet::Log::first after output of first entry
     if (not $Mnet::Log::first) {
         $Mnet::Log::first = 1;
         my $script_name = $0;
         $script_name =~ s/^.*\///;
-        NOTICE("script $script_name started, pid $$, " . localtime);
+        my $started = "$script_name started";
+        $started .= ", pid $$, ".localtime if not $INC{"Mnet/Log/Test.pm"};
+        NOTICE("script $started");
         if ($self->{debug}) {
             output($self, "dbg", 7, "Mnet::Version", Mnet::Version::info());
         }
@@ -324,11 +347,11 @@ sub output {
     $Mnet::Log::errors = (split(/\n/, $text))[0]
         if $severity < 5 and not defined $Mnet::Log::errors;
 
-    # set hh:mm:ss timestamp for entries
-    #   set timestamp to dummy string if --test or --record are set
-    my ($second, $minute, $hour, $mday, $month, $year) = localtime();
-    my $timestamp = sprintf("%02d:%02d:%02d", $hour, $minute, $second);
-    $timestamp = "hh:mm:ss" if $self->{test} or $self->{record};
+    # set hh:mm:ss timestamp for entries as long as --test is not set
+    #   timestamps are filtered out of output with --record/replay/test cli opt
+    my ($timestamp, $sec, $min, $hr, $mday, $mon, $yr) = ("", localtime());
+    $timestamp = sprintf("%02d:%02d:%02d ", $hr, $min, $sec)
+        if not $INC{"Mnet/Log/Test.pm"};
 
     # note identifier for Mnet::Log entries
     my $identifier = $self->{log_identifier} // "-";
@@ -339,7 +362,7 @@ sub output {
     #       Mnet::Log::stdout could be undef for sig handler compile errors
     #   inf entries are output to stdout, otherwise output to stderr
     foreach my $line (split(/\n/, $text)) {
-        $line = "$timestamp $prefix $identifier $caller $line";
+        $line = "${timestamp}$prefix $identifier $caller $line";
         if ($severity > 6 or $severity == 5) {
             if (not $INC{"Mnet/Opts/Set/Silent.pm"}
                 and not $INC{"Mnet/Opts/Set/Quiet.pm"}
@@ -508,16 +531,17 @@ Function to output a fatal entry to stderr with an Mnet::Log prefix of DIE.
 #   output log prefix " - " bypasses Mnet::Test recording of these entries
 END {
 
-    # note if there were any errors during execution
-    my $errors = "errors";
-    $errors = "no errors" if not defined $Mnet::Log::errors;
-
-    # note pid and elapsed time since execution start time
-    my $pid_elapsed = ", pid $$, ".(time-$^T+1)." seconds elapsed";
-
     # output last line of log text
-    my $finished_text = "finished with " . $errors . $pid_elapsed;
-    NOTICE($finished_text);
+    #   note if there were any errors during execution
+    #   note pid and elapsed time if not Mnet::Log::Test was not loaded
+    #       Mnet::Log::Test loaded by Mnet::Opts::Cli->new w/record/replay/test
+    if (defined $Mnet::Log::first) {
+        my $finished = "with errors";
+        $finished = "with no errors" if not defined $Mnet::Log::errors;
+        my $finish_elapsed = (time-$Mnet::Log::start_time)." seconds elapsed";
+        $finished .= ", pid $$ $finish_elapsed" if not $INC{"Mnet/Log/Test.pm"};
+        NOTICE("finished $finished");
+    }
 
     # call Mnet::Test to process record and test cli options, if loaded
     #   called here so that tests occur after last line of Mnet::Log output
@@ -543,9 +567,13 @@ END {
 =head1 SEE ALSO
 
  Mnet
+ Mnet::Log::Test
  Mnet::Opts
  Mnet::Opts::Cli
  Mnet::Opts::Cli::Cache
+ Mnet::Opts::Set::Debug
+ Mnet::Opts::Set::Quiet
+ Mnet::Opts::Set::Silent
  Mnet::Test
  Mnet::Version
 

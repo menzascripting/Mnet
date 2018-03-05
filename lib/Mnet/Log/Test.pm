@@ -1,17 +1,15 @@
-package Mnet::Opts::Set::Test;
+package Mnet::Log::Test;
 
 =head1 NAME
 
-Mnet::Opts::Set::Test
+Mnet::Log::Test
 
 =head1 SYNOPSIS
 
-Use this module to enable the --test option from the Mnet::Test module.
+Use this module to enable the filtering out of timestamps and other varying
+output from Mnet::Log entries. This was made for distribution test scripts.
 
-This is meant to be used by distribution test scripts in order to filter out
-timestamps and other varying output from Mnet::Log entries.
-
-Refer to perldoc Mnet::Test and Mnet::Log for more information.
+Refer to perldoc Mnet::Log for more information.
 
 =cut
 
@@ -23,7 +21,6 @@ use strict;
 
  Mnet
  Mnet::Log
- Mnet::Test
 
 =cut
 

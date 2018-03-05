@@ -1,5 +1,7 @@
 package Mnet::Version;
 
+BEGIN { our $VERSION = 'dev'; }
+
 =head1 NAME
 
 Mnet::Version
@@ -48,24 +50,31 @@ and operating system. This is used by Mnet::Opts::Cli and Mnet::Log.
     my ($info, $spad) = ("", "35s");
     $spad = "1s" if caller eq "Mnet::Log";
 
+    # output caller script version if known, and mnet version
+    $info .= sprintf("%-$spad $main::VERSION", $script_name) if $main::VERSION;
+    $info .= sprintf("%-$spad $Mnet::Version::VERSION\n", "Mnet");
+
+    # add a blank line in before md5 outputs, looks better from cli --version
+    $info .= "\n" if caller ne "Mnet::Log";
+
     # append basic version info to output string
-    $info .= sprintf("%-$spad $0\n",         "info exec path");
-    $info .= sprintf("%-$spad $mnet_path\n", "info Mnet path");
-    $info .= sprintf("%-$spad $cwd\n",       "info current dir");
-    $info .= sprintf("%-$spad perl $^V\n",   "info perl version");
-    $info .= sprintf("%-$spad $uname\n",     "info system uname");
+    $info .= sprintf("%-$spad perl $^V\n",   "perl version");
+    $info .= sprintf("%-$spad $uname\n",     "system uname");
+    $info .= sprintf("%-$spad $0\n",         "exec path");
+    $info .= sprintf("%-$spad $mnet_path\n", "Mnet path");
+    $info .= sprintf("%-$spad $cwd\n",       "current dir");
 
     # add a blank line in before md5 outputs, looks better from cli --version
     $info .= "\n" if caller ne "Mnet::Log";
 
     # append m5d info for executable and all Mnet modules to output string
-    $info .= sprintf("%-$spad "._info_md5($0)."\n", "info md5 $script_name");
+    $info .= sprintf("%-$spad "._info_md5($0)."\n", "md5 $script_name");
     foreach my $module (sort keys %INC) {
         next if $module !~ /^Mnet\//;
         my $md5 = _info_md5($INC{$module});
         $module =~ s/\//::/g;
         $module =~ s/\.pm$//;
-        $info .= sprintf("%-$spad $md5\n", "info md5 $module");
+        $info .= sprintf("%-$spad $md5\n", "md5 $module");
     }
 
     # finished Mnet::Version::info, return info string

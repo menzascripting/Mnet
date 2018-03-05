@@ -14,8 +14,8 @@ parse command line options, as shown in the example below:
 
  # define --sample cli option
  Mnet::Opts::Cli::define({
-     getopt   => 'sample=s',
-     help_tip => 'set to input string',
+     getopt   => "sample=s",
+     help_tip => "set to input string",
  });
 
  # call in list context for cli opts object and any extra args
@@ -58,7 +58,7 @@ use parent 'Mnet::Opts';
 use Carp;
 use Getopt::Long;
 use Mnet::Dump;
-use Mnet::Log::Conditional qw( DEBUG INFO WARN FATAL );
+use Mnet::Log::Conditional qw( DEBUG INFO WARN FATAL NOTICE );
 use Mnet::Opts::Cli::Cache;
 use Mnet::Opts::Set;
 use Mnet::Version;
@@ -262,9 +262,11 @@ The perl ARGV array is not modified by this module.
         if defined $batch_argv and caller ne "Mnet::Opts::Cli";
 
     # returned cached cli options and extra args, if set from prior call
+    #   output extra cli arg error when not called to return extras args
     if (Mnet::Opts::Cli::Cache::get()) {
         my ($opts, @extras) = Mnet::Opts::Cli::Cache::get();
         my $self = bless $opts, $class;
+        die "invalid extra args @extras\n" if $extras[0] and not wantarray;
         return wantarray ? ($self, @extras) : $self;
     }
 
@@ -290,14 +292,21 @@ The perl ARGV array is not modified by this module.
     Getopt::Long::GetOptionsFromArray(\@extras, $cli_opts, @definitions);
     shift @extras if defined $extras[0] and $extras[0] eq "--";
 
-    #   output extra cli arg warning when not called to return extras args
-    die "invalid extra arguments @extras\n" if $extras[0] and not wantarray;
-
-    # merge child process batch_argv options on top of cli options
+    # merge child process batch_argv opt and extras onto of cli opts and extras
     my $batch_opts = {};
-    Getopt::Long::GetOptionsFromString($batch_argv, $batch_opts, @definitions)
-        if defined $batch_argv;
+    my (undef, $batch_extras) = Getopt::Long::GetOptionsFromString(
+        $batch_argv, $batch_opts, @definitions
+    ) if defined $batch_argv;
+    push @extras, $_ foreach @$batch_extras;
     $cli_opts->{$_} = $batch_opts->{$_} foreach keys %$batch_opts;
+
+    # enable filtered test logging if --record/replay/test cli opts are set
+    if (defined $cli_opts->{record} or $cli_opts->{replay}
+        or $cli_opts->{test}) {
+        if ($INC{"Mnet/Log.pm"} =~ /^(.*Mnet\/Log)\.pm$/) {
+            $INC{"Mnet/Log/Test.pm"} = "$1\/Test.pm";
+        }
+    }
 
     # enable silent pragma based on --silent, --help, and --version cli options
     #   this is done so Mnet::Test and Mnet::Log has access to this
@@ -435,6 +444,7 @@ The perl ARGV array is not modified by this module.
     # log parsed options, as per prepared log_entries array
     #   log_entries keys are opt names, set to source keyword followed by dump
     #   default opts identified with 'def' log entry prefix are logged to debug
+    #   notice entries used for opts that would interfere with Mnet::Test diffs
     foreach my $opt (sort keys %$log_entries) {
         my $log_entry = $log_entries->{$opt};
         $log_entry =~ s/(\S+)/opt $1 ${opt} =/;
@@ -447,6 +457,9 @@ The perl ARGV array is not modified by this module.
             $log->info("new parsed $log_entry");
         }
     }
+
+    # output extra cli arg error when not called to return extras args
+    die "invalid extra args @extras\n" if $extras[0] and not wantarray;
 
     # get test data hash ref from Mnet::Test module
     #   init to empty dummy hash ref if Mnet::Test not loaded
@@ -496,7 +509,7 @@ The perl ARGV array is not modified by this module.
     # create new cli opts object using the current class
     my $self = bless $opts, $class;
 
-    # finished new method, return cli opts object and extra args or just object
+    # finished new method, return cli opts object and extra args or just opts
     return wantarray ? ($self, @extras) : $self;
 }
 
@@ -596,25 +609,30 @@ sub _new_help {
 
 
 
-sub batch {
+sub batch_fork {
 
-# Mnet::Opts::Cli::batch($batch_argv)
+# \%child_opts = Mnet::Opts::Cli::batch_fork($batch_argv)
+# \%child_opts, @child_extras = Mnet::Opts::Cli::batch_fork($batch_argv)
 # purpose: called to apply child batch command line to cached cli opts/args
 # $batch_argv: batch child command line in Getopts::Long string format
-# note: this is meant to be called from Mnet::Batch::fork only
+# \%child_opts: hash ref of options parsed from $batch_argv and cached cli opts
+# @child_extras: extra args parsed from $batch_argv, if called in list context
+# note: this is meant to be called from Mnet::Batch::fork() only
 
     # read input child batch command line
     my $batch_argv = shift // croak("missing batch_argv arg");
-    DEBUG("batch called, batch_argv = $batch_argv");
+    DEBUG("batch_fork called, batch_argv = $batch_argv");
+
+    # unset copy of cli ARGV list if we haven't called Mnet::Opts::Cli->new yet
+    #   this means Mnet::Opts::Cli->new will parse batch_argv only, not cli
+    @Mnet::Opts::Cli::argv = () if not defined Mnet::Opts::Cli::Cache::get();
 
     # clear cached cli options and args
     Mnet::Opts::Cli::Cache::set(undef);
 
-    # parse batch child command lines
-    Mnet::Opts::Cli->new($batch_argv);
-
-    # finished Mnet::Opts::Cli::batch
-    return;
+    # finished Mnet::Opts::Cli::batch, return child_opts and child_extras
+    #   what is returned depends on the context Mnet::Batch::fork() was called
+    return Mnet::Opts::Cli->new($batch_argv);
 }
 
 
