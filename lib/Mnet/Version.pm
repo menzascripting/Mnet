@@ -36,8 +36,8 @@ and operating system. This is used by Mnet::Opts::Cli and Mnet::Log.
     $script_name =~ s/^.*\///;
 
     # note path to Mnet modules
-    my $mnet_path = $INC{"Mnet/Log.pm"};
-    $mnet_path =~ s/\/Mnet\/Log\.pm$//;
+    my $mnet_path = $INC{"Mnet/Version.pm"};
+    $mnet_path =~ s/\/Mnet\/Version\.pm$//;
 
     # note posix uname
     my @uname = POSIX::uname();
@@ -68,7 +68,8 @@ and operating system. This is used by Mnet::Opts::Cli and Mnet::Log.
     $info .= "\n" if caller ne "Mnet::Log";
 
     # append m5d info for executable and all Mnet modules to output string
-    $info .= sprintf("%-$spad "._info_md5($0)."\n", "md5 $script_name");
+    my $script_md5 = _info_md5($0) // "";
+    $info .= sprintf("%-$spad $script_md5\n", "md5 $script_name");
     foreach my $module (sort keys %INC) {
         next if $module !~ /^Mnet\//;
         my $md5 = _info_md5($INC{$module});

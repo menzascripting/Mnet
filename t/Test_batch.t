@@ -1,12 +1,12 @@
 #!/usr/bin/env perl
 
-# purpose: tests Mnet::Test with Mnet::Batch module
+# purpose: tests Mnet::Batch
 
 # required modules
 use warnings;
 use strict;
 use File::Temp;
-use Test::More tests => 3;
+use Test::More tests => 5;
 
 # create multiple temp record/replay/test files
 my ($fh1, $file1) = File::Temp::tempfile( UNLINK => 1 );
@@ -21,7 +21,7 @@ my $script = '
     use Mnet::Test;
     Mnet::Opts::Cli::define({ getopt => "sample=i", recordable  => 1 });
     my $cli = Mnet::Opts::Cli->new;
-    Mnet::Batch::fork($cli) or exit;
+    $cli = Mnet::Batch::fork($cli) or exit;
     syswrite STDOUT, "sample = $cli->{sample}\n";
 ';
 
@@ -37,14 +37,24 @@ Test::More::is(`perl -e '
 ' -- --record $file2 --sample 2 2>&1`, 'sample = 2
 ', 'test record file 2');
 
-# replay both test files in batch mode
-#? fix this test, it is failing and shoudl pass
+# replay both tests passing in batch mode
 Test::More::is(`( echo --replay $file1; echo --replay $file2 ) | perl -e '
     $script
-' -- --batch /dev/stdin --test 2>&1`, 'sample = 2
-', 'replay batch mode');
+' -- --batch /dev/stdin --test 2>&1`, '', 'batch replay passed');
 
-#? add test fails with --sample app set in batch child and batch parent
+# replay both tests failing in batch mode due to parent arg
+Test::More::is(`( echo --replay $file1; echo --replay $file2 ) | perl -e '
+    $script
+' -- --batch /dev/stdin --test --sample 4 2>&1 | sed "s/ pid .*//"`,
+'fork reaped child
+fork reaped child
+', 'batch exectution with new parent option');
+
+# replay child test failing in batch mode due to child arg
+Test::More::is(`( echo --replay $file1 --sample 3 ) | perl -e '
+    $script
+' -- --batch /dev/stdin --test 2>&1 | sed "s/ pid .*//"`, 'fork reaped child
+', 'batch replay child failed');
 
 # finished
 exit;

@@ -55,7 +55,11 @@ the examples above:
  print "sample = $cli->{sample}\n";
 
 Note that a script using the Mnet::Batch module will exit with an error if the
-cli --batch option is set and the Mnet::Batch::fork function was never called.
+Mnet::Opts::Cli new method was used to parse the command line and the --batch
+option is set and Mnet::Batch::fork function was never called.
+
+Refer also to the documentation for the Mnet::Batch::fork function for more
+information.
 
 =cut
 
@@ -64,7 +68,6 @@ use warnings;
 use strict;
 use Carp;
 use Mnet::Log::Conditional qw( DEBUG INFO WARN FATAL NOTICE );
-use Mnet::Opts::Cli;
 use Mnet::Opts::Cli::Cache;
 use Mnet::Opts::Set;
 use POSIX;
@@ -86,7 +89,7 @@ INIT {
             children are --silent, warnings are issued for child exit errors
             refer also to perldoc Mnet::Batch for more information
         ',
-    });
+    }) if $INC{"Mnet/Opts/Cli.pm"};
 }
 
 
@@ -111,7 +114,18 @@ parent process finishes.
  ($cli, @extras) = Mnet::Batch::fork($cli);
  exit if not defined $cli;
 
-Refer to the SYNOPSIS section of this perldoc for more information.
+Also note that this function can be called by scripts that are not using the
+Mnet::Opts::Cli module to parse command line options. In this case the returned
+child_opts value will be a scalar containing the input batch line, as in the
+following example:
+
+ ( echo "line = 1"; echo "line = 2" ) | perl -e '
+     use Mnet::Batch
+     my $line = Mnet::Batch::fork({ batch => "/dev/stdin" }) // exit;
+     die "child should have line set" if $line !~ /^line =/
+ '
+
+Refer also to the SYNOPSIS section of this perldoc for more information.
 
 =cut
 
@@ -128,7 +142,7 @@ Refer to the SYNOPSIS section of this perldoc for more information.
         return $opts;
     }
 
-    # always disable Mnet::Test outputs for batch parent
+    # disable Mnet::Test outputs for batch parent
     #   we don't want to worry about batch parent polluting child outputs
     #   we enable Mnet::Test output capture for children after fork
     Mnet::Test::disable() if $INC{"Mnet/Test.pm"};
@@ -200,12 +214,24 @@ Refer to the SYNOPSIS section of this perldoc for more information.
         #   children load Mnet::Opts::Set::Silent, quiet/silent opts still work
         #   Mnet::Log::batch_fork resets script start time for forked child
         #   Mnet::Opts::Cli::batch_fork parses cli opts and batch child opts
+        #   what is returned depends on context Mnet::Batch::fork() was called
+        #       batch_line is returned if script doesn't use Mnet::Opts::Cli
+        #       otherwise returns child opts and extras depending on context
         } elsif ($pid == 0) {
             Mnet::Opts::Set::enable("silent");
             DEBUG("fork child forked, pid $$");
             Mnet::Log::batch_fork() if $INC{"Mnet/Log.pm"};
             Mnet::Test::enable() if $INC{"Mnet/Test.pm"};
-            return Mnet::Opts::Cli::batch_fork($batch_line);
+            if (not $INC{"Mnet/Opts/Cli.pm"}) {
+                return $batch_line;
+            } elsif (wantarray) {
+                my ($child_opts, @child_extras)
+                    = Mnet::Opts::Cli::batch_fork($batch_line);
+                return ($child_opts, @child_extras);
+            } else {
+                my $child_opts = Mnet::Opts::Cli::batch_fork($batch_line);
+                return $child_opts;
+            }
         }
 
         # output pid of child that we just forked

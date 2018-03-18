@@ -60,8 +60,12 @@ sub set {
     # set global cache variables with input opts object and extra args
     #   output debug if unexpectantly called other than from Mnet::Opts::Cli
     my ($opts, @extras) = (shift, @_);
-    $Mnet::Opts::Cli::Cache::opts = $opts;
-    $Mnet::Opts::Cli::Cache::extras = @extras;
+    if (not defined $opts) {
+        $Mnet::Opts::Cli::Cache::opts = undef;
+    } else {
+        $Mnet::Opts::Cli::Cache::opts = { %$opts };
+    }
+    @Mnet::Opts::Cli::Cache::extras = @extras;
     Mnet::Log::Conditional::DEBUG("set called from ".caller)
         if caller ne "Mnet::Opts::Cli";
     return;

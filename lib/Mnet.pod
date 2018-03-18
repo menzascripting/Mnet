@@ -1,4 +1,3 @@
-package Mnet;
 
 =head1 NAME
 
@@ -6,43 +5,43 @@ Mnet
 
 =head1 SYNOPSIS
 
-This module can be used as a shortcut to load the following modules and make
-available the following methods:
+The Mnet modules are for perl programmers who want to create network
+automation, reporting, and monitoring scripts.
 
- use Mnet::Test qw($stderr $stdout);
+Here's some sample code showing typical usage:
 
- use Mnet::Opts::Cli;
- my $cli = Mnet->Cli();
+    # use the logging module,
+    use Mnet::Log qw(DEBUG INFO WARN FATAL);
 
- use Mnet::Log qw(DEBUG INFO WARN FATAL);
- my $log = Mnet->Log();
+    # use the cli option parsing module
+    use Mnet::Opts::Cli;
 
-If this doesn't work for you then as an alternative you can load only the
-individual Mnet modules that you need.
+    # use the test record/replay module
+    use Mnet::Test;
 
-Refer to the SEE ALSO section of this document for a list of all Mnet modules.
+    # define a cli option for this script
+    Mnet::Opts::Cli::define({
+        getopt   => "sample:s",
+        help_tip => "string cli option",
+    });
+
+    # parse cli options
+    my $cli = Mnet::Opts::Cli->new;
+
+    # here's a bit of example code
+    INFO("sample option set") if $cli->sample;
+
+Refer to the TUTORIAL below to see what can be done with the above code, and
+the SEE ALSO section of this perldoc for a complete list of Mnet perl modules.
+
+=head1 TUTORIAL
+
+#? finish tutorial
+#   be sure to show use of all main modules, including Mnet::Batch
 
 =cut
 
-# required modules
-use warnings;
-use strict;
-use Exporter qw( import );
-use Mnet::Log qw( DEBUG INFO WARN FATAL );
-use Mnet::Opts::Cli;
-use Mnet::Test qw( $stderr $stdout );
-
-# export function names
-our @EXPORT = qw( DEBUG INFO WARN FATAL );
-
-# defined constructors for Mnet sub-modules
-sub Cli  { shift; return Mnet::Opts::Cli->new(@_); }
-sub Log  { shift; return Mnet::Log->new(@_); }
-sub Opts { shift; return Mnet::Opts->new(@_); }
-
-#? create .t tests for all modules
-
-#? double check all perldoc
+#? proofread and revise all perldoc and comments
 
 #? create Mnet::Expect module
 #   $self = Mnet::Expect->new
@@ -91,23 +90,14 @@ this program. If not, see http://www.gnu.org/licenses/
 
 =head1 SEE ALSO
 
- Mnet
+ Mnet::Batch
  Mnet::Dump
  Mnet::Log
- Mnet::Log::Test
- Mnet::Log::Conditional
- Mnet::Opts
  Mnet::Opts::Cli
- Mnet::Opts::Cli::Cache
- Mnet::Opts::Set
  Mnet::Opts::Set::Debug
  Mnet::Opts::Set::Quiet
  Mnet::Opts::Set::Silent
  Mnet::Test
- Mnet::Version
 
 =cut
-
-# normal package return
-1;
 

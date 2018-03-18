@@ -303,7 +303,8 @@ The perl ARGV array is not modified by this module.
     # enable filtered test logging if --record/replay/test cli opts are set
     if (defined $cli_opts->{record} or $cli_opts->{replay}
         or $cli_opts->{test}) {
-        if ($INC{"Mnet/Log.pm"} =~ /^(.*Mnet\/Log)\.pm$/) {
+        if ($INC{"Mnet/Log.pm"}
+            and $INC{"Mnet/Log.pm"} =~ /^(.*Mnet\/Log)\.pm$/) {
             $INC{"Mnet/Log/Test.pm"} = "$1\/Test.pm";
         }
     }
@@ -360,7 +361,7 @@ The perl ARGV array is not modified by this module.
 
     # parse options from --replay file only if --test is also set
     #   force a re-read of the replay file for forked batch children
-    #   ignore replay file options that were defined without record key set
+    #   ignore replay file options that were defined without recordable key set
     my $replay_opts = {};
     if (defined $cli_opts->{replay}) {
         my $test_data = Mnet::Test::data($cli_opts, "force");
@@ -474,7 +475,7 @@ The perl ARGV array is not modified by this module.
         my $value = $opts->{$opt};
         my $default = $Mnet::Opts::Cli::defined->{$opt}->{default};
         next if not defined $value and not defined $default;
-        next if defined $value and defined $default and $value ne $default;
+        next if defined $value and defined $default and $value eq $default;
         $log->debug("new record cli opt $opt will be saved to Mnet::Test data");
         $test_data->{opts}->{$opt} = $opts->{$opt};
     }
@@ -556,14 +557,15 @@ sub _new_help {
             $output .= _new_help_tip($width, $defined_opt);
         }
 
-        # output non-Mnet options
-        $output .= "\nOther options:\n\n";
+        # output non-Mnet options, if any exist
+        my $other_options = "";
         foreach my $opt (sort keys %{$Mnet::Opts::Cli::defined}) {
             my $defined_opt = $Mnet::Opts::Cli::defined->{$opt};
             next if $defined_opt->{caller} =~ /^Mnet(::|$)/;
+            $other_options = "\nOther options:\n\n" if not $other_options;
             $output .= _new_help_tip($width, $defined_opt);
         }
-
+        $output .= $other_options;
 
     # output long form help text for options matching input --help value
     } else {
@@ -612,7 +614,7 @@ sub _new_help {
 sub batch_fork {
 
 # \%child_opts = Mnet::Opts::Cli::batch_fork($batch_argv)
-# \%child_opts, @child_extras = Mnet::Opts::Cli::batch_fork($batch_argv)
+# (\%child_opts, @child_extras) = Mnet::Opts::Cli::batch_fork($batch_argv)
 # purpose: called to apply child batch command line to cached cli opts/args
 # $batch_argv: batch child command line in Getopts::Long string format
 # \%child_opts: hash ref of options parsed from $batch_argv and cached cli opts
@@ -631,8 +633,14 @@ sub batch_fork {
     Mnet::Opts::Cli::Cache::set(undef);
 
     # finished Mnet::Opts::Cli::batch, return child_opts and child_extras
-    #   what is returned depends on the context Mnet::Batch::fork() was called
-    return Mnet::Opts::Cli->new($batch_argv);
+    #   what is returned depends on context Mnet::Batch::fork() was called
+    if (wantarray) {
+        my ($child_opts, @child_extras) = Mnet::Opts::Cli->new($batch_argv);
+        return ($child_opts, @child_extras);
+    } else {
+        my $child_opts = Mnet::Opts::Cli->new($batch_argv);
+        return $child_opts;
+    }
 }
 
 

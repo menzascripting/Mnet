@@ -2,9 +2,6 @@
 
 # purpose: tests Mnet::Opts::Cli::Cache functionality
 
-#? fix cache module for tests that fail in this module
-#   maybe after creating Mnet::Test and Mnet::Batch tests?
-
 # required modules
 use warnings;
 use strict;
@@ -49,7 +46,7 @@ Test::More::is(`perl -e '
     my \$opts = Mnet::Opts::Cli::Cache::get();
     warn "defined" if not defined \$opts;
     warn "ref" if ref \$opts ne "HASH";
-    warn "keys" if keys \%\$opts;
+    warn "keys" if not keys \%\$opts;
 ' -- 2>&1`, '', 'get with undef input and no cli opts set');
 
 # check cache get returns empty input hash with no cli opts to parse
@@ -62,7 +59,7 @@ Test::More::is(`perl -e '
     my \$opts = Mnet::Opts::Cli::Cache::get({});
     warn "defined" if not defined \$opts;
     warn "ref" if ref \$opts ne "HASH";
-    warn "keys" if keys \%\$opts;
+    warn "keys" if not keys \%\$opts;
 ' -- 2>&1`, '', 'get with empty input hash and no cli opts set');
 
 # check cache get returns input opts if cli opts not parsed

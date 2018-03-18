@@ -5,7 +5,11 @@
 # required modules
 use warnings;
 use strict;
+use File::Temp;
 use Test::More tests => 6;
+
+# create temp record file
+my ($fh, $file) = File::Temp::tempfile( UNLINK => 1 );
 
 # check for real time using no cli opts
 Test::More::is(`perl -e '
@@ -50,7 +54,7 @@ Test::More::is(`perl -e '
     warn "fail1" if "1" ne Mnet::Test::time();
     warn "fail2" if "3" ne Mnet::Test::time(2);
     warn "fail3" if time + 1 < Mnet::Test::time({});
-' -- --record 2>&1`, '', 'test time --record cli opts');
+' -- --record $file 2>&1`, '', 'test time --record cli opts');
 
 # check for test time with --replay cli opt
 Test::More::is(`echo '\$Mnet::Test::data = {}' | perl -e '

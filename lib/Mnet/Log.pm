@@ -84,7 +84,6 @@ use 5.008;
 use Carp;
 use Exporter qw( import );
 use Mnet::Opts;
-use Mnet::Opts::Cli;
 use Mnet::Opts::Cli::Cache;
 use Mnet::Version;
 
@@ -103,7 +102,8 @@ BEGIN {
     our $start_time = $^T;
 
     # init global flag to track that first log message was output
-    #   this is used to output an informational log entry when script starts
+    #   this is used to output log entry when script started and finished
+    #   output() sets to 1 if start entry output, 0 if start entry suppressed
     my $first = undef;
 
     # init global error flag, user to track first error message
@@ -137,11 +137,11 @@ BEGIN {
     };
 
     # trap perl warn signal, log as error and resume execution
-    #   CORE::warn handles propogated, compile, and eval warnings
+    #   CORE::warn handles propogated and compile warnings
     #   $^S is undef while compiling/parsing, true in eval, false otherwise
     #   return after _sig_handler call to output error and stack trace
     $SIG{__WARN__} = sub {
-        if (not @_ or not defined $^S or $^S) {
+        if (not @_ or not defined $^S) {
             &CORE::warn;
         } else {
             _sig_handler("perl warn", scalar(caller), "@_");
@@ -188,7 +188,7 @@ INIT {
             refer also to the Mnet::Opts::Set::Debug pragma module
             refer to perldoc Mnet::Log for more information
         ',
-    });
+    }) if $INC{"Mnet/Opts/Cli.pm"};
 
     # init --quiet option
     Mnet::Opts::Cli::define({
@@ -201,7 +201,7 @@ INIT {
             refer also to the Mnet::Opts::Set::Quiet pragma module
             refer to perldoc Mnet::Log for more information
         ',
-    });
+    }) if $INC{"Mnet/Opts/Cli.pm"};
 
     # init --silent option
     Mnet::Opts::Cli::define({
@@ -214,7 +214,7 @@ INIT {
             refer also to the Mnet::Opts::Set::Silent pragma module
             refer to perldoc Mnet::Log for more information
         ',
-    });
+    }) if $INC{"Mnet/Opts/Cli.pm"};
 
 # finished init code block
 }
@@ -310,17 +310,22 @@ sub output {
     #   Mnet::Opts::Set pragmas are in effect until Mnet::Opts::Cli->new call
     #   project scripts should call Mnet::Opts::Cli->new before Mnet::Log calls
     #   output log prefix " - " bypasses Mnet::Test recording of first line
+    #   first line not output if Mnet::Log->new called with quiet or silent opt
     #   filter pid if Mnet::Log::Test loaded, perhaps by Mnet::Opts::Cli->new
     #   set $Mnet::Log::first after output of first entry
-    if (not $Mnet::Log::first) {
-        $Mnet::Log::first = 1;
-        my $script_name = $0;
-        $script_name =~ s/^.*\///;
-        my $started = "$script_name started";
-        $started .= ", pid $$, ".localtime if not $INC{"Mnet/Log/Test.pm"};
-        NOTICE("script $started");
-        if ($self->{debug}) {
-            output($self, "dbg", 7, "Mnet::Version", Mnet::Version::info());
+    if (not defined $Mnet::Log::first) {
+        if (defined $self and ($self->{quiet} or $self->{silent})) {
+            $Mnet::Log::first = 0;
+        } else {
+            $Mnet::Log::first = 1;
+            my $script_name = $0;
+            $script_name =~ s/^.*\///;
+            my $started = "$script_name started";
+            $started .= ", pid $$, ".localtime if not $INC{"Mnet/Log/Test.pm"};
+            notice($self, "script $started");
+            if ($self->{debug}) {
+                output($self, "dbg", 7, "Mnet::Version", Mnet::Version::info());
+            }
         }
     }
 
@@ -351,7 +356,8 @@ sub output {
     #   timestamps are filtered out of output with --record/replay/test cli opt
     my ($timestamp, $sec, $min, $hr, $mday, $mon, $yr) = ("", localtime());
     $timestamp = sprintf("%02d:%02d:%02d ", $hr, $min, $sec)
-        if not $INC{"Mnet/Log/Test.pm"};
+        if not $INC{"Mnet/Log/Test.pm"}
+        and not $self->{record} and not $self->{replay} and not $self->{test};
 
     # note identifier for Mnet::Log entries
     my $identifier = $self->{log_identifier} // "-";
@@ -531,15 +537,15 @@ Function to output a fatal entry to stderr with an Mnet::Log prefix of DIE.
 #   output log prefix " - " bypasses Mnet::Test recording of these entries
 END {
 
-    # output last line of log text
+    # output last line of log text if first line was output
     #   note if there were any errors during execution
     #   note pid and elapsed time if not Mnet::Log::Test was not loaded
     #       Mnet::Log::Test loaded by Mnet::Opts::Cli->new w/record/replay/test
-    if (defined $Mnet::Log::first) {
+    if ($Mnet::Log::first) {
         my $finished = "with errors";
         $finished = "with no errors" if not defined $Mnet::Log::errors;
-        my $finish_elapsed = (time-$Mnet::Log::start_time)." seconds elapsed";
-        $finished .= ", pid $$ $finish_elapsed" if not $INC{"Mnet/Log/Test.pm"};
+        my $elapsed = (time-$Mnet::Log::start_time)." seconds elapsed";
+        $finished .= ", pid $$, $elapsed" if not $INC{"Mnet/Log/Test.pm"};
         NOTICE("finished $finished");
     }
 

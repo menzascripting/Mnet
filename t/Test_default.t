@@ -45,10 +45,10 @@ Test::More::is(`perl -e '$script' -- --replay $file --default sample 2>&1`,
 extras = extra
 ', 'test replay with default sample cli opt');
 
-# test replay file with --default sample opts
+# test replay file with --default extra cli args
 Test::More::is(`perl -e '$script' -- --replay $file --default 2>&1`,
 'sample = 2
-', 'test replay with default extra cli arg');
+', 'test replay with default extra cli args');
 
 # finished
 exit;

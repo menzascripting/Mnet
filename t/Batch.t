@@ -8,45 +8,50 @@ use strict;
 use File::Temp;
 use Test::More tests => 3;
 
-#? create .t tests for Mnet::Batch, including opts and tests
+# batch without mnet cli
+#? fix this test
+Test::More::is(`( echo child1; echo child2 child3 ) | perl -e '
+    use warnings;
+    use strict;
+    use Mnet::Batch;
+    my \$line = Mnet::Batch::fork({ batch => "/dev/stdin" });
+    exit if not defined \$line;
+    syswrite STDOUT, "line = \$line\n";
+' -- parent 2>&1`, 'line = child1
+line = child2 child3
+', 'batch without mnet cli');
 
-# create multiple temp record/replay/test files
-my ($fh1, $file1) = File::Temp::tempfile( UNLINK => 1 );
-my ($fh2, $file2) = File::Temp::tempfile( UNLINK => 1 );
-
-# init script used to test with mnet batch module
-my $script = '
+# batch with mnet cli and extras
+Test::More::is(`( echo --opt1 1 --opt2 1; echo --opt1 2 ) | perl -e '
     use warnings;
     use strict;
     use Mnet::Batch;
     use Mnet::Opts::Cli;
-    use Mnet::Test;
-    Mnet::Opts::Cli::define({ getopt => "sample=i", recordable  => 1 });
-    my $cli = Mnet::Opts::Cli->new;
-    Mnet::Batch::fork($cli) or exit;
-    syswrite STDOUT, "sample = $cli->{sample}\n";
-';
+    Mnet::Opts::Cli::define({ getopt => "opt1=i", recordable  => 1 });
+    Mnet::Opts::Cli::define({ getopt => "opt2=i", recordable  => 1 });
+    my \$cli = Mnet::Opts::Cli->new;
+    \$cli = Mnet::Batch::fork(\$cli) or exit;
+    syswrite STDOUT, "opt1 = \$cli->{opt1}, opt2 = \$cli->{opt2}\n";
+' -- --batch /dev/stdin --opt1 3 --opt2 3 2>&1`, 'opt1 = 1, opt2 = 1
+opt1 = 2, opt2 = 3
+', 'batch with mnet cli');
 
-# record file 1 for batch test
-Test::More::is(`perl -e '
-    $script
-' -- --record $file1 --sample 1 2>&1`, 'sample = 1
-', 'test record file 1');
-
-# record file 2 for batch test
-Test::More::is(`perl -e '
-    $script
-' -- --record $file2 --sample 2 2>&1`, 'sample = 2
-', 'test record file 2');
-
-# replay both test files in batch mode
-#? fix this test, it is failing and should pass
-Test::More::is(`( echo --replay $file1; echo --replay $file2 ) | perl -e '
-    $script
-' -- --batch /dev/stdin --test 2>&1`, 'sample = 2
-', 'replay batch mode');
-
-#? add test fails with --sample app set in batch child and batch parent
+# batch with mnet cli and extras
+Test::More::is(`( echo --opt 1 child; echo --opt 2 ) | perl -e '
+    use warnings;
+    use strict;
+    use Mnet::Batch;
+    use Mnet::Opts::Cli;
+    Mnet::Opts::Cli::define({ getopt => "opt=i", recordable  => 1 });
+    my (\$cli, \@extras) = Mnet::Opts::Cli->new;
+    (\$cli, \@extras) = Mnet::Batch::fork(\$cli) or exit;
+    syswrite STDOUT, "opt = \$cli->{opt}\n" if \$cli->{opt};
+    syswrite STDOUT, "extras = \@extras\n" if \@extras;
+' -- --batch /dev/stdin parent 2>&1`, 'opt = 1
+extras = parent child
+opt = 2
+extras = parent
+', 'batch with mnet cli and extras');
 
 # finished
 exit;

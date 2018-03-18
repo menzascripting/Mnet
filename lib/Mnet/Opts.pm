@@ -66,11 +66,20 @@ the output Mnet::Opts object. Refer to the SEE ALSO section of this perldoc.
     #   dclone is used to avoid worries if caller edits hash values
     my $self = bless(Storable::dclone($opts), $class);
 
+    # apply opts set via pragma use commands
+    #   these opts are not applied if already set in input
+    my $pragmas = Mnet::Opts::Set::pragmas();
+    foreach my $opt (keys %$pragmas) {
+        next if exists $self->{$opt};
+        $self->{$opt} = $pragmas->{$opt};
+    }
+
     # log options, including who called us
     my $log = Mnet::Log::Conditional->new($opts);
     $log->debug("no opts") if not keys %$self;
     $log->debug("$_ = ".Mnet::Dump::line($self->{$_})) foreach sort keys %$self;
 
+    # finished new method, return Mnet::Opts object
     return $self;
 }
 

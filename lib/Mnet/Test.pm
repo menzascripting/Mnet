@@ -33,9 +33,9 @@ in this module.
 
 Scripts that use these modules may not need to do anything else to benefit from
 Mnet::Test support. At its most basic a script using this module can create a
-test data file with the --record option which wil contain all stdout and stderr
-output from the script. The --replay and --test options can be used to execute
-the script again and alert the user to any change in output.
+test data file with the --record option which will contain all the stdout and
+stderr output from the script. The --replay and --test options can be used to
+execute the script again and alert the user to any change in output.
 
 Note that the stdout and stderr variables that can be imported from this module
 can be used for output that should not be captured by the Mnet::Test module.
@@ -63,7 +63,6 @@ use 5.010;
 use Data::Dumper;
 use Exporter qw(import);
 use Mnet::Log::Conditional qw( DEBUG INFO WARN FATAL NOTICE );
-use Mnet::Opts::Cli;
 use Mnet::Opts::Cli::Cache;
 
 # modules required for diff output
@@ -84,7 +83,7 @@ BEGIN {
     open(our $stdout, ">&STDOUT");
 
     # init global scalar variable to accumulate other stdout+stderr outputs
-    my ($outputs, $disabled) = ("", undef);
+    our ($outputs, $disabled) = ("", undef);
 
     # declare tie contructor used to capture stdout/stderr handles
     sub TIEHANDLE {
@@ -152,7 +151,7 @@ INIT {
             this option works from the command line only
             refer to perldoc Mnet::Test for more info
         ',
-    });
+    }) if $INC{"Mnet/Opts/Cli.pm"};
     Mnet::Opts::Cli::define({
         getopt      => 'replay=s',
         help_tip    => 'execute with test data from file',
@@ -161,7 +160,7 @@ INIT {
             this option works from the command line only
             refer to perldoc Mnet::Test for more info
         ',
-    });
+    }) if $INC{"Mnet/Opts/Cli.pm"};
     Mnet::Opts::Cli::define({
         getopt      => 'test',
         help_tip    => 'diff script output with --replay output',
@@ -170,7 +169,7 @@ INIT {
             this option works from the command line only
             refer to perldoc Mnet::Test for more info
         ',
-    });
+    }) if $INC{"Mnet/Opts/Cli.pm"};
 }
 
 
@@ -279,6 +278,10 @@ sub _diff {
             syswrite $Mnet::Test::stdout, "Test output is identical.\n";
         }
         syswrite $Mnet::Test::stdout, "\n";
+
+    # output warning for test diff in --batch mode
+    } elsif ($diff) {
+        die "batch mode test output is different\n";
     }
 
     # finished _diff function
@@ -315,17 +318,19 @@ sub done {
 
 =head1 $diff = Mnet::Test::done(\%opts)
 
-This function compared the current test data output to captured Mnet::Test
-outputs from a specified replay file, returning the diff output or a value of
-undefined if there was no test replay data.
+This function does one or two things, depending on the how the record, replay,
+and test options are set.
 
-The opts hash ref argument is optional, and may be used to specify a replay
-file. Otherwise the --replay option will be checked if the Mnet::Opts::Cli
-is used to parse command line options when this function is automatically
-executed during the end of execution.
+If the replay and test options are set a diff of test output will be returned,
+or a value of undefined if there was no test replay data.
 
-Scripts not using the Mnet::Opts::Cli module to parse command line options
-can call this function before exiting.
+If the record option is set then the Mnet::Test data captured from the current
+script execution will be saved to the specified record file.
+
+This function is called automatically at script exit using the record, replay,
+and test options parsed from a prior Mnet::Opts::Cli->new call. You do not
+need to call this function unless you are not using Mnet::Opts::Cli to parse
+command line options or if you want to examine your own test diff data.
 
 Refer to the TESTING section of this document for more information.
 
@@ -337,7 +342,7 @@ Refer to the TESTING section of this document for more information.
     # disable any further capture of stdout/stderr
     disable();
 
-    # diff replay output if that option is set true
+    # diff replay output if replay and test options are set true
     my $diff = _diff($opts);
 
     # record to file, if ncessary
@@ -421,7 +426,7 @@ sub _replay {
     return if not defined $opts->{replay};
 
     # create log object using current options
-    my $log = Mnet::Log->new($opts);
+    my $log = Mnet::Log::Conditional->new($opts);
 
     # read dump of test data from replay file, abort on errors
     my $dump = "";
@@ -463,8 +468,8 @@ sub time {
 =head1 S< > $unixtime = Mnet::Test::time(\%opts, $increment)
 
 This function can be used by project scripts to get repeatable unixtime output
-during record and replay test executions, and real time from the perl time
-command otherwise.
+during executions with the record, replay, or test options set, and real time
+from the perl time command otherwise.
 
 An optional incrememnt value can be specified in seconds, and defauls to the
 returned time being incremented by one second for each call to this function.
@@ -477,14 +482,17 @@ are expected to be set via the Mnet::Opts::Cli module.
 
     # read input args, increment might be only arg, opts defaults to cached cli
     my ($opts, $increment) = (shift, shift);
-    ($increment, $opts) = ($opts, Mnet::Opts::Cli::Cache()) if not ref $opts;
+    ($increment, $opts) = ($opts, Mnet::Opts::Cli::Cache::get({}))
+        if not ref $opts;
 
     # default to a one second increment for each call
     $increment = 1 if not $increment;
 
-    # set unixtime, increment Mnet::Test::time if --record or --replay is set
+    # init output unixtime to real time
     my $unixtime = time;
-    if (defined $opts->{record} or $opts->{replay}) {
+
+    # set output incremented test time if record, replay or test opt is set
+    if (defined $opts->{record} or $opts->{replay} or $opts->{test}) {
         $unixtime = $Mnet::Test::time += $increment;
     }
 

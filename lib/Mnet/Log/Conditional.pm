@@ -123,9 +123,12 @@ the Mnet::Log module is not loaded then the perl warn command is called.
 
     # call Mnet::Log::output if loaded or warn
     my ($self, $text) = (shift, shift);
-    return Mnet::Log::output($self, "WRN", 4, scalar(caller), $text)
-        if $INC{"Mnet/Log.pm"};
-    warn $text;
+    if ($INC{"Mnet/Log.pm"}) {
+        Mnet::Log::output(undef, "WRN", 4, scalar(caller), $text);
+    } else {
+        $text =~ s/\n*$//;
+        CORE::warn "$text\n";
+    }
     return 1;
 }
 
@@ -142,9 +145,12 @@ the Mnet::Log module is not loaded then the perl die command is called.
 
     # call Mnet::Logoutput if loaded or die
     my ($self, $text) = (shift, shift);
-    Mnet::Log::output($self, "DIE", 2, scalar(caller), $text)
-        if $INC{"Mnet/Log.pm"};
-    die $text;
+    if ($INC{"Mnet/Log.pm"}) {
+        Mnet::Log::output(undef, "DIE", 2, scalar(caller), $text);
+    } else {
+        syswrite STDERR, "$text\n";
+    }
+    exit 1;
 }
 
 
@@ -210,9 +216,12 @@ the Mnet::Log module is not loaded then the perl warn command is called.
 
     # call Mnet::Log::output if loaded or warn
     my $text = shift;
-    return Mnet::Log::output(undef, "WRN", 4, scalar(caller), $text)
-        if $INC{"Mnet/Log.pm"};
-    CORE::warn $text;
+    if ($INC{"Mnet/Log.pm"}) {
+        Mnet::Log::output(undef, "WRN", 4, scalar(caller), $text);
+    } else {
+        $text =~ s/\n*$//;
+        CORE::warn "$text\n";
+    }
     return 1;
 }
 
@@ -229,8 +238,11 @@ the Mnet::Log module is not loaded then the perl die command is called.
 
     # call Mnet::Log::output if loaded or die
     my $text = shift;
-    Mnet::Log::output(undef, "DIE", 2, scalar(caller), $text)
-        if $INC{"Mnet/Log.pm"};
+    if ($INC{"Mnet/Log.pm"}) {
+        Mnet::Log::output(undef, "DIE", 2, scalar(caller), $text);
+    } else {
+        syswrite STDERR, "$text\n";
+    }
     exit 1;
 }
 
