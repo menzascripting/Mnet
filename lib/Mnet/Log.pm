@@ -168,7 +168,7 @@ BEGIN {
 
 
 
-# init debug output and cli options used by this module
+# init Mnet::Test stdout bypass for debug and cli options used by this module
 INIT {
 
     # init stdout file handle to bypass Mnet::Test output capture if loaded
@@ -231,10 +231,10 @@ Mnet::Opts::Cli module.
 
 The returned object may be used to call other documented methods in this module.
 
-The input opts hash ref may contain a log_identifier key which may be set to
-a device name or other identifier which will be prepended to all entries made
-using the returned Mnet::Log object. A warning will be issued if the identifier
-is not a single word.
+The input opts hash ref may contain a log_id key which may be set to a device
+name or other identifier which will be prepended to all entries made using the
+returned Mnet::Log object. A warning will be issued if the log_id contains any
+spaces.
 
 Refer to the SYNOPSIS section of this perldoc for more information.
 
@@ -245,10 +245,9 @@ Refer to the SYNOPSIS section of this perldoc for more information.
     croak("invalid call to class new") if ref $class;
     my $opts = shift // {};
 
-    # warn if log_indentifier contains non-space characters
-    carp("invalid log_identifier $opts->{log_identifier}")
-        if defined $opts->{log_identifier}
-        and $opts->{log_identifier} !~ /^\S+$/;
+    # warn if log_id contains non-space characters
+    carp("invalid spaces in log_id $opts->{log_id}")
+        if defined $opts->{log_id} and $opts->{log_id} !~ /^\S+$/;
 
     # create object, apply input opts over any cached cli options
     my $self = bless Mnet::Opts::Cli::Cache::get($opts), $class;
@@ -360,7 +359,7 @@ sub output {
         and not $self->{record} and not $self->{replay} and not $self->{test};
 
     # note identifier for Mnet::Log entries
-    my $identifier = $self->{log_identifier} // "-";
+    my $log_id  = $self->{log_id} // "-";
 
     # otherwise output entry as lines of text for each line of input entry text
     #   sev 6+ dbg sev 5 log entries bypass Mnet::Test using $stdout filehandle
@@ -368,7 +367,7 @@ sub output {
     #       Mnet::Log::stdout could be undef for sig handler compile errors
     #   inf entries are output to stdout, otherwise output to stderr
     foreach my $line (split(/\n/, $text)) {
-        $line = "${timestamp}$prefix $identifier $caller $line";
+        $line = "${timestamp}$prefix $log_id $caller $line";
         if ($severity > 6 or $severity == 5) {
             if (not $INC{"Mnet/Opts/Set/Silent.pm"}
                 and not $INC{"Mnet/Opts/Set/Quiet.pm"}

@@ -48,10 +48,9 @@ Refer to the new method in perldoc Mnet::Log for more information.
     croak("invalid call to class new") if ref $class;
     my $opts = shift // {};
 
-    # warn if log_indentifier contains non-space characters
-    carp("invalid log_identifier $opts->{log_identifier}")
-        if defined $opts->{log_identifier}
-        and $opts->{log_identifier} !~ /^\S+$/;
+    # warn if log_id contains non-space characters
+    carp("invalid log_id $opts->{log_id}")
+        if defined $opts->{log_id} and $opts->{log_id} !~ /^\S+$/;
 
     # create object, apply input opts over any cached cli options
     my $self = bless Mnet::Opts::Cli::Cache::get($opts), $class;

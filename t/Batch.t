@@ -9,7 +9,6 @@ use File::Temp;
 use Test::More tests => 3;
 
 # batch without mnet cli
-#? fix this test
 Test::More::is(`( echo child1; echo child2 child3 ) | perl -e '
     use warnings;
     use strict;

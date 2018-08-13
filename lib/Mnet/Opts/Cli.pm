@@ -121,7 +121,7 @@ sub define {
 
 =head1 Mnet::Opts::Cli::define(\%specs)
 
-This function may be used during initialaztion to define cli options which can
+This function may be used during initialization to define cli options which can
 be parsed by the Mnet::Opts->cli class method in this module, as in the example
 which follows that define a --sample string option:
 

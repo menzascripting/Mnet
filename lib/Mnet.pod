@@ -43,30 +43,30 @@ the SEE ALSO section of this perldoc for a complete list of Mnet perl modules.
 
 #? proofread and revise all perldoc and comments
 
-#? create Mnet::Expect module
-#   $self = Mnet::Expect->new
-#   add -re '\r\N' progress bar handling
-#       $match = $expect->match;
-#       $match =~ /\N*\r(\N)/$1/;
-#       $match .= $expect->after;
-#       expect->set_accum($match);
-#   how far does this module go?
-#   how can we support weird menus and characters, etc
-#   can we have multiple types of expect wrapper modules?
-#   can we layer/enable/disable various capabilities?
+#? finish Mnet::Expect module, refer to to-do notes in that module
 
-#? create Mnet::Report module
-#   $self = Mnet::Report->new($name, \%opts)
-#   allow for --report output to database in addition to csv, etc
-#   maybe use key = value storage in db, example key = 'dev int attrib'
-
-#? create Mnet::Stash module
-#   --stash=s, set to sqlite file, or directory to use $name+$key files
-#   init creates sqlite table named mnet_stash_$name with $key rows
-#   Mnet::Stash::init($name, \%opts) # cli --stash opt, maybe stash_age_max
-#   \%stash = Mnet::Stash->new($name, $key)
-#   end block saves/updates dbi data, unless read-only opt set
-#   end block can remove stash entries older than stash_age_max
+#? create Mnet::Data module
+#   $row = Mnet::Data->row(\%opts, $row, $table)
+#       opts --data:s=sqlite, dir for filesys, - for stdout, or null for memory
+#           sqlite can be used if available, memory data stored using perl hash
+#           data dir has table sub-dirs, row sub-dirs, and column files
+#           stdout outputs table/row/column:value, same as grep -R --data dir .
+#           or stdout outputs sql insert statements, can be parsed or fed to db
+#       row must be set to a unique row name, used for dir and memory --data
+#           set row to unique device name, otherwise always updates default row
+#       table can be set to table name, used for sqlite, dir, and memory --data
+#   $row->set($column, $value) can use to set specified column data in row
+#   $value = $row->get($column) can use to retrieve specified column data
+#   $row->dump($column, $value) can use to store data in Data::Dumper format
+#   $value = $row->eval($column) can use to get data saved with dump method
+#   note that get/set can't store undef and data structures like dump/eval
+#   maybe end block saves/updates data, unless read-only or memory opts are set
+#       end commit is efficient, can we get/eval from memory w/fallback to db?
+#   do we need a way to remove or age out old data?
+#   how do we know what columns to create in sqlite tables?
+#       maybe alter table to add columns? but what about indexes?
+#       maybe sqlite --data requires that tables/indexes already be created
+#   is this module good enough? is output easy as csv? what would be better?
 
 =head1 AUTHOR
 
@@ -92,6 +92,9 @@ this program. If not, see http://www.gnu.org/licenses/
 
  Mnet::Batch
  Mnet::Dump
+ Mnet::Expect
+ Mnet::Expect::Cli
+ Mnet::Expect::Cli::Cisco
  Mnet::Log
  Mnet::Opts::Cli
  Mnet::Opts::Set::Debug
