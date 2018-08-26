@@ -87,14 +87,14 @@ BEGIN {
 
     # declare tie contructor used to capture stdout/stderr handles
     sub TIEHANDLE {
-        my ($class, $code) = (shift, shift);
-        return bless({ CODE => $code }, $class);
+        my ($class, $fh) = (shift, shift);
+        return bless({ fh => $fh }, $class);
     }
 
     # declare tie method triggered for print to handles
     sub PRINT {
         my $self = shift;
-        &{$self->{CODE}}(@_);
+        &{$self->{fh}}(@_);
         return 1;
     }
 
@@ -112,24 +112,35 @@ BEGIN {
         return 1;
     }
 
-    # use tie to capture stderr to global test outputs var
+    # create copied of stderr and stdout to be used for output from tie subs
     open(my $stderr_fh, ">&STDERR");
-    tie(*STDERR => 'Mnet::Test' , sub {
-        $Mnet::Test::outputs .= "@_" if not $disabled;
-        return
-            if $INC{"Mnet/Opts/Set/Silent.pm"}
-            and not $INC{"Mnet/Opts/Set/Quiet.pm"};
-        syswrite $stderr_fh, "@_";
-    });
-
-    # use tie to capture stdout to global test outputs var
     open(my $stdout_fh, ">&STDOUT");
-    tie(*STDOUT => 'Mnet::Test' , sub {
-        $Mnet::Test::outputs .= "@_" if not $disabled;
-        return if $INC{"Mnet/Opts/Set/Quiet.pm"};
-        return if $INC{"Mnet/Opts/Set/Silent.pm"};
-        syswrite $stdout_fh, "@_";
-    });
+
+    # declare sub used to enable capture of stderr and stdout using tie command
+    sub enable_tie {
+        tie(*STDERR => 'Mnet::Test' , sub {
+            $Mnet::Test::outputs .= "@_" if not $disabled;
+            return
+                if $INC{"Mnet/Opts/Set/Silent.pm"}
+                and not $INC{"Mnet/Opts/Set/Quiet.pm"};
+            syswrite $stderr_fh, "@_";
+        });
+        tie(*STDOUT => 'Mnet::Test' , sub {
+            $Mnet::Test::outputs .= "@_" if not $disabled;
+            return if $INC{"Mnet/Opts/Set/Quiet.pm"};
+            return if $INC{"Mnet/Opts/Set/Silent.pm"};
+            syswrite $stdout_fh, "@_";
+        });
+    }
+
+    # use tie to capture stderr and stdout to global test outputs variable
+    Mnet::Test::enable_tie();
+
+    # declare sub used from Mnet::Expect to temporarily untie filehandles
+    sub disable_tie {
+        untie *STDERR;
+        untie *STDOUT;
+    }
 
 # finished begin block
 }
@@ -306,7 +317,7 @@ sub enable {
 
 # Mnet::Test::enable()
 # purpose: used by Mnet::Batch to enable batch child accumulation of stdout/err
-# note: called by Mnet::Batch for children before callign Mnet::Opts::Cli->new
+# note: called by Mnet::Batch for children before calling Mnet::Opts::Cli->new
 
     # enable accumulation of captured output
     $Mnet::Test::disabled = 0;

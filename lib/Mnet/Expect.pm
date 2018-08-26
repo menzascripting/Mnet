@@ -6,7 +6,10 @@ Mnet::Expect
 
 =head1 SYNOPSIS
 
-#? The functions and methods in this module can be used by scripts to...
+This module can be used to create new Mnet::Expect objects, log spawned process
+expect activity, and close Mnet::Expect sessions.
+
+The methods in this object are used by other Mnet::Expect modules.
 
 =head1 TESTING
 
@@ -19,6 +22,7 @@ use warnings;
 use strict;
 use parent qw( Mnet::Log::Conditional );
 use Carp;
+use Errno;
 use Mnet::Opts::Cli::Cache;
 
 
@@ -27,11 +31,19 @@ sub new {
 
 =head1 $self = Mnet::Expect->new(\%opts)
 
-#? finish me
-#   the following options may be defined that are specific to this module:
-#       log_id      (note that other Mnet::Log opts may be specified)
-#       winsize     (specify rows and columns, defaults to 99999x999)
-#       spawn       (spawn command and parameters in list format)
+This method can be used to create new Mnet::Expect objects. The following input
+hash options may be specified:
+
+ log_id     note that other Mnet::Log opts may be specified
+ spawn      command and arguments array ref, or space separated string
+ winsize    specify session rows and columns, defaults to 99999x999
+
+For example, the following call will start an ssh expect session to a device:
+
+ my $expect = Mnet::Expect->new({ spawn => "ssh 1.2.3.4" });
+
+Note that all Mnet::Expect session activity is logged for debugging, refer to
+the Mnet::Log module for more information.
 
 =cut
 
@@ -40,7 +52,14 @@ sub new {
     croak("invalid call to class new") if ref $class;
     my $opts = shift // {};
 
-    # create new object from input opts
+    # create new object hash from input opts, the following keys are used:
+    #   debug   => option for methods inherited from Mnet::Log module
+    #   expect  => undelying Expect method, refer to perldoc Expect
+    #   log_id  => option for methods inherited from Mnet::Log module
+    #   quiet   => option for methods inherited from Mnet::Log module
+    #   silent  => option for methods inherited from Mnet::Log module
+    #   spawn   => command and arguments array ref, or space separated string
+    #   winsize => specify session rows and columns, defaults to 99999x999
     my $self = bless Mnet::Opts::Cli::Cache::get($opts), $class;
     $self->debug("new starting");
 
@@ -58,32 +77,35 @@ sub new {
     $self->{winsize} = "999999x999" if not defined $self->{winsize};
     carp("bad winsize $self->{winsize}") if $self->{winsize} !~ /^(\d+)x(\d+)$/;
     my $winsize_pack = pack('SSSS', $1, $2, 0, 0);
-    ioctl($self->expect->slave, IO::Tty::Constant::TIOCSWINSZ(), $winsize_pack);
+    ioctl($self->{expect}->slave, IO::Tty::Constant::TIOCSWINSZ(), $winsize_pack);
 
-    # disable expect stdout logging, use log method in this module instead
-    $self->expect->log_stdout(0);
-    $self->expect->log_file(sub { $self->log(shift) });
+    # set Mnet::Expect->log method for logging
+    #   disable expect stdout logging
+    $self->{expect}->log_stdout(0);
+    $self->{expect}->log_file(sub { $self->log(shift) });
 
-    #? finish me
-    #   spawn, setup logging, etc
+    # note spawn command and arg list
+    #   this can be specified as a list reference or a space-separated string
+    my @spawn = ();
+    @spawn = @{$self->{spawn}} if ref $self->{spawn};
+    @spawn = split(/\s/, $self->{spawn}) if not ref $self->{spawn};
+    $self->debug("new spawn list = $_") foreach @spawn;
 
-    #$session->{expect}->log_stdout(0);
-    #$session->{expect}->log_file(sub { $session->_log_file("ssh", shift) })
-    #    or $session->wrn("_login_ssh expect _log_file error $!");
-    #
-    #    my @ssh_spawn = split(/\s+/, $session->opts->ssh_cmd . " "
-    #        . "-p" . $session->opts->ssh_port . " "
-    #        . $session->opts->username . "\@" . $session->opts->connect);
-    #    $session->_login_pause("ssh to " . $session->opts->connect);
-    #    $session->dbg("_login_ssh spawn starting @ssh_spawn");
-    #    if (not $session->{expect}->spawn(@ssh_spawn)) {
-    #        $session->dbg("_login_ssh spawn error @ssh_spawn, $!");
-    #        sleep $session->opts->retry_delay;
-    #        return undef;
-    #    }
+    # call Expect spawn method
+    #   temporarily disable Mnet::Test stdout/stderr ties
+    #   stdout/stderr ties cause spawn problems, but can be re-enabled after
+    Mnet::Test::disable_tie() if $INC{'Mnet/Test.pm'};
+    my $spawn_result = $self->{expect}->spawn(@spawn);
+    Mnet::Test::enable_tie() if $INC{'Mnet/Test.pm'};
 
-    # finished new method
-    $self->debug("new finished");
+    # return undef if there was an error with expect spawn
+    if (not $spawn_result) {
+        $self->debug("new expect session spawn error, $!");
+        return undef;
+    }
+
+    # finished new method, return Mnet::Expect object
+    $self->debug("new finished, pid ".$self->{expect}->pid);
     return $self;
 }
 
@@ -93,7 +115,8 @@ sub close {
 
 =head1 $self->close
 
-#? doc me
+Attempt to call hard_close for the current Expect session, and send a kill
+signal if the process still exists. The Expect sesssion is set to udnefined.
 
 =cut
 
@@ -101,10 +124,59 @@ sub close {
     my $self = shift;
     $self->debug("close starting");
 
-    #? finish me, properly soft/hard close expect session
-    #   check expect object, hard_close if no expect->pid
-    #   if still expect->pid then hard_close in eval, ignore int/term
-    #   ok if not kill(0, $pid) and $!==Errno::ESRCH, else kill 9 $pid
+    # return if expect object no longer defined
+    if (not defined $self->{expect}) {
+        $self->debug("close returning, expect not defined");
+        return;
+    }
+
+    # note process id of spawned expect command
+    my $spawned_pid = $self->{expect}->pid;
+
+    # return if there's no expect process id
+    if (not defined $spawned_pid) {
+        $self->debug("close returning, no expect pid");
+        $self->{expect} = undef;
+        return;
+    }
+
+    # continue processing
+    $self->debug("close proceeding for pid $spawned_pid");
+
+    # usage: $result = _close_confirmed($self, $label, $spawned_pid)
+    #   kill(0,$pid) is true if pid signalable, Errno::ESRCH if not found
+    #   purpose: return true if $spawned_pid is gone, $label used for debug
+    #   note: if result is true then expect object will have been set undefined
+    sub _close_confirmed {
+        my ($self, $label, $spawned_pid) = (shift, shift, shift);
+        if (not kill(0, $spawned_pid)) {
+            if ($! == Errno::ESRCH) {
+                $self->debug("close returning, $label confirmed");
+                $self->{expect} = undef;
+                return 1;
+            }
+            $self->debug("close pid check error after $label, $!");
+        }
+        return 0;
+    }
+
+    # call hard close
+    #   ignore int and term signals to avoid hung processes
+    $self->debug("close calling hard_close");
+    eval {
+        local $SIG{INT} = "IGNORE";
+        local $SIG{TERM} = "IGNORE";
+        $self->{expect}->hard_close;
+    };
+    return if _close_confirmed($self, "hard_close", $spawned_pid);
+
+    # if hard_close failed then send kill -9 signal
+    $self->debug("close sending kill signal");
+    kill(9, $spawned_pid);
+    return if _close_confirmed($self, "kill", $spawned_pid);
+
+    # undefine expect object since nothing else worked
+    $self->{expect} = undef;
 
     # finished close method
     $self->debug("close finished");
@@ -113,64 +185,46 @@ sub close {
 
 
 
-sub expect {
-
-=head1 $self->expect
-
-This method returns the underlying Expect object. Refer also to perldoc Expect.
-
-=cut
-
-    my $self = shift;
-    return $self->{expect};
-}
-
-
-
 sub log {
 
-=head1 $self->log
-
-This method logs expect session activity. The first 31 non-printable ascii
-characters are shown as escaped perl hexadecimal strings.
-
-This method is enabled for new Mnet::Expect objects, set as a code reference
-using the Expect log_file method.
-
-=cut
+# $self->log($chars)
+# purpose: output Mnet::Expect session activity to --debug log
+# $chars: logged text, non-printable characters are output as hexadecimal
+# note: Mnet::Expect->new sets Expect log_file to use this method
 
     # read the current Mnet::Expect object and character string to log
     my ($self, $chars) = (shift, shift);
 
-    # init log output line
-    my $line = "";
+    # init text and hex log output lines
+    #   separate hex lines are used to show non-prinatbel characters
+    my ($line_txt, $line_hex) = (undef, undef);
 
-    # loop through characters of input text
+    # loop through input hex and text characters
     foreach my $char (split(//, $chars)) {
 
-        # escape output backslashes
-        if ($char eq "\\") {
-            $line .= "\\\\";
-
-        # escape non-printable ascii characters
-        #   output a new line when we get a linefeed character
-        } elsif (ord($char) < 32) {
-            $line .= sprintf("\\x%02x", ord($char));
-            if ($char eq "\n") {
-                $self->debug("log $line");
-                $line = "";
+        # append non-printable ascii characters to line_hex
+        if (ord($char) < 32) {
+            $line_hex .= sprintf("%02x ", ord($char));
+            if (defined $line_txt) {
+                $self->debug("log txt: $line_txt");
+                $line_txt = undef;
             }
 
-        # append printable ascii characters
+        # append printable ascii characters to line_txt
         } else {
-            $line .= $char;
+            $line_txt .= $char;
+            if (defined $line_hex) {
+                $self->debug("log hex: $line_hex");
+                $line_hex = undef;
+            }
         }
 
     # continue looping through input characters
     }
 
-    # output any remaining log line text
-    $self->debug("log $line") if $line ne "";
+    # output any remaining log hex of txt lines after finishing loop
+    $self->debug("log hex: $line_hex") if defined $line_hex;
+    $self->debug("log txt: $line_txt") if defined $line_txt;
 
     # finished log method
     return;
@@ -179,12 +233,10 @@ using the Expect log_file method.
 
 
 #? finish me
-#   Mnet::Expect
-#       new
-#       _clear (clear expect cache, uses while loop to empty, etc)
 #   Mnet::Expect::Cli
 #       opt_def --username, --password
 #       new($opts)
+#       _clear (clear expect cache, uses while loop to empty, etc)
 #       login
 #       cmd($cmd, \@prompts)
 #           @prompts is an ordered list of expect match conditions
@@ -211,19 +263,8 @@ using the Expect log_file method.
 #       $match =~ /\N*\r(\N)/$1/;
 #       $match .= $expect->after;
 #       expect->set_accum($match);
-
-#? init global variables and cli options used by this module, sample code below
-#INIT {
-#    Mnet::Opts::Cli::define({
-#        getopt      => 'debug!',
-#        help_tip    => 'set to display extra debug log entries',
-#        help_text   => '
-#            note that the --quiet and --silent options override this option
-#            refer also to the Mnet::Opts::Set::Debug pragma module
-#            refer to perldoc Mnet::Log for more information
-#        ',
-#    }) if $INC{"Mnet/Opts/Cli.pm"};
-#}
+#   also remember testing record and replay
+#       along with the capability to handle multiple test sessions
 
 
 

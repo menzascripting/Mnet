@@ -168,10 +168,10 @@ BEGIN {
 
 
 
-# init Mnet::Test stdout bypass for debug and cli options used by this module
+# init Mnet::Test stdout debug bypass, and cli options used by this module
 INIT {
 
-    # init stdout file handle to bypass Mnet::Test output capture if loaded
+    # init stdout file handle to bypass Mnet::Test for debug output
     our $stdout = undef;
     if ($INC{"Mnet/Test.pm"}) {
         $stdout = $Mnet::Test::stdout;
