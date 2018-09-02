@@ -58,11 +58,11 @@ and operating system. This is used by Mnet::Opts::Cli and Mnet::Log.
     $info .= "\n" if caller ne "Mnet::Log";
 
     # append basic version info to output string
-    $info .= sprintf("%-$spad $0\n",         "exec path");
-    $info .= sprintf("%-$spad $cwd\n",       "current dir");
-    $info .= sprintf("%-$spad $mnet_path\n", "Mnet path");
     $info .= sprintf("%-$spad $^V\n",        "perl version");
     $info .= sprintf("%-$spad $uname\n",     "system uname");
+    $info .= sprintf("%-$spad $cwd\n",       "current dir");
+    $info .= sprintf("%-$spad $0\n",         "exec path");
+    $info .= sprintf("%-$spad $mnet_path\n", "Mnet path");
 
     # add a blank line in before md5 outputs, looks better from cli --version
     $info .= "\n" if caller ne "Mnet::Log";

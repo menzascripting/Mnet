@@ -56,7 +56,7 @@ Log entries can be called as functions or as methods, as follows:
  $log->fatal($text);
 
  # first line of first WRN/ERR/DIE entry
- $text = Mnet::Log::errors();
+ $text = Mnet::Log::error();
 
 Note that this module also installed die, warn, int, and term signal handlers,
 in order to augment the logging of these events. These are made to pass through
@@ -103,17 +103,17 @@ BEGIN {
 
     # init global flag to track that first log message was output
     #   this is used to output log entry when script started and finished
-    #   output() sets to 1 if start entry output, 0 if start entry suppressed
+    #   output() sets to pid if start entry output, 0 if start entry suppressed
     my $first = undef;
 
     # init global error flag, user to track first error message
     #   should be set for perl warn and die, and warn and fatal Mnet::Log calls
-    my $errors = undef;
+    my $error = undef;
 
     # declare sub used by SIG handlers to log error and stack trace info
     sub _sig_handler {
         my ($label, $caller, $error, $sev) = (shift, shift, shift, 7);
-        $sev = 3 if not defined $Mnet::Log::errors;
+        $sev = 3 if not defined $Mnet::Log::error;
         output(undef, "ERR", 3, $caller, "$label, $error");
         output(undef, "err", $sev, $caller, "$label, $_")
             foreach split(/\n/, Carp::longmess());
@@ -270,9 +270,9 @@ sub batch_fork {
 
 
 
-sub errors {
+sub error {
 
-=head1 $error = Mnet::Log::errors();
+=head1 $error = Mnet::Log::error();
 
 This function returns the first line of error text from the perl warn or die
 commands or Mnet::Log warn or fatal outputs.
@@ -282,7 +282,7 @@ A value of undefined is returned if there have not yet been any errors.
 =cut
 
     # return contents of global error flag
-    return $Mnet::Log::errors;
+    return $Mnet::Log::error;
 }
 
 
@@ -311,12 +311,12 @@ sub output {
     #   output log prefix " - " bypasses Mnet::Test recording of first line
     #   first line not output if Mnet::Log->new called with quiet or silent opt
     #   filter pid if Mnet::Log::Test loaded, perhaps by Mnet::Opts::Cli->new
-    #   set $Mnet::Log::first after output of first entry
+    #   set $Mnet::Log::first to current pid after output of first entry
     if (not defined $Mnet::Log::first) {
         if (defined $self and ($self->{quiet} or $self->{silent})) {
             $Mnet::Log::first = 0;
         } else {
-            $Mnet::Log::first = 1;
+            $Mnet::Log::first = $$;
             my $script_name = $0;
             $script_name =~ s/^.*\///;
             my $started = "$script_name started";
@@ -348,8 +348,8 @@ sub output {
     }
 
     # update global error flag with first line of first error entry
-    $Mnet::Log::errors = (split(/\n/, $text))[0]
-        if $severity < 5 and not defined $Mnet::Log::errors;
+    $Mnet::Log::error = (split(/\n/, $text))[0]
+        if $severity < 5 and not defined $Mnet::Log::error;
 
     # set hh:mm:ss timestamp for entries as long as --test is not set
     #   timestamps are filtered out of output with --record/replay/test cli opt
@@ -536,13 +536,14 @@ Function to output a fatal entry to stderr with an Mnet::Log prefix of DIE.
 #   output log prefix " - " bypasses Mnet::Test recording of these entries
 END {
 
-    # output last line of log text if first line was output
-    #   note if there were any errors during execution
-    #   note pid and elapsed time if not Mnet::Log::Test was not loaded
+    # output last line of log text if first line was output from current pid
+    #   note if there were any errors during execution or exit status set true
+    #   note pid and elapsed time if Mnet::Log::Test was not loaded
     #       Mnet::Log::Test loaded by Mnet::Opts::Cli->new w/record/replay/test
-    if ($Mnet::Log::first) {
-        my $finished = "with errors";
-        $finished = "with no errors" if not defined $Mnet::Log::errors;
+    if ($Mnet::Log::first and $Mnet::Log::first eq $$) {
+        my $finished = "with no errors";
+        $finished = "with exit error status" if $?;
+        $finished = "with errors" if defined $Mnet::Log::error;
         my $elapsed = (time-$Mnet::Log::start_time)." seconds elapsed";
         $finished .= ", pid $$, $elapsed" if not $INC{"Mnet/Log/Test.pm"};
         NOTICE("finished $finished");
@@ -562,7 +563,7 @@ END {
     }
 
     # set failed exit status if any errors were caught by signal handlers
-    exit 1 if defined $Mnet::Log::errors;
+    exit 1 if defined $Mnet::Log::error;
 
 # finished end block
 }

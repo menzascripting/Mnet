@@ -5,7 +5,7 @@
 # required modules
 use warnings;
 use strict;
-use Test::More tests => 4;
+use Test::More tests => 5;
 
 # check starting log entry without Mnet::Log::Test, with time, pid, and date
 {
@@ -78,6 +78,18 @@ WRN - main warn
 DIE - main fatal
  -  - Mnet::Log finished with errors
 ', 'method calls');
+
+# check output from Mnet::Log with exit status set for error
+Test::More::is(`perl -e '
+    use warnings;
+    use strict;
+    use Mnet::Log;
+    use Mnet::Log::Test;
+    Mnet::Log->new->debug("debug");
+    exit 1;
+' -- 2>&1`, ' -  - Mnet::Log script -e started
+ -  - Mnet::Log finished with exit error status
+', 'exit error status');
 
 # finished
 exit;
