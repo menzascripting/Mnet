@@ -22,7 +22,9 @@ use strict;
 use parent qw( Mnet::Expect );
 use Carp;
 use Errno;
+use Mnet::Dump;
 use Mnet::Opts::Cli::Cache;
+use Time::HiRes;
 
 
 
@@ -30,15 +32,20 @@ sub new {
 
 =head1 $self = Mnet::Expect::Cli->new(\%opts)
 
-This method can be used to create new Mnet::Expect::Cli objects. The following
-input hash options may be specified:
+This method can be used to create new Mnet::Expect::Cli objects.
 
- log_id     note that other Mnet::Log->new opts may be specified
- password   login password for spawned command authentication
- prompt     stderr prompt for stdin password entry if password not set
- spawn      command and arguments array ref, or space separated string
- username   defaults to USER environment variable, if not set
- winsize    specify session rows and columns, defaults to 99999x999
+Mnet::Expect new input opts may be specified, along with the following:
+
+ failed_re      default recognizes failed logins
+ paging_key     default key to send for pagination prompt
+ paging_re      default recognizes pagination prompt --more--
+ password       set to password for spawned command, if needed
+ password_in    stderr prompt for stdin entry of password if not set
+ password_re    default recognizes password and passcode prompts
+ prompt_re      default recognizes prompts ending with $ % # : >
+ timeout        seconds for Expect restart_timeout_upon_receive
+ username       set to username for spawned command, if needed
+ username_re    default recognizes login, user, and username prompts
 
 A value of undefined will be returned if there were spawn errors, and the
 global Mnet::Expect::spawn_error will be set with error text.
@@ -46,7 +53,8 @@ global Mnet::Expect::spawn_error will be set with error text.
 For example, the following call will start an ssh expect session to a device:
 
  my $opts = { spawn => "ssh 1.2.3.4", prompt => 1 };
- my $expect = Mnet::Expect::Cli->new($opts) or die;
+ my $expect = Mnet::Expect::Cli->new($opts)
+    or die "expect error, $Mnet::Expect::error";
 
 Note that all Mnet::Expect session activity is logged for debugging, refer to
 the Mnet::Log module for more information.
@@ -58,36 +66,53 @@ the Mnet::Log module for more information.
     croak("invalid call to class new") if ref $class;
     my $opts = shift // {};
 
-    # create new object hash from input opts:
-    #   the following keys are set from input opts:
-    #       debug       => option for methods inherited from Mnet::Log module
-    #       log_id      => option for methods inherited from Mnet::Log module
-    #       password    => login password for spawned command authentication
-    #       prompt      => stderr prompt for stdin password if password not set
-    #       quiet       => option for methods inherited from Mnet::Log module
-    #       silent      => option for methods inherited from Mnet::Log module
-    #       spawn       => command and args array ref, or space separated string
-    #       username    => defaults to USER environment variable, if not set
-    #       winsize     => specify session rows and columns, defaults 99999x999
-    #   the following keys starting with underscore are used internally:
-    #       _expect     => spawned Expect object, refer to Mnet::Expect->expect
+    # note default options for this class
+    #   update perldoc for this sub with changes
+    my $defaults = {
+        failed_re   => '(?i)(closed|error|denied|fail|incorrect|invalid|refused|sorry)',
+        paging_key  => ' ',
+        paging_re   => '--(M|m)ore--',
+        password_re => '(?i)pass(word|code):?\s*(\r|\n)?$',
+        prompt_re   => '\S.*(\$|\%|#|:|>)\s?$',
+        timeout     => 30,
+        username_re => '(?i)(login|user(name)?):?\s*(\r|\n)?$',
+    };
+
+    # create new object hash from input opts, refer to perldoc for this sub
+    #   this allows first debug log entry according to input opts
     my $self = bless Mnet::Opts::Cli::Cache::get($opts), $class;
     $self->debug("new starting");
 
     # debug output of opts used to create this new object
-    foreach my $opt (sort keys %$opts) {
-        my $value = Mnet::Dump::line($opts->{$opt});
-        $value = "****" if $opt eq "password" and defined $opts->{$opt};
-        $self->debug("new opts $opt = $value");
+    #   skip this if we are being called from an extended subclass
+    if ($class eq "Mnet::Expect::Cli") {
+        foreach my $opt (sort keys %$opts) {
+            my $value = Mnet::Dump::line($opts->{$opt});
+            $value = "****" if $opt eq "password" and defined $opts->{$opt};
+            $self->debug("new opts $opt = $value");
+        }
     }
 
+    # set input opts to defaults if not defined
+    foreach my $opt (keys %$defaults) {
+        $self->{$opt} = $defaults->{$opt} if not defined $self->{$opt};
+    }
+
+    # call Mnet::Expect to create spawned object
+    $self->debug("new calling Mnet::Expect::new");
+    $self = Mnet::Expect::new($class, $self);
+
     # return undef if Expect spawn does not succeed
-    if (not $self->spawn) {
-        $self->debug("new finished, spawn failed, returning undef");
+    if (not $self) {
+        $self->debug("new finished, Mnet::Expect::new failed, returning undef");
         return undef;
     }
 
-    #? finish me, execute login, handle username/password/prompt
+    # return undef if login does not succeed
+    if (not $self->login) {
+        $self->debug("new finished, login failed, returning undef");
+        return undef;
+    }
 
     # finished new method, return spawned object
     $self->debug("new finished, returning $self");
@@ -96,30 +121,163 @@ the Mnet::Log module for more information.
 
 
 
+sub login {
+
+# $ok = $self->login
+# purpose: used to authenticate to session
+# $ok: set true on success, false on failure
+# note: global variable Mnet::Expect::error is set for failures
+
+    # read input object
+    my $self = shift;
+    $self->debug("login starting");
+
+    # $match = _login_expect($self, $re)
+    #   purpose: wait for next login prompt, output debug and error messages
+    #   $self: current Mnet::Expect::Cli object
+    #   $re: set to keyword username_re, password_re, or prompt_re
+    #   $match: set to matched $re text, or undef with Mnet::Expect::error set
+    #   note: failed_re is checked if $re is not set prompt_re
+    sub _login_expect {
+        my ($self, $re) = (shift, shift);
+        $self->debug("login_expect $re starting");
+        my @matches = ('-re', $self->{failed_re}, '-re', $self->{$re});
+        my $expect = $self->expect->expect($self->{timeout}, @matches);
+        my $match = Mnet::Dump::line($self->expect->match);
+        if (not $expect or $expect == 1) {
+            $Mnet::Expect::error = "login $re timed out";
+            $Mnet::Expect::error = "login failed_re matched $match" if $expect;
+            $self->debug("login_expect $re error, $Mnet::Expect::error");
+            return undef;
+        }
+        $self->debug("login_expect $re finished, matched $match");
+        return $self->expect->match;
+    }
+
+    # if username is set then wait and respond to username_re prompt
+    #   return if _login_expect fails, Mnet::Expect::error will be set
+    if (defined $self->{username}) {
+        _login_expect($self, "username_re") // return undef;
+        $self->expect->send("$self->{username}\r");
+
+    }
+
+    # if password is set then wait and respond to password_re prompt
+    #   return if _login_expect fails, Mnet::Expect::error will be set
+    #   prompt user for password if password not set and password_in is set
+    #   _log_filter used to keep password out of Mnet::Expect->log
+    if (defined $self->{password} or $self->{password_in}) {
+        _login_expect($self, "password_re") // return undef;
+        my $password = $self->{password};
+        if (not defined $password) {
+            $self->debug("login password_in prompt starting");
+            {
+                local $SIG{INT} = sub { system("stty echo 2>/dev/null") };
+                syswrite STDERR, "\nEnter $self->{password_in}: ";
+                system("stty -echo 2>/dev/null");
+                chomp($password = <STDIN>);
+                system("stty echo 2>/dev/null");
+                syswrite STDERR, "\n";
+            };
+            $self->debug("login password_in prompt finished");
+        }
+        $self->debug("login sending password");
+        $self->{_log_filter} = $password;
+        $self->expect->send("$password\r");
+    }
+
+    # detect command prompt
+    #   send a carraige return and ensure we get the same prompt back
+    #   clear expect buffer before sending cr, to flush out banner text, etc
+    #   set prompt_re to detected command prompt when finished
+    my ($prompt1, $prompt2, $attempts) = ("", "", 3);
+    foreach my $attempt (1.. $attempts) {
+        $self->debug("login detect prompt attempt $attempt");
+        $prompt1 = _login_expect($self, "prompt_re") // return undef;
+        $self->{_log_filter} = undef;
+        if ($prompt1 eq $prompt2) {
+            $self->{prompt_re} = '(\r|\n)\Q'.$prompt1.'\E$';
+            $self->debug("login detect prompt_re = /$self->{prompt_re}/");
+            $self->debug("login finished, returning true");
+            return 1;
+        } else {
+            $self->debug("login detect prompt sending cr");
+            1 while $self->expect->expect(1, '-re', '(\s|\S)+');
+            $self->expect->send("\r");
+            $prompt2 = $prompt1;
+        }
+    }
+
+    # finished login method, return true false for failure
+    $self->debug("login finished, returning false");
+    return 0;
+}
+
+
+
+sub prompt_re {
+
+=head1 $prompt_re = $self->prompt_re($prompt_re)
+
+Get and/or set new prompt_re for the current object.
+
+=cut
+
+    # read input object and new prompt_re
+    my ($self, $prompt_re) = (shift, shift);
+
+    # set new prompt_re, if defined
+    if (defined $prompt_re) {
+        $self->debug("prompt_re set = $prompt_re");
+        $self->{prompt_re} = $prompt_re;
+    }
+
+    # finished, return prompt_re
+    return $self->{prompt_re};
+}
+
+
+
+sub timeout {
+
+=head1 $self->timeout($timeout)
+
+Set a new timeout for the current object, refer to perldoc Expect.
+
+=cut
+
+    # set new timeout for curent object
+    my $self = shift;
+    my $timeout = shift // carp("missing tiemout arg");
+    $self->debug("timeout set = $timeout");
+    $self->{timeout} = $timeout;
+    return;
+}
+
+
+
 #? finish me
 #   Mnet::Expect::Cli
-#       cache_clear (clears expect cache, uses while loop to empty, etc)
-#       cmd($cmd, \@prompts)
+#       command_cache_clear
+#           cache_clear causes cache_id to be incremented
+#           cache_id used with record/replay to return newer outputs
+#       command($cmd, $timeout, \%prompts)
 #           @prompts is an ordered list of expect match conditions
 #           @prompts processing needs to be able to handle the following:
-#               prompt detection    (to disable or override default detection)
-#               pagination          (should we have some kind of default?)
-#               throttling          (to disable or override default?)
-#               progress bars       (to disable or override default?)
-#               timeouts            (gracefully return after disconnect)
-#               match+response      (wait for a regex, then send response)
-#               code references     (used to implement many/all of the above?)
-#           maybe @prompts would need to be more complex, to hook in via expect
-#       cmd_prompt (call Expect->_clean, confirm and return prompt)
-#       support for --record and --replay lives in this module?
-#           cache_clear causes cache_id to be incremented
+#               prompt_re           (to disable or override default prompt_re)
+#               paging_key          (to disable or override default paging_key)
+#               paging_re           (to disable or override default paging_re)
+#               timeout_ok          (gracefully return after disconnect)
+#               match_re            (wait for regex, send response or run code)
+#           order of @prompts?
 #   Mnet::Expect::Cli::Cisco
-#       opt_def --enable
-#       new (calls Cli->new with pagination default for cisco)
-#       login (calls Cli->login, with --enable opt defined in this module)
-#       cmd (calls Cli->cmd, Expect->_clean after, has pagination/etc prompts)
-#       close (call Cli->close("end\nexit\n") for cisco devs)
-#   add -re '\r\N' progress bar handling ability
+#       new
+#           option enable can be set
+#           calls Cli->new with pagination default for cisco
+#           enters enable mode, if enable option defined
+#       close
+#           call Cli->close("end\nexit\n") for cisco devs
+#   add -re '\r\N' progress bar handling ability?
 #       $match = $expect->match;
 #       $match =~ /\N*\r(\N)/$1/;
 #       $match .= $expect->after;

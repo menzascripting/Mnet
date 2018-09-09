@@ -26,27 +26,34 @@ use Errno;
 use Mnet::Dump;
 use Mnet::Opts::Cli::Cache;
 
-# init global spawn_error variable, used for Mnet::Expect->new spawn errors
-our $spawn_error;
+# init global Mnet::Expect::error variable, used for spawn errors, etc.
+our $error;
 
 
 sub new {
 
 =head1 $self = Mnet::Expect->new(\%opts)
 
-This method can be used to create new Mnet::Expect objects. The following input
-hash options may be specified:
+This method can be used to create new Mnet::Expect objects.
 
- log_id     note that other Mnet::Log->new opts may be specified
- spawn      command and arguments array ref, or space separated string
- winsize    specify session rows and columns, defaults to 99999x999
+The following input opts may be specified:
+
+ debug          refer to perldoc Mnet::Log new method
+ log_id         refer to perldoc Mnet::Log new method
+ quiet          refer to perldoc Mnet::Log new method
+ raw_pty        can be set 0 or 1, refer to perldoc Expect
+ silent         refer to perldoc Mnet::Log new method
+ spawn          command and args array ref, or space separated string
+ winsize        specify session rows and columns, default 99999x999
 
 A value of undefined will be returned if there were spawn errors, and the
-global Mnet::Expect::spawn_error will be set with error text.
+global Mnet::Expect::error variable will be set with error text.
 
 For example, the following call will start an ssh expect session to a device:
 
- my $expect = Mnet::Expect->new({ spawn => "ssh 1.2.3.4" }) or die;
+ my $opts = { spawn => "ssh 1.2.3.4" };
+ my $expect = Mnet::Expect->new($opts)
+    or die "expect error, $Mnet::Expect::error";
 
 Note that all Mnet::Expect session activity is logged for debugging, refer to
 the Mnet::Log module for more information.
@@ -58,22 +65,31 @@ the Mnet::Log module for more information.
     croak("invalid call to class new") if ref $class;
     my $opts = shift // {};
 
-    # create new object hash from input opts:
-    #   the following keys are set from input opts:
-    #       debug       => option for methods inherited from Mnet::Log module
-    #       log_id      => option for methods inherited from Mnet::Log module
-    #       quiet       => option for methods inherited from Mnet::Log module
-    #       silent      => option for methods inherited from Mnet::Log module
-    #       spawn       => command and args array ref, or space separated string
-    #       winsize     => specify session rows and columns, defaults 99999x999
-    #   the following keys starting with underscore are used internally:
+    # note default options for this class
+    #   update perldoc for this sub with changes
+    my $defaults = {
+        winsize => "99999x999",
+    };
+
+    # create new object hash from input opts, refer to perldoc for this sub
+    #   this allows first debug log entry according to input opts
+    #   also the following keys starting with underscore are used internally:
     #       _expect     => spawned Expect object, refer to Mnet::Expect->expect
+    #       _log_filter => set to password text to filter from debug log entry
     my $self = bless Mnet::Opts::Cli::Cache::get($opts), $class;
     $self->debug("new starting");
 
     # debug output of opts used to create this new object
-    foreach my $opt (sort keys %$opts) {
-        $self->debug("new opts $opt = ".Mnet::Dump::line($opts->{$opt}));
+    #   skip this if we are being called from an extended subclass
+    if ($class eq "Mnet::Expect") {
+        foreach my $opt (sort keys %$opts) {
+            $self->debug("new opts $opt = ".Mnet::Dump::line($opts->{$opt}));
+        }
+    }
+
+    # set input opts to defaults if not defined
+    foreach my $opt (keys %$defaults) {
+        $self->{$opt} = $defaults->{$opt} if not defined $self->{$opt};
     }
 
     # return undef if Expect spawn does not succeed
@@ -94,14 +110,11 @@ sub spawn {
 # $ok = $self->spawn
 # purpose: used to spawn Expect object
 # $ok: set true on success, false on failure
-# note: global spawn_error is set for failures
+# note: global variable Mnet::Expect::error is set for failures
 
     # read input object
     my $self = shift;
     $self->debug("spawn starting");
-
-    # init exit ok flag to true for success
-    my $ok = 1;
 
     # croak if spawn option was not set
     croak("missing spawn option") if not defined $self->{spawn};
@@ -112,11 +125,12 @@ sub spawn {
     eval("require Expect; 1") or croak("missing Expect perl module");
     $self->{_expect} = Expect->new;
 
+    # set raw_pty for expect session if defined as an input option
+    $self->{_expect}->raw_pty($self->{raw_pty}) if defined $self->{raw_pty};
+
     # set default window size for expect tty session
-    #   winsize option to this method defaults to 999999 rows x 999 columns
-    #   this is set to a large value to minimize pagination and line wrapping
+    #   this defaults to a large value to minimize pagination and line wrapping
     #   IO::Tty::Constant module is pulled into namespace when Expect is used
-    $self->{winsize} = "999999x999" if not defined $self->{winsize};
     carp("bad winsize $self->{winsize}") if $self->{winsize} !~ /^(\d+)x(\d+)$/;
     my $tiocswinsz = IO::Tty::Constant::TIOCSWINSZ();
     my $winsize_pack = pack('SSSS', $1, $2, 0, 0);
@@ -136,24 +150,24 @@ sub spawn {
     # call Expect spawn method
     #   temporarily disable Mnet::Test stdout/stderr ties
     #   stdout/stderr ties cause spawn problems, but can be re-enabled after
-    #   init global spawn_error to undef, set on expect spawn failures
+    #   init global Mnet::Expect error to undef, set on expect spawn failures
     Mnet::Test::disable_tie() if $INC{'Mnet/Test.pm'};
-    $Mnet::Expect::spawn_error = undef;
-    $Mnet::Expect::spawn_error = $! if not $self->expect->spawn(@spawn);
+    $Mnet::Expect::error = undef;
+    $Mnet::Expect::error = $! if not $self->expect->spawn(@spawn);
     Mnet::Test::enable_tie() if $INC{'Mnet/Test.pm'};
 
     # note spawn process id
     $self->debug("spawn pid ".$self->expect->pid);
 
-    # set ok return value to false for failure if there was a spawn error
-    if (defined $Mnet::Expect::spawn_error) {
-        $self->debug("spawn error, $Mnet::Expect::spawn_error");
-        $ok = 0;
+    # return false for failure if there was a spawn error
+    if (defined $Mnet::Expect::error) {
+        $self->debug("spawn error, returning false, $Mnet::Expect::error");
+        return 0;
     }
 
-    # finished spawn method, return ok value
-    $self->debug("spawn finished, returning $ok");
-    return $ok;
+    # finished spawn method, return true for success
+    $self->debug("spawn finished, returning true");
+    return 1;
 }
 
 
@@ -259,6 +273,9 @@ sub log {
     # read the current Mnet::Expect object and character string to log
     my ($self, $chars) = (shift, shift);
 
+    # note internal log filter option, if set
+    my $log_filter = $self->{_log_filter};
+
     # init text and hex log output lines
     #   separate hex lines are used to show non-prinatbel characters
     my ($line_txt, $line_hex) = (undef, undef);
@@ -267,9 +284,11 @@ sub log {
     foreach my $char (split(//, $chars)) {
 
         # append non-printable ascii characters to line_hex
+        #   apply _log_filter to remove passwords from line_txt
         if (ord($char) < 32) {
             $line_hex .= sprintf(" %02x", ord($char));
             if (defined $line_txt) {
+                $line_txt =~ s/\Q$log_filter\E/****/g if defined $log_filter;
                 $self->debug("log txt: $line_txt");
                 $line_txt = undef;
             }
@@ -278,7 +297,7 @@ sub log {
         } else {
             $line_txt .= $char;
             if (defined $line_hex) {
-                $self->debug("log hex: $line_hex");
+                $self->debug("log hex:$line_hex");
                 $line_hex = undef;
             }
         }
@@ -287,8 +306,12 @@ sub log {
     }
 
     # output any remaining log hex of txt lines after finishing loop
-    $self->debug("log hex: $line_hex") if defined $line_hex;
-    $self->debug("log txt: $line_txt") if defined $line_txt;
+    #   apply _log_filter to remove passwords from line_txt
+    $self->debug("log hex:$line_hex") if defined $line_hex;
+    if (defined $line_txt) {
+        $line_txt =~ s/\Q$log_filter\E/****/g if defined $log_filter;
+        $self->debug("log txt: $line_txt");
+    }
 
     # finished log method
     return;

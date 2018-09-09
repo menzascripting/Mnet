@@ -31,7 +31,7 @@ Usage examples:
 This mnet expect module can be used to create new expect sessions,
 send commands and receive the output of those commands.
 
-By default Expect will be used to attempt a device connection, 
+By default Expect will be used to attempt a device connection,
 trying ssh first and then telnet. The expect-command settings may
 be used to change the commands used to connect, or to specify that
 Net::Telnet be used instead of Expect.
@@ -60,7 +60,7 @@ user terminal once if the script is run in batch-list mode for
 the expect-username and expect-password, unless they are already
 set. A prompt expect-enable password is generated in batch mode
 if it is set true.
-  
+
 The expect module command method should be used when a command
 prompt is returned after command entry and command output. The
 send and clear methods exist to handle other situations. It is
@@ -264,7 +264,7 @@ module.
     return if $self->{'expect-replay'};
     while ($self->{'_expect'}->expect(1, "-re", '\S')) {
         $self->{'_expect'}->clear_accum;
-    }   
+    }
     return;
 }
 
@@ -304,7 +304,7 @@ close process.
                 or $self->dtl("close unable to confirm sending $exit command");
         }
     }
-    
+
     # attempt to execute hard close
     if (not ref $self->{'_expect'}
         or not $self->{'_expect'}->can('hard_close')) {
@@ -421,7 +421,7 @@ times out.
         # set timeout for complete output stall only, not output completion
         $self->{'_expect'}->restart_timeout_upon_receive(1);
 
-        # clear any old expect data and send command 
+        # clear any old expect data and send command
         $self->{'_expect'}->clear_accum;
         $self->dtl("sending command $command");
         $self->{'_expect'}->send("$command\r");
@@ -708,7 +708,7 @@ sub expect_connect {
     # continue with more flexible expect-command and optional expect-bastion
     }
 
-    # bastion host command spawn 
+    # bastion host command spawn
     if ($self->{'expect-bastion'}) {
 
         # default expect-bastion-username to expect-username
@@ -765,7 +765,7 @@ sub expect_connect {
         $self->inf("start $start_txt");
         $self->dbg("sending bastion command '$command @parameters'");
         $self->{'_expect'}->send("$expect_cmd\r");
-        
+
     # command spawn
     } else {
 
@@ -853,7 +853,7 @@ sub expect_logfile {
     # read instance and text to log
     my ($self, $text) = @_;
     $text = $self if not ref $self and not defined $text;
-    
+
     # return if called with no text to output
     return if not defined $text;
 
@@ -1155,7 +1155,7 @@ sub prompt {
     # debug log for prompt determination
     $self->dtl("determining current prompt");
     $self->{'_expect-logfile-dtl'} = 1;
-    
+
     # initialize possible prompt and start a loop
     my ($prompt1, $prompt2) = ("", "");
     my $count = 0;
@@ -1174,7 +1174,7 @@ sub prompt {
             $prompt1 =~ s/.*(\n|\r)//;
             $prompt1 =~ s/(^\s+|\s+$)//g;
             $self->dtl("debug prompt1 '$prompt1'");
-        } 
+        }
 
         # return with error if timeout determining prompt
         if (not defined $prompt1) {
@@ -1215,7 +1215,7 @@ sub prompt {
     # finished prompt method
     return $prompt1;
 }
- 
+
 
 
 sub read {
