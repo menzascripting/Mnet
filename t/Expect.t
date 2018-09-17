@@ -27,13 +27,15 @@ Test::More::is(`echo; perl -e '
 dbg - Mnet::Expect new starting
 dbg - Mnet::Expect new opts debug = 1
 dbg - Mnet::Expect new opts spawn = "echo x-test"
+dbg - Mnet::Expect new opts winsize = "99999x999"
+dbg - Mnet::Expect new calling spawn
 dbg - Mnet::Expect spawn starting
 dbg - Mnet::Expect spawn finished, returning true
 dbg - Mnet::Expect log txt: x-test
 dbg - Mnet::Expect log hex: 0d 0a
 dbg - Mnet::Expect close starting
 dbg - Mnet::Expect close calling hard_close
-dbg - Mnet::Expect close returning, hard_close confirmed
+dbg - Mnet::Expect close finished, hard_close confirmed
  -  - Mnet::Log finished with no errors
 ', 'new, expect, log, and close');
 
@@ -45,12 +47,9 @@ Test::More::is(`echo; perl -e '
     use Mnet::Log;
     use Mnet::Log::Test;
     my \$expect = Mnet::Expect->new({ spawn => "uydfhkksl" });
-    die "Mnet::Expect::error undef" if not defined \$Mnet::Expect::error;
-    die "expect defined" if defined \$expect;
-    die "spawn error\\n";
-' -- 2>&1 | grep -v ^err`, '
+' -- 2>&1 | sed 's/spawn error.*/spawn error/'`, '
  -  - Mnet::Log script -e started
-ERR - main perl die, spawn error
+DIE - Mnet::Expect spawn error
  -  - Mnet::Log finished with errors
 ', 'spawn error');
 

@@ -96,6 +96,7 @@ our @EXPORT_OK = qw( DEBUG INFO WARN FATAL );
 BEGIN {
 
     # autoflush standard output
+    #   so that multi-process syswrite lines are not split
     $| = 1;
 
     # note start time of script
@@ -242,11 +243,10 @@ Refer to the SYNOPSIS section of this perldoc for more information.
 
     # read input class and optional opts hash ref
     my $class = shift // croak("missing class arg");
-    croak("invalid call to class new") if ref $class;
     my $opts = shift // {};
 
-    # warn if log_id contains non-space characters
-    carp("invalid spaces in log_id $opts->{log_id}")
+    # croak if log_id contains non-space characters
+    croak("invalid spaces in log_id $opts->{log_id}")
         if defined $opts->{log_id} and $opts->{log_id} !~ /^\S+$/;
 
     # create object, apply input opts over any cached cli options

@@ -29,7 +29,7 @@ option can be set to a file, a named pipe, or /dev/stdin as above.
 
 The --batch list lines are processes one at a time unless linux /proc/stat is
 detected, in which case list command lines are processes concurrently as fast
-as possible without overutilizing the cpu cores.
+as possible without overutilizing the cpu.
 
 Below is a sample script supporting the Mnet::Batch --batch option, as used in
 the examples above:
@@ -77,6 +77,7 @@ use Time::HiRes;
 
 # init global variables and cli options for this module
 #   $fork_called used by end block to warn if Mnet::Batch::fork was not called
+#   $fork_called also used by Mnet::Report to print csv heading row corrently
 INIT {
     my $fork_called = undef;
     Mnet::Opts::Cli::define({
@@ -107,8 +108,8 @@ The returned child opts hash ref will contain settings from the input opts hash
 overlaid with options from the current batch command options line. Extra args
 from batch command option lines are also returned if called in list context.
 
-The returned child opts has ref will be undefined when execution of the --batch
-parent process finishes.
+The returned child opts hash ref will be undefined for the batch parent process
+when the parent process is finished.
 
  my ($cli, @extras) = Mnet::Opts::Cli->new;
  ($cli, @extras) = Mnet::Batch::fork($cli);
@@ -291,7 +292,7 @@ sub _fork_ok {
     #   stat_idle_c => count of idle cpu samples, used to get average idle cpu
     #   stat_idle_s => sum of idle cpu samples, used to get average idle cpu
     #   stat_max    => highest number of concurrent children during execution
-    my $fork_data = shift // die "missing fork_data arg";
+    my $fork_data = shift // croak("missing fork_data arg");
 
     # init cpu_count from /proc/stat the first time we are called
     #   this will be used later to adjust child_min based on idle cpu
@@ -341,19 +342,19 @@ sub _fork_ok_idle {
 # \%fork_data: refer to the _fork_ok() function for more information
 
     # read input fork_data hash
-    my $fork_data = shift // die "missing fork_data arg";
+    my $fork_data = shift // croak("missing fork_data arg");
 
     # return if three seconds hasn't gone by since last cpu utilization check
     return if $fork_data->{last_time} and $fork_data->{last_time} + 3 > time;
 
     # read first line of /proc/stat, with overall cpu utilization
     #   /proc/stat counts cpu ticks, typically 1/100 of a second but can vary
-    open(my $fh, "<", "/proc/stat") or die "error opening /proc/stat, $!";
+    open(my $fh, "<", "/proc/stat") or FATAL("error opening /proc/stat, $!");
     my $cpu_stats = <$fh>;
     close $fh;
 
     # note current idle and total cpu ticks, typically 1/100 sec but can vary
-    die "error parsing /proc/stat, $cpu_stats"
+    FATAL("error parsing /proc/stat, $cpu_stats")
         if $cpu_stats !~ /^cpu\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/;
     my ($cpu_idle, $cpu_ticks) = ($4, $1 + $2 + $3 + $4);
 
@@ -373,7 +374,7 @@ sub _fork_ok_idle {
     # calculate cpu idle percentage during last sample time
     #   divide idle ticks by total ticks then multiple by 100
     #   abort if no new total cpu ticks, to avoid a divide by zero error
-    die "error processing /proc/stat" if not $cpu_ticks - $last_ticks;
+    FATAL("error processing /proc/stat") if not $cpu_ticks - $last_ticks;
     my $pct_idle = ($cpu_idle - $last_idle) / ($cpu_ticks - $last_ticks) * 100;
     $fork_data->{stat_idle_s} += $pct_idle;
     $fork_data->{stat_idle_c}++;
@@ -403,7 +404,7 @@ sub _fork_ok_idle {
 # issue a warning if --batch set on cli and Mnet::Batch::fork sub never called
 END {
     my $opts = Mnet::Opts::Cli::Cache::get({});
-    die("cli --batch was set and Mnet::Batch::fork() was never called")
+    FATAL("cli --batch was set and Mnet::Batch::fork() was never called")
         if $opts->{batch} and not $Mnet::Batch::fork_called;
 }
 
@@ -411,9 +412,7 @@ END {
 =head1 SEE ALSO
 
  Mnet
- Mnet::Log::Conditional
  Mnet::Opts::Cli
- Mnet::Opts::Cli::Cache
  Mnet::Opts::Set
 
 =cut

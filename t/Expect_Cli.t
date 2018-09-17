@@ -5,26 +5,22 @@
 # required modules
 use warnings;
 use strict;
-use Test::More tests => 8;
+use Test::More tests => 9;
 use Mnet::Expect::Cli;
 
-
-#
-# check new and login methods
-#
-
 # init perl code used for new login tests
+#   for debug uncomment the use Mnet::Opts::Set::Debug line below
 my $perl_new_login = "chmod 700 \$CLI; echo; perl -e '" . '
     use warnings;
     use strict;
     use Mnet::Expect::Cli;
-    use Mnet::Log::Test;
     # use Mnet::Log; use Mnet::Opts::Set::Debug;
-    my $opts = { spawn => $ENV{CLI}, timeout => 1 };
+    my $opts = { spawn => $ENV{CLI}, timeout => 2 };
     $opts->{username} = "user" if "@ARGV" =~ /user/;
     $opts->{password} = "pass" if "@ARGV" =~ /pass/;
-    my $expect = Mnet::Expect::Cli->new($opts) or die "$Mnet::Expect::error\n";
-    syswrite STDOUT, "prompt = ".$expect->prompt_re."\n";
+    $opts->{prompt_re} = undef if "@ARGV" =~ /no_prompt_re/;
+    my $expect = Mnet::Expect::Cli->new($opts);
+    syswrite STDOUT, "prompt = ".$expect->prompt_re."\n" if $expect->prompt_re;
     $expect->close;
 ' . "'";
 
@@ -35,7 +31,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"prompt\$ \"; read INPUT
     echo -n \"prompt\$ \"; read INPUT
 ' >\$CLI; $perl_new_login -- user pass 2>&1; rm \$CLI`, '
-prompt = (\r|\n)\Qprompt$ \E$
+prompt = (^|\r|\n)prompt\$ \r?$
 ', 'new login with user, password, prompt $');
 
 # check new login with username, no password, prompt%
@@ -44,7 +40,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"prompt% \"; read INPUT
     echo -n \"prompt% \"; read INPUT
 ' >\$CLI; $perl_new_login -- user 2>&1; rm \$CLI`, '
-prompt = (\r|\n)\Qprompt% \E$
+prompt = (^|\r|\n)prompt% \r?$
 ', 'new login with username, no password, prompt%');
 
 # check new login with passcode, no username, prompt#
@@ -53,7 +49,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"prompt# \"; read INPUT
     echo -n \"prompt# \"; read INPUT
 ' >\$CLI; $perl_new_login -- pass 2>&1; rm \$CLI`, '
-prompt = (\r|\n)\Qprompt# \E$
+prompt = (^|\r|\n)prompt# \r?$
 ', 'new login with passcode, no username, prompt#');
 
 # new login with no username, no password and prompt:
@@ -61,16 +57,16 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"prompt: \"; read INPUT
     echo -n \"prompt: \"; read INPUT
 ' >\$CLI; $perl_new_login 2>&1; rm \$CLI`, '
-prompt = (\r|\n)\Qprompt: \E$
+prompt = (^|\r|\n)prompt: \r?$
 ', 'new login with no username, no password, prompt:');
 
-# new login with prompt> having no trailing spaces
+# new login prompt match with extra prompt text
 Test::More::is(`export CLI=\$(mktemp); echo '
-    echo -n \"prompt>\"; read INPUT
+    echo -n \"prompt:\"'"'"'\\n'"'"'\"prompt>\"; read INPUT
     echo -n \"prompt>\"; read INPUT
 ' >\$CLI; $perl_new_login 2>&1; rm \$CLI`, '
-prompt = (\r|\n)\Qprompt>\E$
-', 'new login prompt> without trailing space');
+prompt = (^|\r|\n)prompt>\r?$
+', 'new login with extra prompt, no trailing spaces prompt>');
 
 # new login refused before username prompt
 Test::More::is(`export CLI=\$(mktemp); echo '
@@ -87,7 +83,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
 login failed_re matched "fail"
 ', 'new login failed after login prompt');
 
-# new login failed after password prompt
+# new login denied after password prompt
 Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"username: \"; read INPUT
     echo -n \"password: \"; read INPUT
@@ -96,14 +92,10 @@ Test::More::is(`export CLI=\$(mktemp); echo '
 login failed_re matched "denied"
 ', 'new login denied after password prompt');
 
-#? finish me, add tests with extra prompt and fail text in bad places
-
-
-
-#? finish me, check other Mnet::Expect::Cli functions, like command method, etc
-
-
+# new login with no user, password, or prompt
+Test::More::is(`export CLI=\$(mktemp); echo '
+' >\$CLI; $perl_new_login no_prompt_re 2>&1; rm \$CLI`, '
+', 'new login with no user, password, or prompt');
 
 # finished
 exit;
-

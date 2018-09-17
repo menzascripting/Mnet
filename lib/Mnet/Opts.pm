@@ -57,12 +57,10 @@ the output Mnet::Opts object. Refer to the SEE ALSO section of this perldoc.
 =cut
 
     # read input class and optional opts hash ref
-    #   warn if this subroutine is not called as a class method
-    my ($class, $opts) = (shift, shift // {});
-    croak("invalid call to class new") if ref $class;
-    croak("invalid opts arg, not a hash ref") if ref $opts ne "HASH";
+    my $class = shift // croak("missing class arg");
+    my $opts = shift // {};
 
-    # create new object from input opts hash ref, warn on errors
+    # create new object from input opts hash ref
     #   dclone is used to avoid worries if caller edits hash values
     my $self = bless(Storable::dclone($opts), $class);
 

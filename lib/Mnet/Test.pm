@@ -60,6 +60,7 @@ Mnet::Test::done function at the end of script execution.
 use warnings;
 use strict;
 use 5.010;
+use Carp;
 use Data::Dumper;
 use Exporter qw(import);
 use Mnet::Log::Conditional qw( DEBUG INFO WARN FATAL NOTICE );
@@ -227,7 +228,7 @@ modules or scripts should use this function for record/replay test data.
 
     # check for force flag, allowed from Mnet::Opts::Cli only
     my $force = shift;
-    warn "invalid force option" if $force and caller ne "Mnet::Opts::Cli";
+    croak("invalid force option") if $force and caller ne "Mnet::Opts::Cli";
 
     # note the calling module name
     my $caller = caller;
@@ -265,10 +266,10 @@ sub _diff {
     return undef if not defined $opts->{test};
     return undef if not defined $opts->{replay};
 
-    # warn and return if there's no replay test data outputs
+    # abort if there's no replay test data outputs
     my $test_data = data($opts);
-    die "undefined --replay test data" if not defined $test_data->{outputs};
-    die "undefined current test data" if not defined $Mnet::Test::outputs;
+    FATAL("undefined --replay test data") if not defined $test_data->{outputs};
+    FATAL("undefined current test data") if not defined $Mnet::Test::outputs;
 
     # init diff output, use Text::Diff if available
     my $diff = "";
@@ -290,9 +291,9 @@ sub _diff {
         }
         syswrite $Mnet::Test::stdout, "\n";
 
-    # output warning for test diff in --batch mode
+    # output error for test diff in --batch mode
     } elsif ($diff) {
-        die "batch mode test output is different\n";
+        FATAL("batch mode test output is different");
     }
 
     # finished _diff function
@@ -516,7 +517,7 @@ are expected to be set via the Mnet::Opts::Cli module.
 # process record and test cli options, unless Mnet::Log has been loaded
 #   called from Mnet::Log end block if loaded, after last log line output
 #   --test diff undef if --replay --test diff was not attempted
-#   --test diff is null for no diff, exit clean even if output had warnings
+#   --test diff is null for no diff, exit clean even if output had errors
 #   --test diff is non-null for failed diff, exit with a failed status
 END {
     if (not $INC{"Mnet/Log.pm"}) {

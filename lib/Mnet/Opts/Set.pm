@@ -9,7 +9,7 @@ Mnet::Opts::Set
 This module can be used to check what Mnet::Opts::Set pragma sub-modules are
 currently loaded.
 
-Scripts should not need to use or call this module. Nomrally scripts would use
+Scripts should not need to use or call this module. Normally scripts would use
 the Mnet::Opts and Mnet::Opts::Cli modules, which handle checking the status of
 Mnet::Opts::Set pragma sub-modules.
 
@@ -28,7 +28,7 @@ sub enable {
 # purpose: use this function to dynamically load the specified pragma option
 # $pragma: progma option to enable, such as silent, quiet, etc.
 
-    my $pragma = shift // croak "missing pragma arg";
+    my $pragma = shift // croak("missing pragma arg");
     my $path = $INC{"Mnet/Opts/Set.pm"};
     $path =~ s/(Mnet\/Opts\/Set)\.pm$/$1\//;
     $path .= ucfirst($pragma) . ".pm";

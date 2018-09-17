@@ -8,12 +8,13 @@ use strict;
 use Test::More tests => 9;
 
 # check --version
+#   extra sed was needed on openbsd
 Test::More::is(`perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
     Mnet::Opts::Cli->new;
-' -- --version 2>&1 | grep -e Mnet -e 'exec path' | head -n 2 | wc -l`, '2
+' -- --version 2>&1 | grep -e Mnet -e 'exec path' | head -n 2 | wc -l | sed 's/^ *//'`, '2
 ', 'display --version');
 
 # check --help

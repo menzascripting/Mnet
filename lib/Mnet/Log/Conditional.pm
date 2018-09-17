@@ -45,11 +45,10 @@ Refer to the new method in perldoc Mnet::Log for more information.
 
     # read input class and optional opts hash ref
     my $class = shift // croak("missing class arg");
-    croak("invalid call to class new") if ref $class;
     my $opts = shift // {};
 
     # warn if log_id contains non-space characters
-    carp("invalid log_id $opts->{log_id}")
+    croak("invalid log_id $opts->{log_id}")
         if defined $opts->{log_id} and $opts->{log_id} !~ /^\S+$/;
 
     # create object, apply input opts over any cached cli options

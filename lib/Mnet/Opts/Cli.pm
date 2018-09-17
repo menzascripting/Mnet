@@ -46,8 +46,8 @@ extra arguments the extra arguments from the replay file will be used unless
 there were extra arguments on the command line, in which case the command line
 arguments will replace the arguments read from the replay file.
 
-The --record option can be used to re-save a --replay file after applying new
-command line options and/or extra arguments.
+The --record option can be used to re-save the current --replay file after
+applying new command line options and/or extra arguments.
 
 =cut
 
@@ -95,7 +95,7 @@ INIT {
             use --default with --record to reset named options to default
             use --default with no option name to reset extra args to default
             use --help for individual options to check if they are recordable
-            warning issued if --default is specified for non-recordable options
+            error issued if --default is specified for non-recordable options
             this option works from the command line only
         ',
     });
@@ -128,15 +128,15 @@ which follows that define a --sample string option:
  use Mnet::Cli::Opts;
  Mnet::Opts::Cli::define({ getopt => 'sample=s' });
 
-A warning results if an option with the same name has already been defined.
+An error is issued if an option with the same name has already been defined.
 
 The following Getopt::Long option specification types are supported:
 
  opt    --opt       boolean option, set true if --opt is set
  opt!   --[no]opt   negatable option, returns false if --noopt is set
- opt=i  --opt <i>   required integer, warns if input value is not set
+ opt=i  --opt <i>   required integer, error if input value is not set
  opt:i  --opt [i]   optional integer, returns null if value not set
- opt=s  --opt <s>   required string, warns if input value is not set
+ opt=s  --opt <s>   required string, error if input value is not set
  opt:s  --opt [s]   optional string, returns null if value not set
 
 The following keys in the specs input hash reference argument are supported:
@@ -191,7 +191,7 @@ sub _define_help_usage {
 # note: aborts with an error for unsupported Getopt::Long specs
 
     # read input getopt spec string
-    my $getopt = shift // croak "missing getopt arg";
+    my $getopt = shift // croak("missing getopt arg");
 
     # init output help usage string for supported getopt types
     my $help_usage = undef;
@@ -228,7 +228,7 @@ any other extra arguments that were present on the command line.
  use Mnet::Opts::Cli;
  my ($cli, @extras) = Mnet::Opts::Cli->new();
 
-If called in scalar context a warning will be issued if extra command line
+If called in scalar context an error will be issued if extra command line
 arguments exist.
 
  use Mnet::Opts::Cli;
@@ -243,7 +243,7 @@ Options are applied in the following order:
  - Mnet::Opts::Set use pragmas
  - Mnet::Opts::Cli::define default key
 
-Note that warnings are not issued for unknown options that may be set for other
+Note that errors are not issued for unknown options that may be set for other
 scripts in the Mnet environment variable. Also note that the Mnet environment
 variable is not parsed if the --test option is set on the command line.
 
@@ -251,9 +251,8 @@ The perl ARGV array is not modified by this module.
 
 =cut
 
-    # read input class, warn if not called as a class method
+    # read input class
     my $class = shift // croak("missing class arg");
-    croak("invalid call to class new") if ref $class;
 
     # read batch child opts from Mnet::Opts::Cli::batch() only
     #   refer to Mnet::Opts::Cli::batch() for more information
