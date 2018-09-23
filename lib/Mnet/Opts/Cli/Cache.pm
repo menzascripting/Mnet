@@ -2,9 +2,19 @@ package Mnet::Opts::Cli::Cache;
 
 =head1 NAME
 
-Mnet::Opts::Cli::Cache
+Mnet::Opts::Cli::Cache - Access Mnet::Opts::Cli options if loaded
 
 =head1 SYNOPSIS
+
+    # requried to use this module
+    use Mnet::Opts::Cli::Cache;
+
+    # sample sub with input opts arg overlaid onto cached cli opts
+    sub example {
+        my $opts = Mnet::Opts::Cli::Cache::get(shift // {});
+    }
+
+=head1 DESCRIPTION
 
 This module can be used to access command line options that may be in effect,
 depending on if the Mnet::Opts::Cli module new method was used to parse them.
@@ -13,14 +23,6 @@ The following is a typical usage example, showing a subroutine that allows for
 an Mnet::Opts object to be created using an input opts hash reference which is
 overaid onto any cached cli options that may have already been parsed by the
 running script:
-
- # requried to use this module
- use Mnet::Opts::Cli::Cache;
-
- # sample sub with an input opts arg overlaid onto cached cli options
- sub example {
-    my $opts = Mnet::Opts::Cli::Cache::get(shift // {});
- }
 
 Refer to the Mnet::Opts::Cli and Mnet::Opts modules for more info.
 
@@ -75,9 +77,10 @@ sub set {
 
 sub get {
 
-=head1 \%opts = Mnet::Opts::Cli::Cache::get(\%input);
+=head2 get
 
-=head1 S< > or (\%opts, @extras) = Mnet::Opts::Cli::Cache::get(\%input);
+    \%opts = Mnet::Opts::Cli::Cache::get(\%input);
+    or (\%opts, @extras) = Mnet::Opts::Cli::Cache::get(\%input);
 
 This function can be used to retrieve a hash reference of parsed cli options
 and a list of extra cli arguments. An optional input hash reference can be
@@ -114,9 +117,10 @@ Refer to the SYNOPSIS section of this perldoc for usage examples and more info.
 
 =head1 SEE ALSO
 
- Mnet
- Mnet::Log::Conditional
- Mnet::Opts::Set
+L<Mnet>,
+L<Mnet::Log::Conditional>,
+L<Mnet::Opts::Cli>,
+L<Mnet::Opts::Set>
 
 =cut
 

@@ -15,12 +15,12 @@ my ($fh, $file) = File::Temp::tempfile( UNLINK => 1 );
 my $script = '
     use warnings;
     use strict;
+    # use Mnet::Log; use Mnet::Opts::Set::Debug;
     use Mnet::Opts::Cli;
     use Mnet::Test;
     Mnet::Opts::Cli::define({
         getopt      => "sample=i",
         default     => 1,
-        recordable  => 1,
     });
     my ($cli, @extras) = Mnet::Opts::Cli->new;
     syswrite STDOUT, "sample = $cli->{sample}\n";
@@ -48,9 +48,9 @@ extras = extra
 '
 }
 };
-", 'test record with mnet cli opt and extra arg');
+", 'record with mnet cli opt and extra arg');
 
-# test replay file using Mnet::Opts::Cli
+# replay file using Mnet::Opts::Cli
 Test::More::is(`perl -e '
     $script
 ' -- --replay $file --test 2>&1 | sed "s/tmp\\/.*/tmp\\/file/"`,
@@ -63,10 +63,10 @@ diff --test --replay /tmp/file
 
 Test output is identical.
 
-", 'test replay with mnet cli opt and extra arg');
+", 'replay with mnet cli opt and extra arg');
 
 
-# test replay file using Mnet::Opts::Cli
+# replay file using Mnet::Opts::Cli
 Test::More::is(`perl -e '
     $script
 ' -- --replay $file --test --sample 3 arg 2>&1 | sed "s/tmp\\/.*/tmp\\/file/"`,
@@ -83,7 +83,7 @@ diff --test --replay /tmp/file
 -extras = arg
 +extras = extra
 
-", 'test replay with overridden cli opt and extra arg');
+", 'replay with overridden cli opt and extra arg');
 
 # finished
 exit;

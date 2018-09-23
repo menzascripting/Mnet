@@ -2,9 +2,13 @@ package Mnet::Opts::Set::Silent;
 
 =head1 NAME
 
-Mnet::Opts::Set::Silent
+Mnet::Opts::Set::Silent - Use this module to enable --silent option
 
 =head1 SYNOPSIS
+
+    use Mnet::Opts::Set::Silent;
+
+=head1 DESCROPTION
 
 Use this module to enable the --silent option for the Mnet::Log module.
 
@@ -18,8 +22,8 @@ use strict;
 
 =head1 SEE ALSO
 
- Mnet
- Mnet::Log
+L<Mnet>,
+L<Mnet::Log>
 
 =cut
 

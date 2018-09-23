@@ -2,27 +2,29 @@ package Mnet::Opts;
 
 =head1 NAME
 
-Mnet::Opts
+Mnet::Opts - Work with Mnet::Opts objects
 
 =head1 SYNOPSIS
 
+    # requried to use this module
+    use Mnet::Opts;
+
+    # some options can be set as pragmas
+    use Mnet::Opts::Set::Debug;
+
+    # options objects can be created
+    my $opts = Mnet::Opts({ default => 1 });
+
+    # options can be accessed via hash keys
+    my $value = $opts->{default};
+
+    # options can be accessed via method call
+    $value = $opts->default;
+
+=head1 DESCRIPTION
+
 This module can be used to work with new Mnet::Opts objects, as shown in the
 example below:
-
- # requried to use this module
- use Mnet::Opts;
-
- # some options can be set as pragmas
- use Mnet::Opts::Set::Debug;
-
- # options objects can be created
- my $opts = Mnet::Opts({ default => 1 });
-
- # options can be accessed via hash keys
- my $value = $opts->{default};
-
- # options can be accessed via method call
- $value = $opts->default;
 
 Refer also to the Mnet::Opts::Cli module for parsing command line options.
 
@@ -44,7 +46,9 @@ our $AUTOLOAD;
 
 sub new {
 
-=head1 $self = Mnet::Opts->new(\%opts)
+=head2 new
+
+    $opts = Mnet::Opts->new(\%opts)
 
 The Mnet::Opts->new class method returns an Mnet::Opts option object.
 
@@ -85,13 +89,15 @@ the output Mnet::Opts object. Refer to the SEE ALSO section of this perldoc.
 
 sub AUTOLOAD {
 
-=head1 $value = $self->$opt
+=head2 option methods
+
+    $value = $opts->$option
 
 Option values may be accessed using autoloaded method calls, for example:
 
- use Mnet::Opts;
- my $opts = Mnet::Opts({ default => 1 });
- my $value = $opts->default;
+    use Mnet::Opts;
+    my $opts = Mnet::Opts({ default => 1 });
+    my $value = $opts->default;
 
 Note that the universal 'can' method call does not work for these autoloaded
 option name methods. Method calls for options that do not exist will return
@@ -113,10 +119,10 @@ It is also ok to directly access the values of hash keys in the options object.
 
 =head1 SEE ALSO
 
- Mnet
- Mnet::Dump
- Mnet::Log::Conditional
- Mnet::Opts::Set
+L<Mnet>,
+L<Mnet::Dump>,
+L<Mnet::Log::Conditional>,
+L<Mnet::Opts::Set>
 
 =cut
 

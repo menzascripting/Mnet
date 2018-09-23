@@ -110,7 +110,7 @@ my $perl_record_replay = '
     my $expect = Mnet::Expect::Cli::Ios->new($opts);
 ';
 
-# command method record
+# enable method --record
 Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"prompt> \"; read INPUT
     echo -n \"prompt> \"; read INPUT
@@ -118,13 +118,13 @@ Test::More::is(`export CLI=\$(mktemp); echo '
 ' >\$CLI; chmod 700 \$CLI; perl -e '
     $perl_record_replay
     print \$expect->enable("test") // "<undef>";
-' -- --record $file 2>&1; rm \$CLI`, '1', 'enable method record');
+' -- --record $file 2>&1; rm \$CLI`, '1', 'enable method --record');
 
-# command method replay
+# enable method --replay
 Test::More::is(`perl -e '
     $perl_record_replay
     print \$expect->enable("test") // "<undef>";
-' -- --replay $file 2>&1`, '1', 'enable method replay');
+' -- --replay $file 2>&1`, '1', 'enable method --replay');
 
 
 

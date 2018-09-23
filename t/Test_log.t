@@ -8,7 +8,7 @@ use strict;
 use File::Temp;
 use Test::More tests => 2;
 
-# create temp record/replay/test file
+# create temp test/record/replay file
 my ($fh, $file) = File::Temp::tempfile( UNLINK => 1 );
 
 # save record file using Mnet::Log
@@ -36,14 +36,14 @@ WRN - main warn2
 '
 }
 };
-", 'test record with mnet log');
+", 'record with mnet log');
 
-# test replay file using Mnet::Log
-Test::More::is(`perl -e '
+# replay file using Mnet::Log and exit status
+Test::More::is(`( echo; perl -e '
     use warnings;
     use strict;
     use Mnet::Log;
-    use Mnet::Opts::Set::Silent;
+    use Mnet::Log::Test;
     use Mnet::Test;
     my \$file = shift;
     my \$log = Mnet::Log->new({ replay => \$file, test => 1 });
@@ -53,7 +53,13 @@ Test::More::is(`perl -e '
     \$log->warn("warn1");
     \$log->warn("warn3");
     Mnet::Test::done({ replay => \$file, test => 1 });
-' -- $file 2>&1 | sed "s/tmp\\/.*/tmp\\/file/"`, '
+' -- $file || echo ERROR ) 2>&1 | sed "s/tmp\\/.*/tmp\\/file/"`, '
+ -  - Mnet::Log script -e started
+inf - main info1
+inf - main info3
+WRN - main warn1
+WRN - main warn3
+
 -------------------------------------------------------------------------------
 diff --test --replay /tmp/file
 -------------------------------------------------------------------------------
@@ -66,7 +72,9 @@ diff --test --replay /tmp/file
 -WRN - main warn3
 +WRN - main warn2
 
-', 'test replay with mnet log');
+ -  - Mnet::Log finished with errors
+ERROR
+', 'replay test fail with mnet log and exit status');
 
 # finished
 exit;

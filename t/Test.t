@@ -6,9 +6,9 @@
 use warnings;
 use strict;
 use File::Temp;
-use Test::More tests => 3;
+use Test::More tests => 2;
 
-# create temp record/replay/test file
+# create temp test/record/replay file
 my ($fh, $file) = File::Temp::tempfile( UNLINK => 1 );
 
 # save record file without using Mnet::Opts::Cli
@@ -35,9 +35,9 @@ stderr2
 'key' => 'value'
 }
 };
-", 'test record, no mnet cli');
+", 'record, no mnet cli');
 
-# diff from test replay of record file without using Mnet::Opts::Cli
+# diff from replay of record file without using Mnet::Opts::Cli
 Test::More::is(`perl -e '
     use warnings;
     use strict;
@@ -66,34 +66,6 @@ diff --test --replay /tmp/file
 +stderr2
 
 ', 'test diff replay, no mnet cli');
-
-# check outputs using Mnet::Test::stdout and Mnet::Test::stderr file handles
-Test::More::is(`perl -e '
-    use warnings;
-    use strict;
-    use Mnet::Test qw( \$stdout \$stderr );
-    syswrite \$stdout, "Mnet::Test::stdout\n";
-    syswrite \$stderr, "Mnet::Test::stderr\n";
-    my \$opts = { replay => shift, test => 1 };
-    syswrite STDOUT, "stdout1\nstdout2\n";
-    syswrite STDERR, "stderr1\nstderr2\n";
-    my \$data = Mnet::Test::data(\$opts);
-    warn if \$data->{key} ne "value";
-    Mnet::Test::done(\$opts);
-' -- $file 2>&1 | sed "s/tmp.*/tmp\\/file/"`, 'Mnet::Test::stdout
-Mnet::Test::stderr
-stdout1
-stdout2
-stderr1
-stderr2
-
--------------------------------------------------------------------------------
-diff --test --replay /tmp/file
--------------------------------------------------------------------------------
-
-Test output is identical.
-
-', 'test no diff replay using exported stdout and stderr, no mnet cli');
 
 # finished
 exit;

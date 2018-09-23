@@ -72,7 +72,7 @@ prompt = (^|\r|\n)prompt>\r?$
 Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"refused\"; read INPUT
 ' >\$CLI; $perl_new_login user pass 2>&1; rm \$CLI`, '
-login failed_re matched "refused"
+DIE - Mnet::Expect::Cli login failed_re matched "refused"
 ', 'new login refused before username prompt');
 
 # new login failed after login prompt
@@ -80,7 +80,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"login: \"; read INPUT
     echo -n \"failed\"; read INPUT
 ' >\$CLI; $perl_new_login user pass 2>&1; rm \$CLI`, '
-login failed_re matched "fail"
+DIE - Mnet::Expect::Cli login failed_re matched "fail"
 ', 'new login failed after login prompt');
 
 # new login denied after password prompt
@@ -89,7 +89,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"password: \"; read INPUT
     echo -n \"denied\"; read INPUT
 ' >\$CLI; $perl_new_login user pass 2>&1; rm \$CLI`, '
-login failed_re matched "denied"
+DIE - Mnet::Expect::Cli login failed_re matched "denied"
 ', 'new login denied after password prompt');
 
 # new login with no user, password, or prompt

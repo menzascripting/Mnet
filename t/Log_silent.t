@@ -36,17 +36,21 @@ Test::More::is(`perl -e '
 ' -- 2>&1`, '', 'methods with silent pragma option');
 
 # check methods with Mnet::Log->new object silent option
-Test::More::is(`perl -e '
+Test::More::is(`echo; perl -e '
     use warnings;
     use strict;
     use Mnet::Log;
     use Mnet::Log::Test;
     use Mnet::Opts::Set::Debug;
-    Mnet::Log->new({ silent => 1})->debug("debug");
-    Mnet::Log->new({ silent => 1})->info("info");
-    Mnet::Log->new({ silent => 1})->warn("warn");
-    Mnet::Log->new({ silent => 1})->fatal("fatal");
-' -- 2>&1`, '', 'silent object option');
+    Mnet::Log->new({ silent => 1})->debug("TEST debug");
+    Mnet::Log->new({ silent => 1})->info("TEST info");
+    Mnet::Log->new({ silent => 1})->warn("TEST warn");
+    Mnet::Log->new({ silent => 1})->fatal("TEST fatal");
+' -- 2>&1 | grep -e '- Mnet::Log' -e 'Mnet = ' -e TEST | sed 's/=.*/= dev/'`, '
+ -  - Mnet::Log script -e started
+dbg - Mnet::Version Mnet = dev
+ -  - Mnet::Log finished with exit error status
+', 'silent object option');
 
 # check functions with --silent cli option
 Test::More::is(`perl -e '
@@ -65,14 +69,15 @@ Test::More::is(`perl -e '
 # check stdout and stderr with --silent cli option
 #   only Mnet::Log entries are affected by silent
 #   silence other script output using /dev/null redirect
-Test::More::is(`perl -e '
+Test::More::is(`echo; perl -e '
     use warnings;
     use strict;
     use Mnet::Log;
     use Mnet::Log::Test;
     print STDOUT "stdout\n";
     print STDERR "stderr\n";
-' -- --silent 2>&1`, 'stdout
+' -- --silent 2>&1`, '
+stdout
 stderr
 ', 'silent stdout and stderr');
 

@@ -1,59 +1,99 @@
 
 =head1 NAME
 
-Mnet
+Mnet - Testable network automation and reporting
 
 =head1 SYNOPSIS
 
-The Mnet modules are for perl programmers who want to create network
-automation, reporting, and monitoring scripts.
-
-Here's some sample code showing typical usage:
-
-    # use the logging module,
+    # load modules
+    use warnings;
+    use strict;
+    use Mnet::Batch;
+    use Mnet::Expect::Cli;
     use Mnet::Log qw(DEBUG INFO WARN FATAL);
-
-    # use the cli option parsing module
     use Mnet::Opts::Cli;
-
-    # use the test record/replay module
+    use Mnet::Report::Table;
     use Mnet::Test;
 
-    # define a cli option for this script
-    Mnet::Opts::Cli::define({
-        getopt   => "sample:s",
-        help_tip => "string cli option",
-    });
+    # define --device name and --report output cli options
+    Mnet::Opts::Cli::define({ getopt => "device=s" });
+    Mnet::Opts::Cli::define({ getopt => "password=s" });
+    Mnet::Opts::Cli::define({ getopt => "report=s" });
+    Mnet::Opts::Cli::define({ getopt => "username=s" });
 
-    # parse cli options
+    # parse cli options, also parses Mnet environment variable
     my $cli = Mnet::Opts::Cli->new;
 
-    # here's a bit of example code
-    INFO("sample option set") if $cli->sample;
+    # define output --report table
+    my $report = Mnet::Report::Table->new({
+        columns => [
+            device  => "string",
+            error   => "error",
+            data    => "string",
+        ],
+        output  => $cli->report,
+    });
 
-Refer to the TUTORIAL below to see what can be done with the above code, and
-the SEE ALSO section of this perldoc for a complete list of Mnet perl modules.
+    # handle concurrent --batch processing, parent exits when finished
+    $cli = Mnet::Batch::fork($cli);
+    exit if not $cli;
 
-=head1 TUTORIAL
+    # ensure that errors show up in report if we don't end normally
+    $report->row_on_error({ device => $cli->device });
 
-#? finish tutorial
-#   be sure to show use of all main modules, including Mnet::Batch
+    # use log function and set up log object
+    FATAL("missing --device") if not $cli->device;
+    my $log = Mnet::Log->new({ log_id => $cli->device });
+    $log->info("processing device");
+    $cli->{device}
 
-=cut
+    # create an expect ssh session to --device
+    my $ssh = Mnet::Expect::Cli->new({
+        spawn => [ "ssh", $cli->{device} ],
+    });
 
-#? create sample/sample.pl project script
-#   contains some type of outline parsing subroutine or module
-#       @output or $output = outline_parse($input_outline, $match_re)
-#       returns all outline sections that match regex
-#       or where would be a good spot to put this code?
-#   connect to ios/juniper/other devices available via http://routeserver.org
-#   make use of expect ios, batch mode, reports, testing, etc
-#   maybe the tutorial covers this ground?
+    # retrieve output from telnet session
+    my $output = $ssh->command("show version");
+
+    # attempt to report on data parsed from output
+    WARN("unable to parse data") if $output !~ /^(+*)/;
+    $report->row({ device => $cli->device, data => $1 });
+
+    # finished
+    exit;
+
+=head1 DESCRIPTION
+
+The Mnet modules are for perl programmers who want to create testable network
+automation and reporting scripts.
+
+The above SYNOPSIS sample.pl script can be executed as follows:
+
+ # list options, or get more help on a specific option
+ sample.pl --help [<option>]
+
+ # ssh to device, log output to terminal
+ sample.pl --device router1
+
+ # record device ssh session then replay and show test diffs
+ sample.pl --device router1 --record router1.test
+ sample.pl --test --replay router1.test
+
+ # concurrently process and report on a list of devices
+ echo '
+    --device router1
+    --device router2
+ ' | sample.pl --batch /dev/stdin --report csv:/dev/stdout
+
+Most of the Mnet modules can be used independely of each other, except where
+otherwise noted.
+
+Refer to the modules listed in the SEE ALSO section below for more details.
 
 =head1 AUTHOR
 
-The Mnet perl module has been created and is maintained by Mike Menza. Mike can
-be reached via email at mmenza@cpan.org.
+The Mnet perl distribution has been created and is maintained by Mike Menza.
+Mike can be reached via email at <mmenza@cpan.org>.
 
 =head1 COPYRIGHT AND LICENSE
 
@@ -68,20 +108,22 @@ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-this program. If not, see http://www.gnu.org/licenses/
+this program. If not, see <http://www.gnu.org/licenses/>
 
 =head1 SEE ALSO
 
- Mnet::Batch
- Mnet::Expect
- Mnet::Expect::Cli
- Mnet::Expect::Cli::Ios
- Mnet::Log
- Mnet::Opts::Cli
- Mnet::Opts::Set::Debug
- Mnet::Opts::Set::Quiet
- Mnet::Opts::Set::Silent
- Mnet::Test
+L<Mnet::Batch>,
+L<Mnet::Expect>,
+L<Mnet::Expect::Cli>,
+L<Mnet::Expect::Cli::Ios>,
+L<Mnet::Log>,
+L<Mnet::Opts::Cli>,
+L<Mnet::Opts::Set::Debug>,
+L<Mnet::Opts::Set::Quiet>,
+L<Mnet::Opts::Set::Silent>,
+L<Mnet::Report::Table>,
+L<Mnet::Tee>,
+L<Mnet::Test>
 
 =cut
 

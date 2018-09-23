@@ -2,21 +2,21 @@ package Mnet::Expect::Cli;
 
 =head1 NAME
 
-Mnet::Expect::Cli
+Mnet::Expect::Cli - Expect sessions to command line interfaces
 
 =head1 SYNOPSIS
+
+    use Mnet::Expect::Cli;
+    my $opts = { spawn => "ssh 1.2.3.4", prompt => 1 };
+    my $expect = Mnet::Expect::Cli->new($opts);
+    my $output = $expect->command("ls");
+    $expect->close;
+
+=head1 DESCRIPTION
 
 This module can be used to create new Mnet::Expect::Cli objects, which inherit
 Mnet::Expect methods and have additional methods to handle logins, command
 execution, caching, and testing.
-
-=head1 TESTING
-
-The Mnet::Opts::Cli and Mnet::Test --record and --replay command line options
-work with this module to record and replay command method outputs associated
-with various issued commands, integrated with the command_cache_clear method.
-
-Refer to the Mnet::Test module for more information.
 
 =cut
 
@@ -33,32 +33,34 @@ use Time::HiRes;
 
 sub new {
 
-=head1 $self = Mnet::Expect::Cli->new(\%opts)
+=head2 new
+
+    $expect = Mnet::Expect::Cli->new(\%opts)
 
 This method can be used to create new Mnet::Expect::Cli objects.
 
 The following input opts may be specified, in addition to options from
 the Mnet::Expect module:
 
- delay          millseconds delay for command prompt detection
- eol_unix       default true for output with unix /n eol chars only
- failed_re      default recognizes failed logins, undef to disable
- paging_key     default space key to send for pagination prompt
- paging_re      default recognizes pagination prompt --more--
- password       set to password for spawned command, if needed
- password_in    stderr prompt for stdin entry of password if not set
- password_re    undef to skip password/passcode prompt detection
- prompt_re      undef to skip cli prompt detect, refer to prompt_re
- timeout        seconds for Expect restart_timeout_upon_receive
- username       set to username for spawned command, if needed
- username_re    undef to skip login/user/username promt detection
+    delay           millseconds delay for command prompt detection
+    eol_unix        default true for output with unix /n eol chars only
+    failed_re       default recognizes failed logins, undef to disable
+    paging_key      default space key to send for pagination prompt
+    paging_re       default handles common prompts, refer to paging_re
+    password        set to password for spawned command, if needed
+    password_in     stderr prompt for stdin entry of password if not set
+    password_re     undef to skip password/passcode prompt detection
+    prompt_re       undef to skip cli prompt detect, refer to prompt_re
+    timeout         seconds for Expect restart_timeout_upon_receive
+    username        set to username for spawned command, if needed
+    username_re     undef to skip login/user/username promt detection
 
-An error is issued if there are login problems.
+    An error is issued if there are login problems.
 
 For example, the following call will start an ssh expect session to a device:
 
- my $opts = { spawn => "ssh 1.2.3.4", prompt => 1 };
- my $expect = Mnet::Expect::Cli->new($opts);
+    my $opts = { spawn => "ssh 1.2.3.4", prompt => 1 };
+    my $expect = Mnet::Expect::Cli->new($opts);
 
 Refer to the Mnet::Expect module for more information.
 
@@ -79,6 +81,14 @@ Refer to the Mnet::Expect module for more information.
 
     # note default options for this class
     #   includes recognized cli opts and opts for this object
+    #       failed_re default based on educated guess, specifics noted below:
+    #           junos telnet =~ /^Login incorrent/m
+    #       password_re default based on educated guess, specifics noted below:
+    #           junos telnet =~ /^Password:$/m
+    #       prompt_re default based on educated guess, specifics noted below:
+    #           junos telnet =~ /^\S+> $/mi
+    #       username_re default based on educated guess, specifics noted below:
+    #           junos telnet =~ /^login: $/m
     #   the following keys starting with underscore are used internally:
     #       _command_cache_content => hash ref, refer to _command_cache_clear
     #       _command_cache_counter => integer, refer to _command_cache_clear
@@ -90,9 +100,10 @@ Refer to the Mnet::Expect module for more information.
         _command_cache_counter => 0,
         delay       => 250,
         eol_unix    => 1,
-        failed_re   => '(?i)(closed|error|denied|fail|incorrect|invalid|refused|sorry)',
+        failed_re   => '(?i)(closed|error|denied|fail'
+                            . '|incorrect|invalid|refused|sorry)',
         paging_key  => ' ',
-        paging_re   => '--(M|m)ore--',
+        paging_re   => '(--more--|---\(more( \d\d?%)?\)---)',
         password    => undef,
         _password_  => undef,
         password_in => undef,
@@ -123,7 +134,7 @@ Refer to the Mnet::Expect module for more information.
         return undef;
     }
 
-    # return if we are executing a --replay
+    # return if we are executing a replay
     if ($self->{replay}) {
         $self->debug("new finished, replay in effect, returning $self");
         return $self;
@@ -257,7 +268,9 @@ sub _login {
 
 sub command {
 
-=head1 $output = $self->command($command, $timeout, \@prompts)
+=head2 command
+
+    $output = $expect->command($command, $timeout, \@prompts)
 
 This method returns output from the specified command from the current expect
 cli session, or undefined if there was a timeout.
@@ -272,12 +285,19 @@ may be a code reference that gets the current object and output as input args
 and returns a response string. An null prompt regex string is activated for
 timeouts. An undef prompt response causes an immediate return of output.
 
- # sends $command, uses default timeout, defines some prompts
- my $output = $expect->command($command, undef, [
-    'ip' => '1.2.3.4\r', # send 1.2.3.4 if matched by expect -re /ip/
-    'confirm? ' => sub { my $output = shift; return "y" }, # code ref
-    undef => undef, # returns prior output on timeout, might be undef
- ]);
+    # sends $command, uses default timeout, defines some prompts
+    my $output = $expect->command($command, undef, [
+
+        # send 1.2.3.4 if matched by expect -re /ip/
+        'ip' => '1.2.3.4\r',
+
+        # code ref
+        'confirm? ' => sub { my $output = shift; return "y" },
+
+        # returns prior output on timeout, might be undef
+        undef => undef,
+
+    ]);
 
 Refer also to the command_cache_clear method for more info.
 
@@ -330,7 +350,7 @@ sub _command_expect {
 
 # $output = $self->_command_expect($command, $timeout, \@prompts)
 # purpose: retrieve command output from expect session, refer to command method
-# note: command cache, record, and replay, are all handled in command method
+# note: command cache, record, and replay, are handled in command sub
 
     # read inputs, set default timeout from current object
     my $self = shift // croak "missing self arg";
@@ -497,7 +517,9 @@ sub _command_expect_prompt {
 
 sub command_cache_clear {
 
-=head1 $self->command_cache_clear
+=head2 command_cache_clear
+
+    $expect->command_cache_clear
 
 This method can be used to clear the cache used by the command method.
 
@@ -510,7 +532,7 @@ specific command instead of returning cached output.
 
     # clear command cache content and increment counter
     #   cache content is used to return same command output on susequent calls
-    #   cache counter is used to to save same command output to --replay file
+    #   cache counter is used to to save same command output to replay
     my $self = shift // croak "missing self arg";
     $self->{_command_cache_content} = {};
     $self->{_command_cache_counter}++;
@@ -521,7 +543,9 @@ specific command instead of returning cached output.
 
 sub delay {
 
-=head1 $delay = $self->delay($delay)
+=head2 delay
+
+    $delay = $expect->delay($delay)
 
 Get and/or set a new delay time in milliseconds for the current object. This
 delay is used when detecting extra command, prompt, or pagination output.
@@ -547,9 +571,51 @@ response time for the spawned process.
 
 
 
+sub paging_re {
+
+=head2 paging_re
+
+    $paging_re = $expect->paging_re($paging_re)
+
+Get and/or set new paging_re for the current object.
+
+Following are known pagination prompts covered by the default paging_re:
+
+    junos           =~ /^---\(more( \d\d?%)?\)---$/
+    cisco ASA       =~ /<--- More --->/
+    cisco ios       =~ /--more--/
+    cisco ios 15    =~ /--More--/
+
+Following are other observed pagination prompts, not covered by default:
+
+    linux more cmd  =~ /--More--\(\d\d?%\)/
+
+Note that matched pagination text is not appended to command output. Refer also
+to the command method for more information.
+
+=cut
+
+    # read input object and new paging_re
+    my $self = shift // croak "missing self arg";
+    my $paging_re = shift;
+
+    # set new paging_re, if defined
+    if (defined $paging_re) {
+        $self->debug("paging_re set = $paging_re");
+        $self->{paging_re} = $paging_re;
+    }
+
+    # finished, return paging_re
+    return $self->{paging_re};
+}
+
+
+
 sub prompt_re {
 
-=head1 $prompt_re = $self->prompt_re($prompt_re)
+=head2 prompt_re
+
+    $prompt_re = $expect->prompt_re($prompt_re)
 
 Get and/or set new prompt_re for the current object.
 
@@ -580,7 +646,9 @@ sequences do not appear to work in an expect regex.
 
 sub timeout {
 
-=head1 $timeout = $self->timeout($timeout)
+=head2 timeout
+
+    $timeout = $expect->timeout($timeout)
 
 Get and/or set a new timeout for the current object, refer to perldoc Expect.
 
@@ -602,13 +670,22 @@ Get and/or set a new timeout for the current object, refer to perldoc Expect.
 
 
 
+=head1 TESTING
+
+The Mnet::Opts::Cli and Mnet::Test --record and --replay command line
+options work with this module to record and replay command method outputs
+associated with various issued commands, integrated with the
+command_cache_clear method.
+
+Refer to the Mnet::Test module for more information.
+
 =head1 SEE ALSO
 
- Expect
- Mnet
- Mnet::Expect
- Mnet::Expect::Cli::Ios
- Mnet::Test
+L<Expect>,
+L<Mnet>,
+L<Mnet::Expect>,
+L<Mnet::Expect::Cli::Ios>,
+L<Mnet::Test>
 
 =cut
 

@@ -2,9 +2,23 @@ package Mnet::Log::Conditional;
 
 =head1 NAME
 
-Mnet::Log::Conditional
+Mnet::Log::Conditional - Use Mnet::Log if Mnet::Log is loaded
 
 =head1 SYNOPSIS
+
+    use Mnet::Log::Conditional qw( DEBUG INFO WARN FATAL );
+
+    # nothing will happen unless Mnet::Log was loaded
+    INFO("starting");
+
+    # errors will still always go to stderr
+    WARN("error");
+    FATAL("abort");
+
+    my $log = Mnet::Log::Conditional->new($opts);
+    $log->DEBUG("object oriented interace");
+
+=head1 DESCRIPTION
 
 This module can be called to output log entries using the Mnet::Log module,
 but only if the Mnet::Log module has already been loaded.
@@ -20,7 +34,7 @@ Refer to perldoc Mnet::Log for more information.
 use warnings;
 use strict;
 use Carp;
-use Exporter qw(import);
+use Exporter qw( import );
 use Mnet::Opts::Cli::Cache;
 
 # export function names
@@ -30,7 +44,9 @@ our @EXPORT_OK = qw( DEBUG INFO NOTICE WARN FATAL );
 
 sub new {
 
-=head1 $self = Mnet::Log::Conditional->new(\%opts)
+=head2 new
+
+    $log = Mnet::Log::Conditional->new(\%opts)
 
 This class method creates a new Mnet::Log::Conditional object. The opts hash
 ref argument is not requried but may be used to override any parsed cli options
@@ -62,7 +78,9 @@ Refer to the new method in perldoc Mnet::Log for more information.
 
 sub debug {
 
-=head1 $self->debug($text)
+=head2 debug
+
+    $log->debug($text)
 
 Method to output a debug entry using the Mnet::Log module, if it is loaed. If
 the Mnet::Log module is not loaded then nothing happens.
@@ -80,7 +98,9 @@ the Mnet::Log module is not loaded then nothing happens.
 
 sub info {
 
-=head1 $self->info($text)
+=head2 info
+
+    $log->info($text)
 
 Method to output an info entry using the Mnet::Log module, if it is loaed. If
 the Mnet::Log module is not loaded then nothing happens.
@@ -112,7 +132,9 @@ sub notice {
 
 sub warn {
 
-=head1 $self->warn($text)
+=head2 warn
+
+    $log->warn($text)
 
 Method to output a warn entry using the Mnet::Log module, if it is loaed. If
 the Mnet::Log module is not loaded then the perl warn command is called.
@@ -125,7 +147,8 @@ the Mnet::Log module is not loaded then the perl warn command is called.
         Mnet::Log::output(undef, "WRN", 4, scalar(caller), $text);
     } else {
         $text =~ s/\n*$//;
-        CORE::warn "$text\n";
+        my $log_id = $self->{log_id} // "-";
+        CORE::warn("WRN $log_id " . scalar(caller) . " $text\n");
     }
     return 1;
 }
@@ -134,9 +157,11 @@ the Mnet::Log module is not loaded then the perl warn command is called.
 
 sub fatal {
 
-=head1 $self->fatal($text)
+=head2 fatal
 
-Method to output a fatal entry using the Mnet::Log module, if it is loaed. If
+    $log->fatal($text)
+
+Method to output a fatal entry using the Mnet::Log module, if it is loaded. If
 the Mnet::Log module is not loaded then the perl die command is called.
 
 =cut
@@ -146,7 +171,8 @@ the Mnet::Log module is not loaded then the perl die command is called.
     if ($INC{"Mnet/Log.pm"}) {
         Mnet::Log::output(undef, "DIE", 2, scalar(caller), $text);
     } else {
-        syswrite STDERR, "$text\n";
+        my $log_id = $self->{log_id} // "-";
+        CORE::die("DIE $log_id " . scalar(caller) . " $text\n");
     }
     exit 1;
 }
@@ -155,7 +181,9 @@ the Mnet::Log module is not loaded then the perl die command is called.
 
 sub DEBUG {
 
-=head1 DEBUG($text)
+=head2 DEBUG
+
+    DEBUG($text)
 
 Function to output a debug entry using the Mnet::Log module, if it is loaed. If
 the Mnet::Log module is not loaded then nothing happens.
@@ -173,7 +201,9 @@ the Mnet::Log module is not loaded then nothing happens.
 
 sub INFO {
 
-=head1 INFO($text)
+=head2 INFO
+
+    INFO($text)
 
 Function to output an info entry using the Mnet::Log module, if it is loaed. If
 the Mnet::Log module is not loaded then nothing happens.
@@ -205,7 +235,9 @@ sub NOTICE {
 
 sub WARN {
 
-=head1 INFO($text)
+=head2 WARN
+
+    WARN($text)
 
 Function to output a debug entry using the Mnet::Log module, if it is loaed. If
 the Mnet::Log module is not loaded then the perl warn command is called.
@@ -218,7 +250,7 @@ the Mnet::Log module is not loaded then the perl warn command is called.
         Mnet::Log::output(undef, "WRN", 4, scalar(caller), $text);
     } else {
         $text =~ s/\n*$//;
-        CORE::warn "$text\n";
+        CORE::warn("WRN - " . scalar(caller) . " $text\n");
     }
     return 1;
 }
@@ -227,7 +259,9 @@ the Mnet::Log module is not loaded then the perl warn command is called.
 
 sub FATAL {
 
-=head1 FATAL($text)
+=head2 FATAL
+
+    FATAL($text)
 
 Function to output a debug entry using the Mnet::Log module, if it is loaed. If
 the Mnet::Log module is not loaded then the perl die command is called.
@@ -239,7 +273,7 @@ the Mnet::Log module is not loaded then the perl die command is called.
     if ($INC{"Mnet/Log.pm"}) {
         Mnet::Log::output(undef, "DIE", 2, scalar(caller), $text);
     } else {
-        syswrite STDERR, "$text\n";
+        CORE::die("DIE - " . scalar(caller) . " $text\n");
     }
     exit 1;
 }
@@ -248,8 +282,8 @@ the Mnet::Log module is not loaded then the perl die command is called.
 
 =head1 SEE ALSO
 
- Mnet
- Mnet::Opts::Cli::Cache
+L<Mnet>,
+L<Mnet::Opts::Cli::Cache>
 
 =cut
 

@@ -8,7 +8,7 @@ use strict;
 use File::Temp;
 use Test::More tests => 6;
 
-# create temp record file
+# create temp test/record/replay file
 my ($fh, $file) = File::Temp::tempfile( UNLINK => 1 );
 
 # check for real time using no cli opts

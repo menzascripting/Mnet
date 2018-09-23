@@ -4,9 +4,13 @@ BEGIN { our $VERSION = 'dev'; }
 
 =head1 NAME
 
-Mnet::Version
+Mnet::Version - Returns Mnet version information
 
 =head1 SYNOPSIS
+
+    $info = Mnet::Version::info();
+
+=head1 DESCRIPTION
 
 This module makes available an Mnet::Version::info function that can be used
 by other scripts and modules.
@@ -24,7 +28,9 @@ use POSIX;
 
 sub info {
 
-=head1 $info = Mnet::Version::info()
+=head2 Mnet::Version::info
+
+    $info = Mnet::Version::info()
 
 Output multiple lines of information about the current script, Mnet modules,
 and operating system. This is used by Mnet::Opts::Cli and Mnet::Log.
@@ -104,7 +110,7 @@ sub _info_md5 {
 
 =head1 SEE ALSO
 
- Mnet
+L<Mnet>
 
 =cut
 

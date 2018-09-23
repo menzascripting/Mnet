@@ -29,7 +29,8 @@ Test::More::is(`( echo --opt1 1 --opt2 1; echo --opt1 2 ) | perl -e '
     Mnet::Opts::Cli::define({ getopt => "opt1=i", recordable  => 1 });
     Mnet::Opts::Cli::define({ getopt => "opt2=i", recordable  => 1 });
     my \$cli = Mnet::Opts::Cli->new;
-    \$cli = Mnet::Batch::fork(\$cli) or exit;
+    \$cli = Mnet::Batch::fork(\$cli);
+    exit if not \$cli;
     syswrite STDOUT, "opt1 = \$cli->{opt1}, opt2 = \$cli->{opt2}\n";
 ' -- --batch /dev/stdin --opt1 3 --opt2 3 2>&1`, 'opt1 = 1, opt2 = 1
 opt1 = 2, opt2 = 3
@@ -43,7 +44,8 @@ Test::More::is(`( echo --opt 1 child; echo --opt 2 ) | perl -e '
     use Mnet::Opts::Cli;
     Mnet::Opts::Cli::define({ getopt => "opt=i", recordable  => 1 });
     my (\$cli, \@extras) = Mnet::Opts::Cli->new;
-    (\$cli, \@extras) = Mnet::Batch::fork(\$cli) or exit;
+    (\$cli, \@extras) = Mnet::Batch::fork(\$cli);
+    exit if not defined \$cli;
     syswrite STDOUT, "opt = \$cli->{opt}\n" if \$cli->{opt};
     syswrite STDOUT, "extras = \@extras\n" if \@extras;
 ' -- --batch /dev/stdin parent 2>&1`, 'opt = 1

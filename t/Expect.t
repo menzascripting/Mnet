@@ -12,7 +12,7 @@ Test::More::is(`echo; perl -e '
     use warnings;
     use strict;
     use Mnet::Expect;
-    use Mnet::Log qw/DEBUG/;
+    use Mnet::Log qw( DEBUG );
     use Mnet::Log::Test;
     DEBUG("test");
     my \$expect = Mnet::Expect->new({

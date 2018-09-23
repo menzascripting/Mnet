@@ -7,7 +7,6 @@ use warnings;
 use strict;
 use File::Temp;
 use Test::More tests => 4;
-use Mnet::Expect::Cli;
 
 # create temp record/replay/test file
 my ($fh, $file) = File::Temp::tempfile( UNLINK => 1 );
@@ -38,7 +37,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     print \$expect->command("test") // "<undef>";
 ' -- --record $file 2>&1; echo; rm \$CLI`, '
 output
-', 'command method record');
+', 'command method --record');
 
 # command method replay
 Test::More::is(`echo; perl -e '
@@ -46,7 +45,7 @@ Test::More::is(`echo; perl -e '
     print \$expect->command("test") // "<undef>";
 ' -- --replay $file 2>&1; echo`, '
 output
-', 'command method replay');
+', 'command method --replay');
 
 # command method record with cache clear
 Test::More::is(`export CLI=\$(mktemp); echo '
@@ -65,7 +64,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
 ' -- --record $file 2>&1; echo; rm \$CLI`, '
 output one
 output two
-', 'command method record with cache clear');
+', 'command method --record with cache clear');
 
 # command method replay with cache clear
 Test::More::is(`echo; perl -e '
@@ -77,7 +76,7 @@ Test::More::is(`echo; perl -e '
 ' -- --replay $file 2>&1; echo`, '
 output one
 output two
-', 'command method replay with cache clear');
+', 'command method --replay with cache clear');
 
 # finished
 exit;

@@ -5,7 +5,7 @@
 # required modules
 use warnings;
 use strict;
-use Test::More tests => 6;
+use Test::More tests => 7;
 
 # check default option type
 Test::More::is(`perl -e '
@@ -140,6 +140,19 @@ Test::More::is(`perl -e '
 ' -- --opt1 --noopt2 --opt3 3 --opt4 four 2>&1`,
 'extras = --noopt2
 ', 'string optional option type');
+
+# check string optional option type
+Test::More::is(`perl -e '
+    use warnings;
+    use strict;
+    use Mnet::Log;
+    use Mnet::Log::Test;
+    use Mnet::Opts::Cli;
+    Mnet::Opts::Cli::define({ getopt => "opt1:s", redact => 1 });
+    my (\$cli, \@extras) = Mnet::Opts::Cli->new;
+' -- --opt1 redact 2>&1 | grep ^inf`,
+'inf - Mnet::Opts::Cli new parsed opt cli opt1 = **** (redacted)
+', 'redact option');
 
 # finished
 exit;

@@ -2,9 +2,32 @@ package Mnet::Batch;
 
 =head1 NAME
 
-Mnet::Batch;
+Mnet::Batch - Concurrently process a list of command line options
 
 =head1 SYNOPSIS
+
+    # usually combined with Mnet::Opts::Cli
+    use Mnet::Batch;
+    use Mnet::Opts::Cli;
+
+    # define --sample cli option
+    Mnet::Opts::Cli::define({
+        getopt   => "sample=s",
+        help_tip => "set to input string",
+    });
+
+    # usually cli options are read before calling Mnet::Batch::fork()
+    my $cli = Mnet::Opts::Cli->new;
+
+    # fork child worker processes and exit when parent is finished
+    #   returns opts for worker processes and true for parent process
+    $cli = Mnet::Batch::fork($cli);
+    exit if not $cli;
+
+    # code below runs for batch workers and non-batch executions
+    print "sample = $cli->{sample}\n";
+
+=head1 DESCRIPTION
 
 This module can be used in a script to concurrently process a --batch list of
 command option lines.
@@ -31,29 +54,6 @@ The --batch list lines are processes one at a time unless linux /proc/stat is
 detected, in which case list command lines are processes concurrently as fast
 as possible without overutilizing the cpu.
 
-Below is a sample script supporting the Mnet::Batch --batch option, as used in
-the examples above:
-
- # usually combined with Mnet::Opts::Cli
- use Mnet::Batch;
- use Mnet::Opts::Cli;
-
- # define --sample cli option
- Mnet::Opts::Cli::define({
-     getopt   => "sample=s",
-     help_tip => "set to input string",
- });
-
- # usually cli options are read before calling Mnet::Batch::fork()
- my $cli = Mnet::Opts::Cli->new;
-
- # fork child worker processes and exit when parent is finished
- #   returns opts for worker processes and true for parent process
- $cli = Mnet::Batch::fork($cli) or exit;
-
- # code below runs for batch workers and non-batch executions
- print "sample = $cli->{sample}\n";
-
 Note that a script using the Mnet::Batch module will exit with an error if the
 Mnet::Opts::Cli new method was used to parse the command line and the --batch
 option is set and Mnet::Batch::fork function was never called.
@@ -77,7 +77,6 @@ use Time::HiRes;
 
 # init global variables and cli options for this module
 #   $fork_called used by end block to warn if Mnet::Batch::fork was not called
-#   $fork_called also used by Mnet::Report to print csv heading row corrently
 INIT {
     my $fork_called = undef;
     Mnet::Opts::Cli::define({
@@ -90,6 +89,7 @@ INIT {
             children are --silent, warnings are issued for child exit errors
             refer also to perldoc Mnet::Batch for more information
         ',
+        norecord    => 1,
     }) if $INC{"Mnet/Opts/Cli.pm"};
 }
 
@@ -97,9 +97,10 @@ INIT {
 
 sub fork {
 
-=head1 \%child_opts = Mnet::Batch::fork(\%opts)
+=head2 Mnet::Batch::fork
 
-=head1 S< > or ($child_opts, @child_extras) = Mnet::Batch::fork(\%opts)
+    \%child_opts = Mnet::Batch::fork(\%opts)
+    or ($child_opts, @child_extras) = Mnet::Batch::fork(\%opts)
 
 The Mnet::Batch::fork function requires an input options hash ref containing at
 least a batch setting key.
@@ -111,20 +112,21 @@ from batch command option lines are also returned if called in list context.
 The returned child opts hash ref will be undefined for the batch parent process
 when the parent process is finished.
 
- my ($cli, @extras) = Mnet::Opts::Cli->new;
- ($cli, @extras) = Mnet::Batch::fork($cli);
- exit if not defined $cli;
+    my ($cli, @extras) = Mnet::Opts::Cli->new;
+    ($cli, @extras) = Mnet::Batch::fork($cli);
+    exit if not defined $cli;
 
 Also note that this function can be called by scripts that are not using the
 Mnet::Opts::Cli module to parse command line options. In this case the returned
 child_opts value will be a scalar containing the input batch line, as in the
 following example:
 
- ( echo "line = 1"; echo "line = 2" ) | perl -e '
-     use Mnet::Batch
-     my $line = Mnet::Batch::fork({ batch => "/dev/stdin" }) // exit;
-     die "child should have line set" if $line !~ /^line =/
- '
+    ( echo "line = 1"; echo "line = 2" ) | perl -e '
+        use Mnet::Batch
+        my $line = Mnet::Batch::fork({ batch => "/dev/stdin" });
+        exit if not defined $line;
+        die "child should have line set" if $line !~ /^line =/
+    '
 
 Refer also to the SYNOPSIS section of this perldoc for more information.
 
@@ -139,24 +141,24 @@ Refer also to the SYNOPSIS section of this perldoc for more information.
 
     # return input options if --batch option is not set
     if (not $opts->{batch}) {
-        DEBUG("fork returning undef, batch option not set");
+        DEBUG("fork returning input opts, batch option not set");
         return $opts;
     }
 
-    # disable Mnet::Test outputs for batch parent
-    #   we don't want to worry about batch parent polluting child outputs
-    #   we enable Mnet::Test output capture for children after fork
-    Mnet::Test::disable() if $INC{"Mnet/Test.pm"};
-
-    # abort with error if --record set to filename for all batch children
+    # abort with error if --record would be set the same for all batch children
     #   this would result in all children trying to save to the same file
     FATAL("invalid non-null --record with --batch on parent command line")
         if defined $opts->{record} and $opts->{record} ne "";
 
-    # abort with error if --record set the same for all batch children
-    #   to be safe, so all children don't write to same file with null --record
+    # abort with error if --replay would be set the same for all batch children
+    #   to be safe, so children don't write to same file w/null --record
     FATAL("invalid --replay with --batch on parent command line")
         if defined $opts->{replay};
+
+    # pause Mnet::Tee accumulation of outputs for batch parent while forking
+    #   we don't want batch parent polluting child Mnet::Test outputs
+    #   we unpause this for children after they fork
+    Mnet::Tee::test_pause() if $INC{"Mnet/Test.pm"};
 
     # read lines of --batch list file
     my @batch_lines = ();
@@ -186,15 +188,22 @@ Refer also to the SYNOPSIS section of this perldoc for more information.
         while ((my $child = waitpid(-1, &POSIX::WNOHANG)) > 0) {
             $fork_data->{child_count}--;
             my ($error, $sig, $dump) = ($? >> 8, $? & 127, $? & 128);
-            my $exit_status = "exit $error, sig $sig, dump $dump";
-            $exit_status .= ", $0 $pid_batch_lines->{$child}";
+            my $exit_status = "exit with error $error, sig $sig, dump $dump";
+            my $child_batch_line = $pid_batch_lines->{$child} // "";
+            $exit_status .= ", $0 $child_batch_line";
             if ($error or $sig or $dump) {
-                WARN("fork reaped child pid $child, $exit_status");
+                WARN("fork reaped child pid $child, $!, $exit_status");
             } else {
                 NOTICE("fork reaped child pid $child, $exit_status");
             }
         }
     };
+
+    # note error flag before we start forking
+    #   this is passed to Mnet::Log::batch_fork for forked children
+    #   this way a late child doesn't inherit a warning of a failed early child
+    my $error_prefork = undef;
+    $error_prefork = Mnet::Log::error() if $INC{"Mnet/Log.pm"};
 
     # loop through batch lines, forking a child worker process for each line
     foreach my $batch_line (@batch_lines) {
@@ -218,11 +227,12 @@ Refer also to the SYNOPSIS section of this perldoc for more information.
         #   what is returned depends on context Mnet::Batch::fork() was called
         #       batch_line is returned if script doesn't use Mnet::Opts::Cli
         #       otherwise returns child opts and extras depending on context
+        #   Mnet::Tee output is reset and unpaused for child for Mnet::Test
         } elsif ($pid == 0) {
             Mnet::Opts::Set::enable("silent");
-            DEBUG("fork child forked, pid $$");
-            Mnet::Log::batch_fork() if $INC{"Mnet/Log.pm"};
-            Mnet::Test::enable() if $INC{"Mnet/Test.pm"};
+            Mnet::Log::batch_fork($error_prefork) if $INC{"Mnet/Log.pm"};
+            Mnet::Tee::batch_fork() if $INC{"Mnet/Tee.pm"};
+            Mnet::Tee::test_unpause() if $INC{"Mnet/Test.pm"};
             if (not $INC{"Mnet/Opts/Cli.pm"}) {
                 return $batch_line;
             } elsif (wantarray) {
@@ -269,6 +279,20 @@ Refer also to the SYNOPSIS section of this perldoc for more information.
     # finished Mnet::Batch::fork() function, return undef for parent
     DEBUG("fork parent finished");
     return undef;
+}
+
+
+
+sub fork_called {
+
+# $boolean = Mnet::Batch::fork_called()
+# purpose: return true if Mnet::Batch::fork function was already called
+# note: use to check if batch mode script has past point of forking chilren
+# example: $pre_fork = $INC{'Mnet/Batch.pm'} and not Mnet::Batch::fork_called()
+
+    # return global fork_called flag
+    return $Mnet::Batch::fork_called;
+
 }
 
 
@@ -411,9 +435,9 @@ END {
 
 =head1 SEE ALSO
 
- Mnet
- Mnet::Opts::Cli
- Mnet::Opts::Set
+L<Mnet>,
+L<Mnet::Opts::Cli>,
+L<Mnet::Opts::Set>
 
 =cut
 

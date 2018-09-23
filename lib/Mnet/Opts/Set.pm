@@ -2,9 +2,14 @@ package Mnet::Opts::Set;
 
 =head1 NAME
 
-Mnet::Opts::Set
+Mnet::Opts::Set - Check for loaded Mnet::Opts::Set pragma sub-modules
 
 =head1 SYNOPSIS
+
+    use Mnet::Opts::Set;
+    $opts = Mnet::Opts::Set::pragmas();
+
+=head1 DESCRIPTION
 
 This module can be used to check what Mnet::Opts::Set pragma sub-modules are
 currently loaded.
@@ -40,7 +45,9 @@ sub enable {
 
 sub pragmas {
 
-=head1 $opts = Mnet::Opts::Set::pragmas()
+=head2 Mnet::Opts::Set::pragmas
+
+    $opts = Mnet::Opts::Set::pragmas()
 
 This function returns a hash containing true values for any Mnet::Opts::Set
 pragma sub-modules that have been loaded with the perl 'use' command.
@@ -62,12 +69,12 @@ Refer to the SEE ALSO section of this perldoc for a list of these sub-modules.
 
 =head1 SEE ALSO
 
- Mnet
- Mnet::Opts::Cli
- Mnet::Opts::Cli::Cache
- Mnet::Opts::Set::Debug
- Mnet::Opts::Set::Quiet
- Mnet::Opts::Set::Silent
+L<Mnet>
+L<Mnet::Opts::Cli>,
+L<Mnet::Opts::Cli::Cache>,
+L<Mnet::Opts::Set::Debug>,
+L<Mnet::Opts::Set::Quiet>,
+L<Mnet::Opts::Set::Silent>
 
 =cut
 

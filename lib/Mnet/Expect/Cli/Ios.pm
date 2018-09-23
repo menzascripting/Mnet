@@ -2,17 +2,23 @@ package Mnet::Expect::Cli::Ios;
 
 =head1 NAME
 
-Mnet::Expect::Cli::Ios
+Mnet::Expect::Cli::Ios - Expect sessions to cisco ios devices
 
 =head1 SYNOPSIS
 
+    my $opts = { spawn => "ssh 1.2.3.4", prompt => 1 };
+    my $expect = Mnet::Expect::Cli->new($opts);
+
+    $expect->enable($password) or die "enable failed";
+
+    my $output = $expect->command("show version");
+
+    $expect->close;
+
+=head1 DESCRIPTION
+
 This module can be used to create new Mnet::Expect::Cli::Ios objects,
 which inherit Mnet::Expect::Cli methods.
-
-=head1 TESTING
-
-Mnet::Test --record and --replay functionality are supported. Refer to the
-Mnet::Expect::Cli module for more information.
 
 =cut
 
@@ -27,27 +33,29 @@ use Mnet::Opts::Cli::Cache;
 
 sub new {
 
-=head1 $self = Mnet::Expect::Cli::Ios->new(\%opts)
+=head2 new
+
+    $expect = Mnet::Expect::Cli::Ios->new(\%opts)
 
 This method can be used to create new Mnet::Expect::Cli::Ios objects.
 
 The following input opts may be specified, in addition to options from
 the Mnet::Expect::Cli and Mnet::Expect modules:
 
- enable         set to password for enable mode during login
- enable_in      stderr prompt for stdin entry of enable if not set
- enable_user    default enable username set from username option
- failed_re      default recognizes failed ios logins
- paging_key     default space key to send for ios pagination prompts
- paging_re      default recognized ios pagination prompt --more--
- prompt_re      defaults to ios user or enable mode prompt
+    enable          set to password for enable mode during login
+    enable_in       stderr prompt for stdin entry of enable if not set
+    enable_user     default enable username set from username option
+    failed_re       default recognizes failed ios logins
+    paging_key      default space key to send for ios pagination prompts
+    paging_re       default recognized ios pagination prompt --more--
+    prompt_re       defaults to ios user or enable mode prompt
 
 An error is issued if there are login problems.
 
 For example, the following call will start an ssh expect session to a device:
 
- my $opts = { spawn => "ssh 1.2.3.4", prompt => 1 };
- my $expect = Mnet::Expect::Cli->new($opts);
+    my $opts = { spawn => "ssh 1.2.3.4", prompt => 1 };
+    my $expect = Mnet::Expect::Cli->new($opts);
 
 Refer to the Mnet::Expect::Cli and Mnet::Expect modules for more information.
 
@@ -67,17 +75,20 @@ Refer to the Mnet::Expect::Cli and Mnet::Expect modules for more information.
     my $self = $opts;
 
     # note default options for this class
+    #   refer also to Mnet::Expect::Cli defaults, these are overlaid on top
     #   includes recognized cli opts and opts for this object
+    #       failed_re here from Cnet::Expect::Cli default and ios error /^\s*%/
+    #       failed_re also used in the enable method in this module
     #   the following keys starting with underscore are used internally:
     #       _enable_ => causes enable password value to be hidden in opts debug
     #   update perldoc for this sub with changes
-    #   refer also to Mnet::Expect::Cli defaults
     my $defaults = {
         enable      => undef,
         _enable_    => undef,
         enable_in   => undef,
         enable_user => undef,
-        failed_re   => '(?i)(^\s*\%|closed|error|denied|fail|incorrect|invalid|refused|sorry)',
+        failed_re   => '(?i)(^\s*%|closed|error|denied|fail'
+                            . '|incorrect|invalid|refused|sorry)',
         paging_key  => ' ',
         paging_re   => '--(M|m)ore--',
         prompt_re   => '(^|\r|\n)\S+(>|#) $',
@@ -116,7 +127,9 @@ Refer to the Mnet::Expect::Cli and Mnet::Expect modules for more information.
 
 sub enable {
 
-=head1 $boolean = $self->enable($password)
+=head2 enable
+
+    $boolean = $expect->enable($password)
 
 Use this method to check for enable mode on an ios device, and/or to enter
 enable mode on the device.
@@ -169,7 +182,8 @@ prompt, otherwise a value of false is returned.
                         local $SIG{INT} = sub {
                             system("stty echo 2>/dev/null")
                         };
-                        syswrite STDERR, "\nEnter enable $self->expect->match: ";
+                        syswrite STDERR,
+                            "\nEnter enable $self->expect->match: ";
                         system("stty -echo 2>/dev/null");
                         chomp($password = <STDIN>);
                         system("stty echo 2>/dev/null");
@@ -202,7 +216,9 @@ prompt, otherwise a value of false is returned.
 
 sub close {
 
-=head1 $self->close
+=head2 close
+
+    $expect->close
 
 This method sends the end and exit ios commands before closing the current
 expect session. Timeouts are gracefully handled. Refer to the close method
@@ -221,13 +237,18 @@ in the Mnet::Expect module for more information.
 
 
 
+=head1 TESTING
+
+Mnet::Test --record and --replay functionality are supported. Refer to the
+Mnet::Expect::Cli module for more information.
+
 =head1 SEE ALSO
 
- Expect
- Mnet
- Mnet::Expect
- Mnet::Expect::Cli
- Mnet::Test
+L<Expect>,
+L<Mnet>,
+L<Mnet::Expect>,
+L<Mnet::Expect::Cli>,
+L<Mnet::Test>
 
 =cut
 

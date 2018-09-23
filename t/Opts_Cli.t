@@ -24,9 +24,8 @@ Test::More::is(`perl -e '
     use Mnet::Opts::Cli;
     Mnet::Opts::Cli->new;
 ' -- --help 2>&1 | grep -e Mnet -e '^ *--'`, 'Mnet options:
- --default [s]   reset recordable options or extra args
- --help [s]      display tips, or text for matching options
- --version       display version and system information
+ --help [s]   display tips, or matching option text
+ --version    display version and system information
 ', 'display --help');
 
 # parse cli opt and check that ARGV doesn't change
@@ -34,14 +33,14 @@ Test::More::is(`perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
-    Mnet::Opts::Cli::define({ getopt => "sample=s" });
+    Mnet::Opts::Cli::define({ getopt => "test-opt=s" });
     my \$cli = Mnet::Opts::Cli->new;
-    print \$cli->{sample} ."\n";
-    print \$cli->sample ."\n";
+    print \$cli->{test_opt} ."\n";
+    print \$cli->test_opt ."\n";
     print "\@ARGV\n";
-' -- --sample test 2>&1`, 'test
+' -- --test-opt test 2>&1`, 'test
 test
---sample test
+--test-opt test
 ', 'parse cli opt without changing ARGV');
 
 # parse cli opt and extras and check that ARGV doesn't change
@@ -49,16 +48,16 @@ Test::More::is(`perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
-    Mnet::Opts::Cli::define({ getopt => "sample=s" });
+    Mnet::Opts::Cli::define({ getopt => "test-opt=s" });
     my (\$cli, \@extras) = Mnet::Opts::Cli->new;
-    print \$cli->{sample} ."\n";
-    print \$cli->sample ."\n";
+    print \$cli->{test_opt} ."\n";
+    print \$cli->test_opt ."\n";
     print "\@extras\n";
     print "\@ARGV\n";
-' -- --sample test extra1 extra2 2>&1`, 'test
+' -- --test-opt test extra1 extra2 2>&1`, 'test
 test
 extra1 extra2
---sample test extra1 extra2
+--test-opt test extra1 extra2
 ', 'parse cli opt and extras without changing ARGV');
 
 # check for error when reading invalid extra args
@@ -66,9 +65,9 @@ Test::More::is(`perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
-    Mnet::Opts::Cli::define({ getopt => "sample=s" });
+    Mnet::Opts::Cli::define({ getopt => "test-opt=s" });
     my \$cli = Mnet::Opts::Cli->new;
-' -- --sample test extra1 extra2 2>&1`, 'invalid extra args extra1 extra2
+' -- --test-opt test extra1 extra2 2>&1`, 'invalid extra args extra1 extra2
 ', 'invalid extra args');
 
 # check for error when reading bad cli opt
@@ -77,26 +76,28 @@ Test::More::is(`perl -e '
     use strict;
     use Mnet::Opts::Cli;
     my \$cli = Mnet::Opts::Cli->new;
-' -- --sample test 2>&1`, 'invalid extra args --sample test
+' -- --test-opt test 2>&1`, 'invalid extra args --test-opt test
 ', 'invalid cli opt');
 
-# check --default option for undef default
+# check --reset option for undef default
 Test::More::is(`perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
-    Mnet::Opts::Cli::define({ getopt => "sample=s" });
-    warn "sample" if defined Mnet::Opts::Cli->new->sample;
-' -- --sample test --default sample 2>&1`, '', 'undef --default');
+    use Mnet::Test;
+    Mnet::Opts::Cli::define({ getopt => "test-opt=s" });
+    warn "test-opt" if defined Mnet::Opts::Cli->new->test_opt;
+' -- --test-opt test --reset test-opt 2>&1`, '', 'undef --reset');
 
 # check --default option for defined default
 Test::More::is(`perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
-    Mnet::Opts::Cli::define({ getopt => "sample=s", default => "default" });
-    warn "sample" if Mnet::Opts::Cli->new->sample ne "default";
-' -- --sample test --default sample 2>&1`, '', 'defined --default');
+    use Mnet::Test;
+    Mnet::Opts::Cli::define({ getopt => "test-opt=s", default => "default" });
+    warn "test-opt" if Mnet::Opts::Cli->new->test_opt ne "default";
+' -- --test-opt test --reset test-opt 2>&1`, '', 'defined --reset');
 
 # check logging of options
 Test::More::is(`perl -e '
@@ -105,10 +106,10 @@ Test::More::is(`perl -e '
     use Mnet::Log;
     use Mnet::Log::Test;
     use Mnet::Opts::Cli;
-    Mnet::Opts::Cli::define({ getopt => "sample=s" });
+    Mnet::Opts::Cli::define({ getopt => "test-opt=s" });
     Mnet::Opts::Cli->new;
-' -- --sample test 2>&1`, ' -  - Mnet::Log script -e started
-inf - Mnet::Opts::Cli new parsed opt cli sample = "test"
+' -- --test-opt test 2>&1`, ' -  - Mnet::Log script -e started
+inf - Mnet::Opts::Cli new parsed opt cli test-opt = "test"
  -  - Mnet::Log finished with no errors
 ', 'invalid cli opt');
 

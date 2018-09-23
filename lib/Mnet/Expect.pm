@@ -2,9 +2,24 @@ package Mnet::Expect;
 
 =head1 NAME
 
-Mnet::Expect
+Mnet::Expect - Create Expect objects with Mnet::Log support
 
 =head1 SYNOPSIS
+
+    use Mnet::Expect;
+
+    my $expect = Mnet::Expect->new({ spawn => [qw(
+        ssh
+         -o StrictHostKeyChecking=no
+         -o UserKnownHostsFile=/dev/null
+         1.2.3.4
+    )]});
+
+    $expect->send("ls\r");
+
+    $expect->close;
+
+=head1 DESCRIPTION
 
 This module can be used to create new Mnet::Expect objects, log spawned process
 expect activity, and close Mnet::Expect sessions.
@@ -12,11 +27,6 @@ expect activity, and close Mnet::Expect sessions.
 This module requires that the perl Expect module is installed.
 
 The methods in this object are used by other Mnet::Expect modules.
-
-=head1 TESTING
-
-This module supports Mnet::Test --replay functionality for other Mnet::Expect
-submodules. Refer to those other Mnet::Expect submodules for more information.
 
 =cut
 
@@ -33,30 +43,29 @@ use Mnet::Opts::Cli::Cache;
 
 sub new {
 
-=head1 $self = Mnet::Expect->new(\%opts)
+=head2 new
+
+    $expect = Mnet::Expect->new(\%opts)
 
 This method can be used to create new Mnet::Expect objects.
 
 The following input opts may be specified:
 
- debug          refer to perldoc Mnet::Log new method
- log_id         refer to perldoc Mnet::Log new method
- quiet          refer to perldoc Mnet::Log new method
- raw_pty        can be set 0 or 1, refer to perldoc Expect
- silent         refer to perldoc Mnet::Log new method
- spawn          command and args array ref, or space separated string
- winsize        specify session rows and columns, default 99999x999
+    log_id      refer to perldoc Mnet::Log new method
+    raw_pty     can be set 0 or 1, refer to perldoc Expect
+    spawn       command and args array ref, or space separated string
+    winsize     specify session rows and columns, default 99999x999
 
 An error is issued if there are spawn problems.
 
 For example, the following will spawn an ssh expect session to a device:
 
- my $expect = Mnet::Expect->new({ spawn => [qw
-    ssh
-     -o StrictHostKeyChecking=no
-     -o UserKnownHostsFile=/dev/null
-     1.2.3.4
- /]});
+    my $expect = Mnet::Expect->new({ spawn => [qw
+        ssh
+         -o StrictHostKeyChecking=no
+         -o UserKnownHostsFile=/dev/null
+         1.2.3.4
+    /]});
 
 Note that all Mnet::Expect session activity is logged for debugging, refer to
 the Mnet::Log module for more information.
@@ -81,7 +90,8 @@ the Mnet::Log module for more information.
     #   the following keys starting with underscore are used internally:
     #       _expect     => spawned Expect object, refer to Mnet::Expect->expect
     #       _log_filter => set to password text to filter from debug log once
-    #       _no_spawn   => set true to skip spawn, used by sub-mods for replay
+    #       _no_spawn   => set true to skip spawn, used by sub-modules' replay
+    #   in addition refer to perldoc for input opts and Mnet::Log0->new opts
     #   update perldoc for this sub with changes
     my $defaults = {
         debug       => $cli->{debug},
@@ -160,7 +170,8 @@ sub spawn {
     # set default window size for expect tty session
     #   this defaults to a large value to minimize pagination and line wrapping
     #   IO::Tty::Constant module is pulled into namespace when Expect is used
-    croak("bad winsize $self->{winsize}") if $self->{winsize} !~ /^(\d+)x(\d+)$/;
+    croak("bad winsize $self->{winsize}")
+        if $self->{winsize} !~ /^(\d+)x(\d+)$/;
     my $tiocswinsz = IO::Tty::Constant::TIOCSWINSZ();
     my $winsize_pack = pack('SSSS', $1, $2, 0, 0);
     ioctl($self->expect->slave, $tiocswinsz, $winsize_pack);
@@ -177,12 +188,18 @@ sub spawn {
     @spawn = split(/\s/, $self->{spawn}) if not ref $self->{spawn};
 
     # call Expect spawn method
-    #   temporarily disable Mnet::Test stdout/stderr ties
+    #   disable Mnet::Tee stdout/stderr ties if not Mnet::Tee is loaded
     #   stdout/stderr ties cause spawn problems, but can be re-enabled after
     #   init global Mnet::Expect error to undef, set on expect spawn failures
-    Mnet::Test::disable_tie() if $INC{'Mnet/Test.pm'};
-    $self->fatal("spawn error, $!") if not $self->expect->spawn(@spawn);
-    Mnet::Test::enable_tie() if $INC{'Mnet/Test.pm'};
+    if ($INC{'Mnet/Tee.pm'}) {
+        $self->debug("spawn calling Mnet::Tee::tie_disable");
+        Mnet::Tee::tie_disable();
+        $self->fatal("spawn error, $!") if not $self->expect->spawn(@spawn);
+        $self->debug("spawn calling Mnet::Tee::tie_enable");
+        Mnet::Tee::tie_enable();
+    } else {
+        $self->fatal("spawn error, $!") if not $self->expect->spawn(@spawn);
+    }
 
     # note spawn process id
     $self->debug("spawn pid ".$self->expect->pid);
@@ -196,7 +213,9 @@ sub spawn {
 
 sub close {
 
-=head1 $self->close
+=head2 close
+
+    $expect->close
 
 Attempt to call hard_close for the current Expect session, and send a kill
 signal if the process still exists. The Expect sesssion is set to udnefined.
@@ -270,7 +289,9 @@ signal if the process still exists. The Expect sesssion is set to udnefined.
 
 sub expect {
 
-=head1 $self->expect
+=head2 expect
+
+    $expect->expect
 
 Returns the underlying expect object used by this module, for access to fetures
 that may not be supported directly by Mnet::Expect modules.  Refer to perldoc
@@ -346,12 +367,17 @@ sub log {
 
 
 
+=head1 TESTING
+
+This module supports Mnet::Test --replay functionality for other Mnet::Expect
+submodules. Refer to those other Mnet::Expect submodules for more information.
+
 =head1 SEE ALSO
 
- Expect
- Mnet
- Mnet::Expect::Cli
- Mnet::Expect::Cli::Ios
+L<Expect>,
+L<Mnet>,
+L<Mnet::Expect::Cli>,
+L<Mnet::Expect::Cli::Ios>
 
 =cut
 

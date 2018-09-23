@@ -2,12 +2,16 @@ package Mnet::Dump;
 
 =head1 NAME
 
-Mnet::Dump
+Mnet::Dump - Data::Dumper related functions with sorted outputs
 
 =head1 SYNOPSIS
 
-This module contains Data::Dumper related functions with sorted outputs.
+    use Mnet::Dump
+    $line = Mnet::Dump::line($value)
 
+=head1 DESCRIPTION
+
+This module contains Data::Dumper related functions with sorted outputs.
 
 =cut
 
@@ -20,7 +24,9 @@ use Data::Dumper;
 
 sub line {
 
-=head1 $line = Mnet::Dump::line($value)
+=head2 Mnet::Dump::line
+
+    $line = Mnet::Dump::line($value)
 
 This function returns Data::Dumper output for the specified input value as
 a single line in sorted order.
@@ -42,7 +48,7 @@ a single line in sorted order.
 
 =head1 SEE ALSO
 
- Mnet
+L<Mnet>
 
 =cut
 
