@@ -81,7 +81,7 @@ this program. If not, see <http://www.gnu.org/licenses/>
 
 =head1 SEE ALSO
 
-<http://https://github.com/menzascripting/Mnet>
+<https://github.com/menzascripting/Mnet>
 
 =cut
 
