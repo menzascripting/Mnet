@@ -1,0 +1,87 @@
+
+=head1 NAME
+
+Mnet - Testable network automation and reporting
+
+=head1 SYNOPSIS
+
+The Mnet perl modules are far more flexible and less cumbersome to use than
+larger enterprise management systems for automation scripts - getting out of
+the way and allowing the focus to be on developing and testing script logic.
+
+Mnet was made based on experience developing supportable advanced network
+automation scripts in a large enterprise environment with rigorous risk
+management and change control procedures.
+
+Mnet has a number of advantages over other network automation tools when it
+comes to development, testing, and project support.
+
+=head1 FEATURES
+
+The main features of the Mnet perl modules are:
+
+- Facilitate easy log, debug, alert and error output from automation scripts,
+output to per-device files, and web server output.
+
+- Automation scripts can run in batch mode to concurrently process a list of
+devices, using a simple command line argument and a device list file.
+
+- Flexible config settings via command line, environment variable, and/or batch
+device list files.
+
+- Reliable automation of cisco IOS and other command line sessions, including
+authentication and reliable command prompt handling.
+
+- Record and replay command line sessions, speeding the development of
+automation scripts and allowing for proper regression testing.
+
+- Report data from scripts can be output as plain .csv files, json, or sql.
+
+- Framework for regression testing of automation scripts, handling multiple
+scenarios, integrated with session record/replay capabilities.
+
+=head1 INSTALLATION
+
+The Mnet perl modules should work in just about any unix perl environment. The
+perl Expect module is required to make use of the Mnet::Expect modules.
+
+This installation is distributed as an Mnet-X.y.tar.gz file. To unpack the
+distribution and install it use the following commands:
+
+    tar -xf Mnet-X.y.tar.gz
+    cd Mnet-X.y
+    perl Makefile.PL
+    make
+    make test
+    make install
+
+The default Makefile.PL install requires root access to copy files to system
+perl directories. Set perl Makefile.PL INSTALL_BASE=/home/path to have
+everything installed to your home directory instead.
+
+=head1 AUTHOR
+
+The Mnet perl distribution has been created and is maintained by Mike Menza.
+Mike can be reached via email at <mmenza@cpan.org>.
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2006, 2013-2018 Michael J. Menza Jr.
+
+Mnet is free software: you can redistribute it and/or modify it under the terms
+of the GNU General Public License as published by the Free Software Foundation,
+either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>
+
+=head1 SEE ALSO
+
+<http://https://github.com/menzascripting/Mnet>
+
+=cut
+
