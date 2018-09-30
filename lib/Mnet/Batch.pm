@@ -20,7 +20,7 @@ Mnet::Batch - Concurrently process a list of command line options
     my $cli = Mnet::Opts::Cli->new;
 
     # fork child worker processes and exit when parent is finished
-    #   returns opts for worker processes and true for parent process
+    #   returns opts for worker processes and undef for parent process
     $cli = Mnet::Batch::fork($cli);
     exit if not $cli;
 
@@ -50,8 +50,8 @@ In the above example the script accepts a --batch list of command option lines
 and forks a child worker process for each line in the list. The --batch list
 option can be set to a file, a named pipe, or /dev/stdin as above.
 
-The --batch list lines are processes one at a time unless linux /proc/stat is
-detected, in which case list command lines are processes concurrently as fast
+The --batch list lines are processed one at a time unless linux /proc/stat is
+detected, in which case list command lines are processed concurrently as fast
 as possible without overutilizing the cpu.
 
 Note that a script using the Mnet::Batch module will exit with an error if the
@@ -243,14 +243,15 @@ Refer also to the SYNOPSIS section of this perldoc for more information.
                 my $child_opts = Mnet::Opts::Cli::batch_fork($batch_line);
                 return $child_opts;
             }
-        }
 
         # output pid of child that we just forked
         #   parent process tracks batch line for each child pid
         #   parent process increments count of child workers
-        NOTICE("fork forked child pid $pid, $0 $batch_line");
-        $pid_batch_lines->{$pid} = $batch_line;
-        $fork_data->{child_count}++;
+        } else {
+            NOTICE("fork forked child pid $pid, $0 $batch_line");
+            $pid_batch_lines->{$pid} = $batch_line;
+            $fork_data->{child_count}++;
+        }
 
     # continue loop to process batch list with forked child workers
     }
@@ -316,7 +317,7 @@ sub _fork_ok {
     #   stat_idle_c => count of idle cpu samples, used to get average idle cpu
     #   stat_idle_s => sum of idle cpu samples, used to get average idle cpu
     #   stat_max    => highest number of concurrent children during execution
-    my $fork_data = shift // croak("missing fork_data arg");
+    my $fork_data = shift // die "missing fork_data arg";
 
     # init cpu_count from /proc/stat the first time we are called
     #   this will be used later to adjust child_min based on idle cpu
@@ -366,7 +367,7 @@ sub _fork_ok_idle {
 # \%fork_data: refer to the _fork_ok() function for more information
 
     # read input fork_data hash
-    my $fork_data = shift // croak("missing fork_data arg");
+    my $fork_data = shift // die "missing fork_data arg";
 
     # return if three seconds hasn't gone by since last cpu utilization check
     return if $fork_data->{last_time} and $fork_data->{last_time} + 3 > time;

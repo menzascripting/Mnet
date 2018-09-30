@@ -66,14 +66,13 @@ Refer to the Mnet::Expect module for more information.
 
 =cut
 
-    # read input class and optional opts hash ref
+    # read input class and options hash ref merged with cli options
     my $class = shift // croak("missing class arg");
-    my $opts = shift // {};
+    my $opts = Mnet::Opts::Cli::Cache::get(shift // {});
 
     # create log object with input opts hash, cli opts, and pragmas in effect
-    #   we do this so that logging works for this and modules that inherit this
-    my $cli = Mnet::Opts::Cli::Cache::get($opts);
-    my $log = Mnet::Log::Conditional->new($cli);
+    #   ensures we can log correctly even if inherited object creation fails
+    my $log = Mnet::Log::Conditional->new($opts);
     $log->debug("new starting");
 
     # create hash that will become new object from input opts hash
@@ -109,8 +108,8 @@ Refer to the Mnet::Expect module for more information.
         password_in => undef,
         password_re => '(?i)pass(word|code):?\s*(\r|\n)?$',
         prompt_re   => '(^|\r|\n)\S.*(\$|\%|#|:|>) ?$',
-        record      => $cli->{record},
-        replay      => $cli->{replay},
+        record      => undef,
+        replay      => undef,
         timeout     => 35,
         username    => undef,
         username_re => '(?i)(login|user(name)?):?\s*(\r|\n)?$',
@@ -163,29 +162,8 @@ sub _login {
 # $ok: set true on success, false on failure
 
     # read input object
-    my $self = shift // croak "missing self arg";
+    my $self = shift // die "missing self arg";
     $self->debug("_login starting");
-
-    # $match = _login_expect($self, $re)
-    #   purpose: wait for next login prompt, output debug and error messages
-    #   $self: current Mnet::Expect::Cli object
-    #   $re: set to keyword username_re, password_re, or prompt_re
-    #   $match: set to matched $re text, abort on errors
-    #   note: failed_re is checked if $re is not set prompt_re
-    sub _login_expect {
-        my ($self, $re) = (shift, shift);
-        $self->debug("_login_expect $re starting");
-        my @matches = ('-re', $self->{$re});
-        unshift(@matches, '-re', $self->{failed_re}) if $self->{failed_re};
-        my $expect = $self->expect->expect($self->{timeout}, @matches);
-        my $match = Mnet::Dump::line($self->expect->match);
-        if (not $expect or ($self->{failed_re} and $expect == 1)) {
-            $self->fatal("login failed_re matched $match") if $expect;
-            $self->fatal("login timed out waiting for $re");
-        }
-        $self->debug("_login_expect $re finished, matched $match");
-        return $self->expect->match;
-    }
 
     # if username is set then wait and respond to username_re prompt
     if (defined $self->{username}) {
@@ -262,6 +240,48 @@ sub _login {
     # finished _login method, return true false for failure
     $self->debug("_login finished, returning false");
     return 0;
+}
+
+
+
+sub _login_expect {
+
+# $match = _login_expect($self, $re)
+#   purpose: wait for specified login prompt, output debug and error messages
+#   $self: current Mnet::Expect::Cli object
+#   $re: set to keyword username_re, password_re, or prompt_re
+#   $match: set to matched $re text, abort on errors
+#   note: failed_re is checked for first if set
+
+    # read input object and re args
+    my $self = shift // die "missing self arg";
+    my $re = shift // die "missing re arg";
+    $self->debug("_login_expect starting for $re");
+
+    # expect specified username/password/prompt re, also failed_re if defined
+    my @matches = ('-re', $self->{$re});
+    unshift(@matches, '-re', $self->{failed_re}) if $self->{failed_re};
+    my $expect = $self->expect->expect($self->{timeout}, @matches);
+
+    # note match text, and dump of match text for debug logging
+    my $match = $self->expect->match;
+    my $match_dump = Mnet::Dump::line($match);
+
+    # error if none of the prompts were returned
+    if (not $expect) {
+        my $prior_line = $self->expect->before // "";
+        $prior_line =~ s/(\r|\n)+$//;
+        $prior_line =~ s/(\s|\S)+(\r|\n)//;
+        $self->fatal("login timed out waiting for $re, $prior_line");
+
+    # error if failed_re was matched
+    } elsif ($self->{failed_re} and $expect == 1) {
+        $self->fatal("login failed_re matched $match_dump");
+    }
+
+    # finished _login_expect method, return input re match
+    $self->debug("_login_expect finished $re, matched $match_dump");
+    return $match;
 }
 
 
@@ -353,8 +373,8 @@ sub _command_expect {
 # note: command cache, record, and replay, are handled in command sub
 
     # read inputs, set default timeout from current object
-    my $self = shift // croak "missing self arg";
-    my $command = shift // croak "missing command arg";
+    my $self = shift // die "missing self arg";
+    my $command = shift // die "missing command arg";
     my $timeout = shift // $self->{timeout};
     my $prompts = shift // [];
 
@@ -483,7 +503,7 @@ sub _command_expect_prompt {
 # $ok: true for caller to continue processing, undef to return current output
 
     # read inputs
-    my $self = shift // croak "missing self arg";
+    my $self = shift // die "missing self arg";
     my ($prompt_response, $output) = (shift, shift);
 
     # return undef for undef prompt response

@@ -61,14 +61,13 @@ Refer to the Mnet::Expect::Cli and Mnet::Expect modules for more information.
 
 =cut
 
-    # read input class and optional opts hash ref
+    # read input class and options hash ref merged with cli options
     my $class = shift // croak("missing class arg");
-    my $opts = shift // {};
+    my $opts = Mnet::Opts::Cli::Cache::get(shift // {});
 
     # create log object with input opts hash, cli opts, and pragmas in effect
-    #   we do this so that logging works for this and modules that inherit this
-    my $cli = Mnet::Opts::Cli::Cache::get($opts);
-    my $log = Mnet::Log::Conditional->new($cli);
+    #   ensures we can log correctly even if inherited object creation fails
+    my $log = Mnet::Log::Conditional->new($opts);
     $log->debug("new starting");
 
     # create hash that will become new object from input opts hash

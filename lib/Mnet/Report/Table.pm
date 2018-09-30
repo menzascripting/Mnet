@@ -173,6 +173,9 @@ output for that object, as in the example below:
 This ensures that a script does not die after the row_on_error call without
 any indication in the report output.
 
+Multiple row_on_error calls can be used to output multiple rows at script exit
+if there were any errors.
+
 =cut
 
     # read inputs and add object and row data to row_on_error global array
@@ -309,7 +312,7 @@ sub _output {
 # \%row: row data, or undef for init call from new method w/Mnet::Batch loaded
 
     # read inputs
-    my $self = shift // croak("missing self arg");
+    my $self = shift // die "missing self arg";
     my $row = shift;
     $self->debug("_output starting");
 
@@ -386,7 +389,7 @@ extra double quote.
 =cut
 
     # read input object
-    my $self = shift // croak("missing self arg");
+    my $self = shift // die "missing self arg";
     my $row = shift;
     $self->debug("_output_csv starting");
 
@@ -482,7 +485,7 @@ user's terminal.
 =cut
 
     # read input object
-    my $self = shift // croak("missing self arg");
+    my $self = shift // die "missing self arg";
     my $row = shift // return;
     $self->debug("_output_dump starting");
 
@@ -537,7 +540,7 @@ to write data to the same file. Use 'dump:/dev/stdout' for terminal output.
 =cut
 
     # read input object
-    my $self = shift // croak("missing self arg");
+    my $self = shift // die "missing self arg";
     my $row = shift // return;
     $self->debug("_output_json starting");
 
@@ -574,7 +577,7 @@ sub _output_log {
 # purpose: output report row as info log entries
 
     # read input object
-    my $self = shift // croak("missing self arg");
+    my $self = shift // die "missing self arg";
     my $row = shift;
     $self->debug("_output_log starting");
 
@@ -620,7 +623,7 @@ to write data to the same file. Use 'dump:/dev/stdout' for terminal output.
 =cut
 
     # read input object
-    my $self = shift // croak("missing self arg");
+    my $self = shift // die "missing self arg";
     my $row = shift // return;
     $self->debug("_output_sql starting");
 
@@ -673,7 +676,7 @@ The test output option may also be set maually.
 =cut
 
     # read input object
-    my $self = shift // croak("missing self arg");
+    my $self = shift // die "missing self arg";
     my $row = shift;
     $self->debug("_output_test starting");
 

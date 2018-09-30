@@ -238,16 +238,16 @@ Refer to the SYNOPSIS section of this perldoc for more information.
 
 =cut
 
-    # read input class and optional opts hash ref
+    # read input class and options hash ref merged with cli options
     my $class = shift // croak("missing class arg");
-    my $opts = shift // {};
+    my $opts = Mnet::Opts::Cli::Cache::get(shift // {});
 
     # croak if log_id contains non-space characters
     croak("invalid spaces in log_id $opts->{log_id}")
         if defined $opts->{log_id} and $opts->{log_id} !~ /^\S+$/;
 
-    # create object, apply input opts over any cached cli options
-    my $self = bless Mnet::Opts::Cli::Cache::get($opts), $class;
+    # create log object from options object
+    my $self = bless $opts, $class;
 
     # finished new method
     return $self;

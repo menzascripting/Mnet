@@ -1,6 +1,6 @@
 package Mnet;
 
-our $VERSION = "5.01";
+our $VERSION = "dev";
 
 =head1 NAME
 
@@ -20,9 +20,9 @@ Mnet - Testable network automation and reporting
 
     # define --device name and --report output cli options
     Mnet::Opts::Cli::define({ getopt => "device=s" });
+    Mnet::Opts::Cli::define({ getopt => "username=s" });
     Mnet::Opts::Cli::define({ getopt => "password=s" });
     Mnet::Opts::Cli::define({ getopt => "report=s" });
-    Mnet::Opts::Cli::define({ getopt => "username=s" });
 
     # parse cli options, also parses Mnet environment variable
     my $cli = Mnet::Opts::Cli->new;
@@ -55,10 +55,10 @@ Mnet - Testable network automation and reporting
         spawn => [ "ssh", $cli->{device} ],
     });
 
-    # retrieve output from telnet session
+    # retrieve output from ssh command
     my $output = $ssh->command("show version");
 
-    # attempt to report on data parsed from output
+    # attempt to report on data parsed from ssh output
     WARN("unable to parse data") if $output !~ /^(+*)/;
     $report->row({ device => $cli->device, data => $1 });
 

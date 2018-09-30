@@ -171,7 +171,7 @@ sub _define_help_usage {
 # note: aborts with an error for unsupported Getopt::Long specs
 
     # read input getopt spec string
-    my $getopt = shift // croak("missing getopt arg");
+    my $getopt = shift // die "missing getopt arg";
 
     # init output help usage string for supported getopt types
     my $help_usage = undef;

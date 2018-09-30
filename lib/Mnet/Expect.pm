@@ -72,14 +72,13 @@ the Mnet::Log module for more information.
 
 =cut
 
-    # read input class and optional opts hash ref
+    # read input class and options hash ref merged with cli options
     my $class = shift // croak("missing class arg");
-    my $opts = shift // {};
+    my $opts = Mnet::Opts::Cli::Cache::get(shift // {});
 
     # create log object with input opts hash, cli opts, and pragmas in effect
-    #   we do this so that logging works for this and modules that inherit this
-    my $cli = Mnet::Opts::Cli::Cache::get($opts);
-    my $log = Mnet::Log::Conditional->new($cli);
+    #   ensures we can log correctly even if inherited object creation fails
+    my $log = Mnet::Log::Conditional->new($opts);
     $log->debug("new starting");
 
     # create hash that will become new object from input opts hash
@@ -94,14 +93,14 @@ the Mnet::Log module for more information.
     #   in addition refer to perldoc for input opts and Mnet::Log0->new opts
     #   update perldoc for this sub with changes
     my $defaults = {
-        debug       => $cli->{debug},
+        debug       => $opts->{debug},
         _expect     => undef,
         _log_filter => undef,
-        log_id      => $cli->{log_id},
+        log_id      => $opts->{log_id},
         _no_spawn   => undef,
-        quiet       => $cli->{quiet},
+        quiet       => $opts->{quiet},
         raw_pty     => undef,
-        silent      => $cli->{silent},
+        silent      => $opts->{silent},
         spawn       => undef,
         winsize     => "99999x999",
     };
@@ -194,6 +193,7 @@ sub spawn {
     if ($INC{'Mnet/Tee.pm'}) {
         $self->debug("spawn calling Mnet::Tee::tie_disable");
         Mnet::Tee::tie_disable();
+        $self->debug("spawn calling Expect module spawm method");
         $self->fatal("spawn error, $!") if not $self->expect->spawn(@spawn);
         $self->debug("spawn calling Mnet::Tee::tie_enable");
         Mnet::Tee::tie_enable();
