@@ -18,6 +18,7 @@ by other scripts and modules.
 # required modules
 use warnings;
 use strict;
+use Config;
 use Cwd;
 use Digest::MD5;
 use POSIX;
@@ -44,6 +45,9 @@ and operating system. This is used by Mnet::Opts::Cli and Mnet::Log.
     my $mnet_path = $INC{"Mnet/Version.pm"};
     $mnet_path =~ s/\/Mnet\/Version\.pm$//;
 
+    # note path of currently running perl executable
+    my $perl_path = $Config{perlpath} // "";
+
     # note posix uname
     my @uname = POSIX::uname();
     my $uname = lc($uname[0]." ".$uname[2]);
@@ -68,6 +72,7 @@ and operating system. This is used by Mnet::Opts::Cli and Mnet::Log.
     $info .= sprintf("%-$spad $cwd\n",       "current dir");
     $info .= sprintf("%-$spad $0\n",         "exec path");
     $info .= sprintf("%-$spad $mnet_path\n", "Mnet path");
+    $info .= sprintf("%-$spad $perl_path\n", "perl path");
 
     # add a blank line in before md5 outputs, looks better from cli --version
     $info .= "\n" if caller ne "Mnet::Log";
