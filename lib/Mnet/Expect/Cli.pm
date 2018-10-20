@@ -44,7 +44,7 @@ the Mnet::Expect module:
 
     delay           millseconds delay for command prompt detection
     eol_unix        default true for output with unix /n eol chars only
-    failed_re       default recognizes failed logins, undef to disable
+    failed_re       set to recognize failed logins, disabled by default
     paging_key      default space key to send for pagination prompt
     paging_re       default handles common prompts, refer to paging_re
     password        set to password for spawned command, if needed
@@ -81,6 +81,7 @@ Refer to the Mnet::Expect module for more information.
     # note default options for this class
     #   includes recognized cli opts and opts for this object
     #       failed_re default based on educated guess, specifics noted below:
+    #           /(closed|error|denied|fail|incorrect|invalid|refused|sorry)/i
     #           junos telnet =~ /^Login incorrent/m
     #       password_re default based on educated guess, specifics noted below:
     #           junos telnet =~ /^Password:$/m
@@ -99,8 +100,7 @@ Refer to the Mnet::Expect module for more information.
         _command_cache_counter => 0,
         delay       => 250,
         eol_unix    => 1,
-        failed_re   => '(?i)(closed|error|denied|fail'
-                            . '|incorrect|invalid|refused|sorry)',
+        failed_re   => undef,
         paging_key  => ' ',
         paging_re   => '(--more--|---\(more( \d\d?%)?\)---)',
         password    => undef,
@@ -165,18 +165,63 @@ sub _login {
     my $self = shift // die "missing self arg";
     $self->debug("_login starting");
 
+    #? call _login_old method if _login_new key is not set in object
+    #   _login_old code will be replaced by this new _login method eventually
+    if (not $self->{_login_new}) {
+        $self->debug("_login_old being called");
+        return $self->_login_old;
+    }
+
+    #? Mnet::Expect::Cli/Ios failed_re on route-views.oregon-ix.net banner
+    #   should we not have a default failed_re?
+    #       (?i)(closed|error|denied|fail|incorrect|invalid|refused|sorry)
+    #       it would be safer to leave this to be set as an optimization
+    #       maybe calling scripts need to get failed/user/pass/prompt correct
+    #   or should we hit the enter key before checking first prompt?
+    #       did we do this in old code? if we dont' get username or password?
+    #           (we are confirming a prompt instead of failed_re right away)
+    #   or should we change _login_expect to check only last line coming in?
+    #       would need some kind of hires delay loop to gather expect lines?
+    #       maybe login could then work with username/password autodetect?
+    #   we need to flowchart the various login scenarios
+    #       banner, user, pass, banner, prompt, failed_re, etc
+    #   hopefully we come up with something more robust and easy to adjust?
+    #       sub _login_expct { return match for input regexes, in last lines }
+    #       $m = _login_expect(fail/user/pass/prompt)
+    #       if (not $m) { send \n; $m = _login_expect(fail/user/pass/prompt) }
+    #       if ($m = user) { send user; $m = _login_expect(fail/pass) }
+    #       if ($m = pass) { send pass; $m = _login_expect(fail/prompt) }
+    #       if ($m = prompt) { send enter; return true if prompt verified }
+    #       return undef if not $m;
+
+    # finished _login method, return true false for failure
+    $self->debug("_login finished, returning false");
+    return 0;
+}
+
+
+
+sub _login_old {
+
+# $ok = $self->_login_old
+# purpose: used to authenticate expect session
+# $ok: set true on success, false on failure
+
+    # read input object
+    my $self = shift // die "missing self arg";
+    $self->debug("_login starting");
+
     # if username is set then wait and respond to username_re prompt
     if (defined $self->{username}) {
-        _login_expect($self, "username_re");
+        _login_expect_old($self, "username_re");
         $self->expect->send("$self->{username}\r");
-
     }
 
     # if password is set then wait and respond to password_re prompt
     #   prompt user for password if password not set and password_in is set
     #   _log_filter used to keep password out of Mnet::Expect->log
     if (defined $self->{password} or $self->{password_in}) {
-        _login_expect($self, "password_re");
+        _login_expect_old($self, "password_re");
         my $password = $self->{password};
         if (not defined $password and $self->{password_in}) {
             if ($self->{password_in}) {
@@ -219,7 +264,7 @@ sub _login {
     my ($prompt1, $prompt2, $attempts) = ("", "", 3);
     foreach my $attempt (1.. $attempts) {
         $self->debug("_login detect prompt attempt $attempt");
-        $prompt1 = _login_expect($self, "prompt_re") // return undef;
+        $prompt1 = _login_expect_old($self, "prompt_re") // return undef;
         $prompt1 =~ s/^(\r|\n)//;
         $self->{_log_filter} = undef;
         if ($prompt1 ne "" and $prompt1 eq $prompt2) {
@@ -244,9 +289,9 @@ sub _login {
 
 
 
-sub _login_expect {
+sub _login_expect_old {
 
-# $match = _login_expect($self, $re)
+# $match = _login_expect_old($self, $re)
 #   purpose: wait for specified login prompt, output debug and error messages
 #   $self: current Mnet::Expect::Cli object
 #   $re: set to keyword username_re, password_re, or prompt_re

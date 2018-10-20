@@ -15,7 +15,7 @@ my $perl_new_login = "chmod 700 \$CLI; echo; perl -e '" . '
     use strict;
     use Mnet::Expect::Cli;
     # use Mnet::Log; use Mnet::Opts::Set::Debug;
-    my $opts = { spawn => $ENV{CLI}, timeout => 2 };
+    my $opts = { spawn => $ENV{CLI}, timeout => 2, failed_re => "fail" };
     $opts->{username} = "user" if "@ARGV" =~ /user/;
     $opts->{password} = "pass" if "@ARGV" =~ /pass/;
     $opts->{prompt_re} = undef if "@ARGV" =~ /no_prompt_re/;
@@ -70,9 +70,9 @@ prompt = (^|\r|\n)prompt>\r?$
 
 # new login refused before username prompt
 Test::More::is(`export CLI=\$(mktemp); echo '
-    echo -n \"refused\"; read INPUT
+    echo -n \"fail\"; read INPUT
 ' >\$CLI; $perl_new_login user pass 2>&1; rm \$CLI`, '
-DIE - Mnet::Expect::Cli login failed_re matched "refused"
+DIE - Mnet::Expect::Cli login failed_re matched "fail"
 ', 'new login refused before username prompt');
 
 # new login failed after login prompt
@@ -87,9 +87,9 @@ DIE - Mnet::Expect::Cli login failed_re matched "fail"
 Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"username: \"; read INPUT
     echo -n \"password: \"; read INPUT
-    echo -n \"denied\"; read INPUT
+    echo -n \"fail\"; read INPUT
 ' >\$CLI; $perl_new_login user pass 2>&1; rm \$CLI`, '
-DIE - Mnet::Expect::Cli login failed_re matched "denied"
+DIE - Mnet::Expect::Cli login failed_re matched "fail"
 ', 'new login denied after password prompt');
 
 # new login with no user, password, or prompt
