@@ -569,7 +569,7 @@ sub _new_help {
             my $defined_opt = $Mnet::Opts::Cli::defined->{$opt};
 
             # skip option names that don't match input --help text
-            next if $opt !~ /\Q$help\E/;
+            next if $opt !~ /^\Q$help\E/;
 
             # output usage for current command
             my $usage = $defined_opt->{help_usage};
@@ -661,10 +661,14 @@ applying new command line options and/or extra arguments.
 
 =head1 SEE ALSO
 
-L<Getopt::Long>,
-L<Mnet>,
-L<Mnet::Opts::Cli::Cache>,
-L<Mnet::Opts::Set>,
+L<Getopt::Long>
+
+L<Mnet>
+
+L<Mnet::Opts::Cli::Cache>
+
+L<Mnet::Opts::Set>
+
 L<Mnet::Test>
 
 =cut

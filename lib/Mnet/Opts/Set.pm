@@ -70,10 +70,15 @@ Refer to the SEE ALSO section of this perldoc for a list of these sub-modules.
 =head1 SEE ALSO
 
 L<Mnet>
-L<Mnet::Opts::Cli>,
-L<Mnet::Opts::Cli::Cache>,
-L<Mnet::Opts::Set::Debug>,
-L<Mnet::Opts::Set::Quiet>,
+
+L<Mnet::Opts::Cli>
+
+L<Mnet::Opts::Cli::Cache>
+
+L<Mnet::Opts::Set::Debug>
+
+L<Mnet::Opts::Set::Quiet>
+
 L<Mnet::Opts::Set::Silent>
 
 =cut

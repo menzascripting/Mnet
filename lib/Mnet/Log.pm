@@ -609,14 +609,22 @@ Refer to the Mnet::Test module for more information.
 
 =head1 SEE ALSO
 
-L<Mnet>,
-L<Mnet::Log::Test>,
-L<Mnet::Opts::Cli>,
-L<Mnet::Opts::Set::Debug>,
-L<Mnet::Opts::Set::Quiet>,
-L<Mnet::Opts::Set::Silent>,
-L<Mnet::Tee>,
-L<Mnet::Test>,
+L<Mnet>
+
+L<Mnet::Log::Test>
+
+L<Mnet::Opts::Cli>
+
+L<Mnet::Opts::Set::Debug>
+
+L<Mnet::Opts::Set::Quiet>
+
+L<Mnet::Opts::Set::Silent>
+
+L<Mnet::Tee>
+
+L<Mnet::Test>
+
 L<Mnet::Version>
 
 =cut

@@ -374,9 +374,12 @@ submodules. Refer to those other Mnet::Expect submodules for more information.
 
 =head1 SEE ALSO
 
-L<Expect>,
-L<Mnet>,
-L<Mnet::Expect::Cli>,
+L<Expect>
+
+L<Mnet>
+
+L<Mnet::Expect::Cli>
+
 L<Mnet::Expect::Cli::Ios>
 
 =cut

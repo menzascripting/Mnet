@@ -68,34 +68,83 @@ Test::More::is(`export CLI=\$(mktemp); echo '
 prompt = (^|\r|\n)prompt>\r?$
 ', 'new login with extra prompt, no trailing spaces prompt>');
 
-# new login refused before username prompt
+# new login failed before username prompt
 Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"fail\"; read INPUT
 ' >\$CLI; $perl_new_login user pass 2>&1; rm \$CLI`, '
 DIE - Mnet::Expect::Cli login failed_re matched "fail"
-', 'new login refused before username prompt');
+', 'new login failed before username prompt');
 
 # new login failed after login prompt
 Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"login: \"; read INPUT
-    echo -n \"failed\"; read INPUT
+    echo -n \"fail\"; read INPUT
 ' >\$CLI; $perl_new_login user pass 2>&1; rm \$CLI`, '
 DIE - Mnet::Expect::Cli login failed_re matched "fail"
 ', 'new login failed after login prompt');
 
-# new login denied after password prompt
+# new login failed after password prompt
 Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"username: \"; read INPUT
     echo -n \"password: \"; read INPUT
     echo -n \"fail\"; read INPUT
 ' >\$CLI; $perl_new_login user pass 2>&1; rm \$CLI`, '
 DIE - Mnet::Expect::Cli login failed_re matched "fail"
-', 'new login denied after password prompt');
+', 'new login failed after password prompt');
 
 # new login with no user, password, or prompt
 Test::More::is(`export CLI=\$(mktemp); echo '
 ' >\$CLI; $perl_new_login no_prompt_re 2>&1; rm \$CLI`, '
 ', 'new login with no user, password, or prompt');
 
+# new login skipped pre-login banner fail text
+#   this goes with Mnet::Expect::Cli to-do on failed_re matching banner text
+#   ideally we could enable this test, refer to _login to-do note for more info
+#Test::More::is(`export CLI=\$(mktemp); echo '
+#    echo \"banner start\"; echo \"not failed\"; echo \"banner end\"
+#    echo -n \"username: \"; read INPUT
+#    echo -n \"password: \"; read INPUT
+#    echo -n \"prompt% \"; read INPUT
+#    echo -n \"prompt% \"; read INPUT
+#' >\$CLI; $perl_new_login user pass 2>&1; rm \$CLI`, '
+#prompt = (^|\r|\n)prompt% \r?$
+#', 'new login skipped pre-login banner fail text');
+
+# new login skipped post-login banner fail text
+#   this goes with Mnet::Expect::Cli to-do on failed_re matching banner text
+#   ideally we could enable this test, refer to _login to-do note for more info
+#Test::More::is(`export CLI=\$(mktemp); echo '
+#    echo -n \"username: \"; read INPUT
+#    echo -n \"password: \"; read INPUT
+#    echo \"banner start\"; echo \"not failed\"; echo \"banner end\"
+#    echo -n \"prompt% \"; read INPUT
+#    echo -n \"prompt% \"; read INPUT
+#' >\$CLI; $perl_new_login user pass 2>&1; rm \$CLI`, '
+#prompt = (^|\r|\n)prompt% \r?$
+#', 'new login skipped post-login banner fail text');
+
+# new login username not needed
+#   this goes with Mnet::Expect::Cli to-do on failed_re matching banner text
+#   ideally we could enable this test, refer to _login to-do note for more info
+#Test::More::is(`export CLI=\$(mktemp); echo '
+#    echo -n \"password: \"; read INPUT
+#    echo -n \"prompt% \"; read INPUT
+#    echo -n \"prompt% \"; read INPUT
+#' >\$CLI; $perl_new_login user pass 2>&1; rm \$CLI`, '
+#prompt = (^|\r|\n)prompt% \r?$
+#', 'new login username not needed');
+
+# new login username and password not needed
+#   this goes with Mnet::Expect::Cli to-do on failed_re matching banner text
+#   ideally we could enable this test, refer to _login to-do note for more info
+#Test::More::is(`export CLI=\$(mktemp); echo '
+#    echo -n \"password: \"; read INPUT
+#    echo -n \"prompt% \"; read INPUT
+#    echo -n \"prompt% \"; read INPUT
+#' >\$CLI; $perl_new_login user pass 2>&1; rm \$CLI`, '
+#prompt = (^|\r|\n)prompt% \r?$
+#', 'new login username and passowrd not needed');
+
 # finished
 exit;
+

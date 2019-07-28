@@ -117,9 +117,12 @@ Refer to the SYNOPSIS section of this perldoc for usage examples and more info.
 
 =head1 SEE ALSO
 
-L<Mnet>,
-L<Mnet::Log::Conditional>,
-L<Mnet::Opts::Cli>,
+L<Mnet>
+
+L<Mnet::Log::Conditional>
+
+L<Mnet::Opts::Cli>
+
 L<Mnet::Opts::Set>
 
 =cut

@@ -52,9 +52,11 @@ inf id Mnet::Report::Table row }
 ', 'default log output in specified order with log_id');
 
 # json output, skipped if JSON module is not available
-Test::More::is(`echo; $perl_report --quiet json:test:/dev/stdout 2>&1`, '
-test = {"err":null,"int":"5","str":"1\r\'2\n\""};
+my $sed = "sed 's/int\":\"5\",/int\":5,/'";
+Test::More::is(`echo; $perl_report --quiet json:test:/dev/stdout 2>&1 | $sed`,'
+test = {"err":null,"int":5,"str":"1\r\'2\n\""};
 ', 'json output in alphabetical order') if eval("require JSON; 1");
+ok(1, "skipped JSON test, module not present") if not eval("require JSON; 1");
 
 # sql output
 Test::More::is(`echo; $perl_report --quiet sql:"test":/dev/stdout 2>&1`, '

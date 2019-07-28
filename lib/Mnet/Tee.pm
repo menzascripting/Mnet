@@ -2,7 +2,7 @@ package Mnet::Tee;
 
 =head1 NAME
 
-Mnet::Tee - Redirect srdout and stderr to a file
+Mnet::Tee - Redirect stdout and stderr to a file
 
 =head1 SYNOPSIS
 
@@ -18,12 +18,12 @@ Mnet::Tee - Redirect srdout and stderr to a file
 =head1 DESCRIPTION
 
 This module captures all stdout and stderr output from an executing script and
-saves that output to the specified file. Be sure to call Mnet::Tee::file or
+saves that output to the specified file. Be sure to call Mnet::Tee::file() or
 parse cli options before generating any other output.
 
 The variables stdout and stderr can be imported from this module to use for
 output that should not be captured by the Mnet::Tee module. The pause and
-unpause functions can be used for this purpose also.
+unpause functions in this module can be used for this purpose also.
 
 Note that output captured by this module is stored in memory. That could be
 a problem for scripts that generate gigabytes of stdout and/or stderr output.
@@ -271,8 +271,10 @@ sub test_unpause {
 
 =head1 SEE ALSO
 
-L<Mnet>,
-L<Mnet::Opts::Cli>,
+L<Mnet>
+
+L<Mnet::Opts::Cli>
+
 L<Mnet::Test>
 
 =cut

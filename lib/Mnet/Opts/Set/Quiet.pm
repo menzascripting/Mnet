@@ -22,7 +22,8 @@ use strict;
 
 =head1 SEE ALSO
 
-L<Mnet>,
+L<Mnet>
+
 L<Mnet::Log>
 
 =cut

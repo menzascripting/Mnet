@@ -436,8 +436,10 @@ END {
 
 =head1 SEE ALSO
 
-L<Mnet>,
-L<Mnet::Opts::Cli>,
+L<Mnet>
+
+L<Mnet::Opts::Cli>
+
 L<Mnet::Opts::Set>
 
 =cut

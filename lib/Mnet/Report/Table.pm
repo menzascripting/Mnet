@@ -16,10 +16,8 @@ Mnet::Report::Table - Output rows of report data
 
 =head1 DESCRIPTION
 
-This module can be used to output rows of report data for one or more tables
-in various formats.
-
-Refer to the documentation below for more information.
+This module can be used to create new report table objects, add rows to those
+tables, with output of those rows at script exit in various formats.
 
 =cut
 
@@ -77,7 +75,7 @@ in the following example:
         output  => "csv:$file",     # refer to this module's OUTPUT section
     });
 
-Errors are issued for invalid options.
+Errors are issued if invalid options are specified.
 
 Refer to the documentation for specific output options below for more info.
 
@@ -284,20 +282,21 @@ current object or invalid data is submitted.
 
 =head1 OUTPUT OPTIONS
 
-When a new Mnet::Report::Table object is ceated the output option can be set to
-any of the following format types, or left undefined.
+When a new Mnet::Report::Table object is created the output option can be set
+to any of the following format types, or left undefined.
 
 If the Mnet::Log module is loaded report rows are always logged with the info
 method.
 
 Note that the Mnet::Test module --test command line option silently overrides
-all other report output options, using the Mnet::Log module or sent to stdout
-in a format similar to Data::Dumper.
+all other report output options, outputting report data using the Mnet::Log
+module if loaded or sending report output to stdout in a format similar to
+Data::Dumper.
 
 Output options below can use /dev/stdout as the output file, which works nicely
 with the Mnet::Log --silent option used with the Mnet::Batch module --batch
 option, allowing the report output from all batch children to be easily piped
-or redirected as necessary.
+or redirected in aggregate as necessary.
 
 Note that /dev/stdout report output is not captured by the Mnet::Tee module,
 and might be missed if the Mnet::Log module is not being used. In this case
@@ -731,7 +730,8 @@ outputting report data so it can be included in testing.
 
 =head1 SEE ALSO
 
-L<Mnet>,
+L<Mnet>
+
 L<Mnet::Test>
 
 =cut

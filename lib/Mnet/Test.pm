@@ -25,7 +25,7 @@ of how each module supports the Mnet::Test test, record, and replay options.
 
 This module uses the Mnet::Tee module to capture all stdout and stderr outputs
 from an executing script and can record, replay, and test for changes in those
-outputs. Refer to perldoc Mnet::Tee form mroe information.
+outputs. Refer to perldoc Mnet::Tee form more information.
 
 When --test is used the exit status of the script will reflect whether output
 matched what is in the specified --replay file.
@@ -465,8 +465,10 @@ END {
 
 =head1 SEE ALSO
 
-L<Mnet>,
-L<Mnet::Opts::Cli>,
+L<Mnet>
+
+L<Mnet::Opts::Cli>
+
 L<Mnet::Tee>
 
 =cut

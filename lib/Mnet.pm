@@ -8,6 +8,8 @@ Mnet - Testable network automation and reporting
 
 =head1 SYNOPSIS
 
+    # usage: perl sample.pl --device <address>
+
     # load modules
     use warnings;
     use strict;
@@ -27,7 +29,7 @@ Mnet - Testable network automation and reporting
     # parse cli options, also parses Mnet environment variable
     my $cli = Mnet::Opts::Cli->new;
 
-    # define output --report table
+    # define output --report table, will include first of any errors
     my $report = Mnet::Report::Table->new({
         columns => [
             device  => "string",
@@ -44,11 +46,10 @@ Mnet - Testable network automation and reporting
     # ensure that errors show up in report if we don't end normally
     $report->row_on_error({ device => $cli->device });
 
-    # use log function and set up log object
+    # use log function and set up log object for device
     FATAL("missing --device") if not $cli->device;
     my $log = Mnet::Log->new({ log_id => $cli->device });
     $log->info("processing device");
-    $cli->{device}
 
     # create an expect ssh session to --device
     my $ssh = Mnet::Expect::Cli->new({
@@ -68,7 +69,7 @@ Mnet - Testable network automation and reporting
 =head1 DESCRIPTION
 
 The Mnet modules are for perl programmers who want to create testable network
-automation and reporting scripts.
+automation and/or reporting scripts.
 
 The above SYNOPSIS sample.pl script can be executed as follows:
 
@@ -100,7 +101,7 @@ Mike can be reached via email at <mmenza@cpan.org>.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2006, 2013-2018 Michael J. Menza Jr.
+Copyright 2006, 2013-2019 Michael J. Menza Jr.
 
 Mnet is free software: you can redistribute it and/or modify it under the terms
 of the GNU General Public License as published by the Free Software Foundation,
@@ -115,17 +116,28 @@ this program. If not, see <http://www.gnu.org/licenses/>
 
 =head1 SEE ALSO
 
-L<Mnet::Batch>,
-L<Mnet::Expect>,
-L<Mnet::Expect::Cli>,
-L<Mnet::Expect::Cli::Ios>,
-L<Mnet::Log>,
-L<Mnet::Opts::Cli>,
-L<Mnet::Opts::Set::Debug>,
-L<Mnet::Opts::Set::Quiet>,
-L<Mnet::Opts::Set::Silent>,
-L<Mnet::Report::Table>,
-L<Mnet::Tee>,
+L<Mnet::Batch>
+
+L<Mnet::Expect>
+
+L<Mnet::Expect::Cli>
+
+L<Mnet::Expect::Cli::Ios>
+
+L<Mnet::Log>
+
+L<Mnet::Opts::Cli>
+
+L<Mnet::Opts::Set::Debug>
+
+L<Mnet::Opts::Set::Quiet>
+
+L<Mnet::Opts::Set::Silent>
+
+L<Mnet::Report::Table>
+
+L<Mnet::Tee>
+
 L<Mnet::Test>
 
 =cut

@@ -243,10 +243,14 @@ Mnet::Expect::Cli module for more information.
 
 =head1 SEE ALSO
 
-L<Expect>,
-L<Mnet>,
-L<Mnet::Expect>,
-L<Mnet::Expect::Cli>,
+L<Expect>
+
+L<Mnet>
+
+L<Mnet::Expect>
+
+L<Mnet::Expect::Cli>
+
 L<Mnet::Test>
 
 =cut

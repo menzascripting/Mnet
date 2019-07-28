@@ -282,7 +282,8 @@ the Mnet::Log module is not loaded then the perl die command is called.
 
 =head1 SEE ALSO
 
-L<Mnet>,
+L<Mnet>
+
 L<Mnet::Opts::Cli::Cache>
 
 =cut
