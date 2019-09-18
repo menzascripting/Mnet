@@ -58,7 +58,7 @@ The following options can be used to control log outputs:
     quiet   disable all stdout log outputs
     silent  disable all stdout and stderr log outputs
 
-Note that this module also installed __DIE__, __WARN__, INT, and TERM signal
+Note that this module also installs __DIE__, __WARN__, INT, and TERM signal
 handlers, in order to augment the logging of these events. These are made to
 pass through compile evants as well as eval warn and die events as normal.
 
@@ -122,7 +122,7 @@ BEGIN {
     #   exit with error after _sig_handler call to output error and stack trace
     $SIG{__DIE__} = sub {
         if (not @_ or not defined $^S or $^S) {
-            &CORE::die;
+            &CORE::die(@_);
         } else {
             _sig_handler("perl die", scalar(caller), "@_");
         }
@@ -135,7 +135,7 @@ BEGIN {
     #   return after _sig_handler call to output error and stack trace
     $SIG{__WARN__} = sub {
         if (not @_ or not defined $^S) {
-            &CORE::warn;
+            &CORE::warn(@_);
         } else {
             _sig_handler("perl warn", scalar(caller), "@_");
         }
@@ -433,6 +433,7 @@ sub notice {
     my ($self, $text) = (shift, shift);
     return output($self, " - ", 5, scalar(caller), $text);
 }
+
 
 
 sub warn {
