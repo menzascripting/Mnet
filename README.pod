@@ -13,7 +13,7 @@ network automation scripts.
 The main features of the Mnet perl modules are:
 
 - Facilitate easy log, debug, alert and error output from automation scripts,
-output to per-device files, web server output.
+outputs can be redirected to per-device files
 
 - Automation scripts can run in batch mode to concurrently process a list of
 devices, using a simple command line argument and a device list file.
@@ -24,13 +24,10 @@ device list files.
 - Reliable automation of cisco IOS and other command line sessions, including
 reliable authentication and command prompt handling.
 
-- Record and replay connected command line sessions, speeding the development
-of automation scripts and allowing for proper regression testing.
-
 - Report data from scripts can be output as plain .csv files, json, or sql.
 
-- Framework for regression testing of automation scripts, handling multiple
-scenarios, making use of session record/replay capabilities.
+- Record and replay connected command line sessions, speeding the development
+of automation scripts and allowing for proper regression testing.
 
 =head1 INSTALLATION
 
@@ -38,7 +35,7 @@ The Mnet perl modules should work in just about any unix perl environment. To
 interact with command line sessions the perl Expect module is required.
 
 This installation is distributed as an Mnet-X.y.tar.gz file. To unpack the
-distribution and install it use the following commands:
+distribution and install it using commands like the following:
 
     tar -xf Mnet-X.y.tar.gz
     cd Mnet-X.y
@@ -48,8 +45,8 @@ distribution and install it use the following commands:
     make install
 
 The default Makefile.PL install requires root access to copy files to system
-perl directories. Set perl Makefile.PL INSTALL_BASE=/home/path to have
-everything installed a different directory.
+perl directories. Run `perl Makefile.PL INSTALL_BASE=/different/path` to have
+everything installed to a different path.
 
 =head1 AUTHOR
 

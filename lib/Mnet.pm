@@ -34,7 +34,7 @@ Mnet - Testable network automation and reporting
         columns => [
             device  => "string",
             error   => "error",
-            data    => "string",
+            diff    => "string",
         ],
         output  => $cli->report,
     });
@@ -56,12 +56,15 @@ Mnet - Testable network automation and reporting
         spawn => [ "ssh", $cli->{device} ],
     });
 
-    # retrieve output from ssh command
-    my $output = $ssh->command("show version");
+    # retrieve config from ssh command, warn otherwise
+    my $config = $ssh->command("show running-config");
+    WARN("unable to read config") if not $config;
 
-    # attempt to report on data parsed from ssh output
-    WARN("unable to parse data") if $output !~ /^(+*)/;
-    $report->row({ device => $cli->device, data => $1 });
+    # retrieve interface vlan 1 stanza from config
+    my $data = Mnet::Stanza::parse($config, qr/^interface vlan1$/i);
+
+    # report on parsed vlan1 interface config data
+    $report->row({ device => $cli->device, data => $data });
 
     # finished
     exit;
