@@ -139,6 +139,8 @@ L<Mnet::Opts::Set::Silent>
 
 L<Mnet::Report::Table>
 
+L<Mnet::Stanza>
+
 L<Mnet::Tee>
 
 L<Mnet::Test>

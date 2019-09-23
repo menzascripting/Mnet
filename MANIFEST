@@ -33,6 +33,7 @@ lib/Mnet/Opts/Set/Quiet.pm
 lib/Mnet/Opts/Set/Silent.pm
 lib/Mnet/Report
 lib/Mnet/Report/Table.pm
+lib/Mnet/Stanza.pm
 lib/Mnet/Tee.pm
 lib/Mnet/Test.pm
 lib/Mnet/Version.pm
