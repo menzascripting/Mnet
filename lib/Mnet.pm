@@ -8,7 +8,7 @@ Mnet - Testable network automation and reporting
 
 =head1 SYNOPSIS
 
-    # usage: perl sample.pl --device <address>
+    # usage: perl sample.pl --device <address> --report csv:file.csv
 
     # load modules
     use warnings;
@@ -21,6 +21,7 @@ Mnet - Testable network automation and reporting
     use Mnet::Test;
 
     # define --device name and --report output cli options
+    #   options can also be set via Mnet environment variable
     Mnet::Opts::Cli::define({ getopt => "device=s" });
     Mnet::Opts::Cli::define({ getopt => "username=s" });
     Mnet::Opts::Cli::define({ getopt => "password=s" });
@@ -30,6 +31,7 @@ Mnet - Testable network automation and reporting
     my $cli = Mnet::Opts::Cli->new;
 
     # define output --report table, will include first of any errors
+    #   use --report cli opt to output data as csv, json, sql, etc
     my $report = Mnet::Report::Table->new({
         columns => [
             device  => "string",
@@ -40,6 +42,7 @@ Mnet - Testable network automation and reporting
     });
 
     # handle concurrent --batch processing, parent exits when finished
+    #   process a list of thousands of devices, hundreds at a time, etc
     $cli = Mnet::Batch::fork($cli);
     exit if not $cli;
 

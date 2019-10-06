@@ -61,7 +61,7 @@ In the above example the following would be true:
     stanza 1 contains a single indented line
     stanza 2 contains sub-stanza 1 and everything under sub-stanza 1
     sub-stanza 1 contains two indented lines and a sub-sub-stanza 1
-    sub-sub-stanza 1 contains two indented line
+    sub-sub-stanza 1 contains two indented lines
 
 The functions below can be used to trip extra blank lines and spaces from
 stanza text, to parse stanzas and sub-stanzas, and to copare stanza text
