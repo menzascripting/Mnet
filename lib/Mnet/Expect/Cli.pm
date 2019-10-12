@@ -62,6 +62,11 @@ For example, the following call will start an ssh expect session to a device:
     my $opts = { spawn => "ssh 1.2.3.4", prompt => 1 };
     my $expect = Mnet::Expect::Cli->new($opts);
 
+Set failed_re to detect failed logins faster, as long as there's no conflict
+with text that appears in login banners. For example:
+
+    (?i)(closed|error|denied|fail|incorrect|invalid|refused|sorry)
+
 Refer to the Mnet::Expect module for more information.
 
 =cut
@@ -193,6 +198,7 @@ sub _login {
     #   refer to commented out tests at the end of t/Expect_Cli.t
     #       enable these tests to check new login logic
     #       ideally we could leave these tests enabled permanently
+    #   after fix modify failed_re text in Mnet::Expect::Cli/Ios->new perldoc
     if (not $self->{_login_new}) {
         $self->debug("_login_old being called");
         return $self->_login_old;
