@@ -543,6 +543,16 @@ sub _new_help {
             return sprintf(" --%-${width}s   $tip\n", $usage);
         }
 
+        # output non-Mnet script options, if any exist
+        my $other_options = "";
+        foreach my $opt (sort keys %{$Mnet::Opts::Cli::defined}) {
+            my $defined_opt = $Mnet::Opts::Cli::defined->{$opt};
+            next if $defined_opt->{caller} =~ /^Mnet(::|$)/;
+            $other_options = "Script options:\n\n" if not $other_options;
+            $other_options .= _new_help_tip($width, $defined_opt);
+        }
+        $output .= "$other_options\n" if $other_options;
+
         # output Mnet options
         $output .= "Mnet options:\n\n";
         foreach my $opt (sort keys %{$Mnet::Opts::Cli::defined}) {
@@ -550,16 +560,6 @@ sub _new_help {
             next if $defined_opt->{caller} !~ /^Mnet(::|$)/;
             $output .= _new_help_tip($width, $defined_opt);
         }
-
-        # output non-Mnet options, if any exist
-        my $other_options = "";
-        foreach my $opt (sort keys %{$Mnet::Opts::Cli::defined}) {
-            my $defined_opt = $Mnet::Opts::Cli::defined->{$opt};
-            next if $defined_opt->{caller} =~ /^Mnet(::|$)/;
-            $other_options = "\nOther options:\n\n" if not $other_options;
-            $other_options .= _new_help_tip($width, $defined_opt);
-        }
-        $output .= $other_options;
 
     # output long form help text for options matching input --help value
     } else {

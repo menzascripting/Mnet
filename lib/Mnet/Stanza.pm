@@ -90,7 +90,7 @@ This function does the following:
 
     - replaces multiple spaces inside text with single spaces
     - removes spaces at the end of any line of input
-    - removes blank lines and any linefeed at end of input
+    - removes blank lines and any linefeeds at end of input
     - removes extra leading spaces while preserving indentation
 
 A null value will be output if the input is undefined.
