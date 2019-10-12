@@ -45,7 +45,7 @@ the Mnet::Expect::Cli and Mnet::Expect modules:
     enable          set to password for enable mode during login
     enable_in       stderr prompt for stdin entry of enable if not set
     enable_user     default enable username set from username option
-    failed_re       default recognizes failed ios logins
+    failed_re       default recognizes ios % error character
     paging_key      default space key to send for ios pagination prompts
     paging_re       default recognized ios pagination prompt --more--
     prompt_re       defaults to ios user or enable mode prompt
@@ -54,8 +54,13 @@ An error is issued if there are login problems.
 
 For example, the following call will start an ssh expect session to a device:
 
-    my $opts = { spawn => "ssh 1.2.3.4", prompt => 1 };
+    my $opts = { spawn => "ssh 1.2.3.4" };
     my $expect = Mnet::Expect::Cli->new($opts);
+
+Set failed_re to detect failed logins faster, as long as there's no conflict
+with text that appears in login banners. For example:
+
+    (?i)(^\s*%|closed|error|denied|fail|incorrect|invalid|refused|sorry)
 
 Refer to the Mnet::Expect::Cli and Mnet::Expect modules for more information.
 
@@ -86,8 +91,7 @@ Refer to the Mnet::Expect::Cli and Mnet::Expect modules for more information.
         _enable_    => undef,
         enable_in   => undef,
         enable_user => undef,
-        failed_re   => '(?i)(^\s*%|closed|error|denied|fail'
-                            . '|incorrect|invalid|refused|sorry)',
+        failed_re   => '(?i)^\s*%',
         paging_key  => ' ',
         paging_re   => '--(M|m)ore--',
         prompt_re   => '(^|\r|\n)\S+(>|#) $',
