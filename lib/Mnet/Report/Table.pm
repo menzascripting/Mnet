@@ -31,7 +31,7 @@ use Mnet::Opts::Cli::Cache;
 
 # set autoflush and sig handlers to capture first error
 #   autoflush is set so multi-process syswrite lines don't clobber each other
-#   die and warn sig handlers here are used only if Mnet::LOg is not loaded
+#   die and warn sig handlers here are used only if Mnet::Log is not loaded
 #   row_on_error array has objects that will be processed in END block
 BEGIN {
     $| = 1;
@@ -201,7 +201,7 @@ object, as in the following example:
     })
 
 Note that an error is issued if any input columns are not defined for the
-current object or invalid data is submitted.
+current table object or invalid column data is specified.
 
 =cut
 
@@ -283,7 +283,8 @@ current object or invalid data is submitted.
 =head1 OUTPUT OPTIONS
 
 When a new Mnet::Report::Table object is created the output option can be set
-to any of the following format types, or left undefined.
+to any of the output format types listed in the documentation sections below,
+or left undefined.
 
 If the Mnet::Log module is loaded report rows are always logged with the info
 method.
@@ -295,8 +296,8 @@ Data::Dumper.
 
 Output options below can use /dev/stdout as the output file, which works nicely
 with the Mnet::Log --silent option used with the Mnet::Batch module --batch
-option, allowing the report output from all batch children to be easily piped
-or redirected in aggregate as necessary.
+option, allowing report output from all concurrently exeecuting batch children
+to be easily piped or redirected in aggregate as necessary.
 
 Note that /dev/stdout report output is not captured by the Mnet::Tee module,
 and might be missed if the Mnet::Log module is not being used. In this case
@@ -377,13 +378,13 @@ The csv output option can be used to create csv files.
 
 Note that text column eol characters are replaced with spaces in csv outputs.
 
-Scripts that create multiple Mnet::Report::Table objects with the output option
-set to csv need to ensure that the csv filenames are different, otherwise that
-single file will be created with possibly different columns mixed together and
-missing missing rows.
+Scripts that create multiple Mnet::Report::Table objects with output options
+set to csv need to ensure that the csv filenames are different, otherwise the
+single csv file created will possibly have different columns mixed together and
+be missing rows.
 
-All csv output fields are double quoted, and double quotes are escaped with an
-extra double quote.
+All csv output fields are double quoted, and double quotes in column output
+data are escaped with an extra double quote.
 
 =cut
 
@@ -476,10 +477,10 @@ This dump output can be read back into a perl script as follows:
     }
 
 Note that dump output is appended to the specified file, so the perl unlink
-command can be used to remove these files prior to each Mnet::Report::Table new
-call, if desired. This means it is ok for multiple Mnet::Report::Table objects
-to write data to the same file. Use 'dump:$var:/dev/stdout' for output to the
-user's terminal.
+command can be used to remove these files prior to each Mnet::Report::Table
+new call, if desired. This means it can be ok for multiple Mnet::Report::Table
+objects to write data to the same file, Use 'dump:$var:/dev/stdout' for output
+to the user's terminal.
 
 =cut
 
@@ -532,9 +533,10 @@ This json output can be read back into a perl script as follows:
     }
 
 Note that json output is appended to the specified file, so the perl unlink
-command can be used to remove these files prior to each Mnet::Report::Table new
-call, if desired. This means it is ok for multiple Mnet::Report::Table objects
-to write data to the same file. Use 'dump:/dev/stdout' for terminal output.
+command can be used to remove these files prior to each Mnet::Report::Table
+new call, if desired. This means it can be ok for multiple Mnet::Report::Table
+objects to write data to the same file. Use 'dump:/dev/stdout' for terminal
+output.
 
 =cut
 
@@ -616,8 +618,9 @@ The dump output option writes one row perl line as sql insert statements.
 
 Note that sql output is appended to the specified file, so the perl unlink
 command can be used to remove this file prior to the Mnet::Report::Table new
-call, if desired. This means it is ok for multiple Mnet::Report::Table objects
-to write data to the same file. Use 'dump:/dev/stdout' for terminal output.
+call, if desired. This means it can be ok for multiple Mnet::Report::Table
+objects to write data to the same file. Use 'dump:/dev/stdout' for terminal
+output.
 
 =cut
 
