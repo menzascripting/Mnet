@@ -134,8 +134,8 @@ sub enable {
 
     $boolean = $expect->enable($password)
 
-Use this method to check for enable mode on an ios device, and/or to enter
-enable mode on the device.
+Use this method to check if an ios device session is currently in enable mode,
+and/or to enter enable mode on the device.
 
 The input password will be used, or the enable and enable_in options for the
 current object. An error results if a password is needed and none was set.
