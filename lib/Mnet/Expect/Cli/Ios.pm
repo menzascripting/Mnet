@@ -45,9 +45,9 @@ the Mnet::Expect::Cli and Mnet::Expect modules:
     enable          set to password for enable mode during login
     enable_in       stderr prompt for stdin entry of enable if not set
     enable_user     default enable username set from username option
-    failed_re       default recognizes ios % error character
+    failed_re       default recognizes lines starting w/ios % error char
     paging_key      default space key to send for ios pagination prompts
-    paging_re       default recognized ios pagination prompt --more--
+    paging_re       default recognizes ios pagination prompt --more--
     prompt_re       defaults to ios user or enable mode prompt
 
 An error is issued if there are login problems.
