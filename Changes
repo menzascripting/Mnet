@@ -1,7 +1,7 @@
-Pending Release
+2019-10-13 Mnet-v5.02
 
 - added new Mnet::Stanza module
-- Mnet::Expect::Cli default failed_re changed to undef
+- Mnet::Expect::Cli::Ios default failed_re changed to undef
 
 2018-09-23 Mnet-v5.01
 
