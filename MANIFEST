@@ -1,6 +1,7 @@
 Changes
 LICENSE
 MANIFEST
+README
 Makefile.PL
 lib/Mnet.pm
 lib/Mnet/Batch.pm
