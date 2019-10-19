@@ -5,8 +5,6 @@ README
 Makefile.PL
 lib/Mnet.pm
 lib/Mnet/Batch.pm
-lib/Mnet/Depends/Algorithm/Diff.pm
-lib/Mnet/Depends/Text/Diff.pm
 lib/Mnet/Dump.pm
 lib/Mnet/Expect.pm
 lib/Mnet/Expect/Cli.pm
