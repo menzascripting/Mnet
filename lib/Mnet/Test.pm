@@ -66,7 +66,6 @@ use Mnet::Tee;
 
 # modules required for diff output
 BEGIN { push @INC, "$1/Depends" if $INC{"Mnet/Test.pm"} =~ /(.+)Test\.pm$/; }
-use Algorithm::Diff;
 use Text::Diff;
 
 

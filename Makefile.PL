@@ -65,6 +65,7 @@ WriteMakefile(
     },
     MIN_PERL_VERSION    => '5.10.0',
     NAME                => 'Mnet',
+    PREREQ_PM           => { 'Text::Diff' => 0 },
     VERSION_FROM        => 'lib/Mnet.pm',
 );
 
