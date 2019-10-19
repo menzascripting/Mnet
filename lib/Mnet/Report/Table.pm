@@ -376,7 +376,7 @@ sub _output_csv {
 
 The csv output option can be used to create csv files.
 
-Note that text column eol characters are replaced with spaces in csv outputs.
+Note that eol characters are replaced with spaces in csv output.
 
 Scripts that create multiple Mnet::Report::Table objects with output options
 set to csv need to ensure that the csv filenames are different, otherwise the
@@ -399,7 +399,7 @@ data are escaped with an extra double quote.
     my $file = $1;
 
     # declare sub to quote and escape csv value
-    #   eol chars removed so concurrent batch outputs don't intermix
+    #   eol chars removed so concurrent batch outputs klines don't intermix
     #   double quotes are escaped with an extra double quote
     #   value is prefixed and suffixed with double quotes
     sub _output_csv_escaped {

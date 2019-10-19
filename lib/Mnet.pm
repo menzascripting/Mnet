@@ -8,6 +8,9 @@ Mnet - Testable network automation and reporting
 
 =head1 SYNOPSIS
 
+    # sample Mnet script
+    #   logs into devices, reports on
+
     # usage: perl sample.pl --device <address> --report csv:file.csv
 
     # load modules
@@ -36,7 +39,7 @@ Mnet - Testable network automation and reporting
         columns => [
             device  => "string",
             error   => "error",
-            diff    => "string",
+            ip      => "string",
         ],
         output  => $cli->report,
     });
@@ -46,7 +49,7 @@ Mnet - Testable network automation and reporting
     $cli = Mnet::Batch::fork($cli);
     exit if not $cli;
 
-    # ensure that errors show up in report if we don't end normally
+    # ensure that errors are reported if script aborts for any reason
     $report->row_on_error({ device => $cli->device });
 
     # use log function and set up log object for device
@@ -64,10 +67,10 @@ Mnet - Testable network automation and reporting
     WARN("unable to read config") if not $config;
 
     # retrieve interface vlan 1 stanza from config
-    my $data = Mnet::Stanza::parse($config, qr/^interface vlan1$/i);
+    my $sh_int = Mnet::Stanza::parse($config, qr/^interface vlan1$/i);
 
     # report on parsed vlan1 interface config data
-    $report->row({ device => $cli->device, data => $data });
+    $report->row({ device => $cli->device, ip => $ip });
 
     # finished
     exit;
