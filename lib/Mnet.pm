@@ -11,7 +11,7 @@ Mnet - Testable network automation and reporting
     # sample script to report Loopback0 address on cisco devices
     #
     #   demonstrates typical use of all major Mnet modules
-    #   refer to individual Mnet modules for additional info
+    #   refer to perldoc for various Mnet modules for complete api info
     #
     #   use --help to list all options, or --help <option>
     #   use --device <address> to connect to device with logging
@@ -130,26 +130,24 @@ of automation scripts and allowing for proper regression testing.
 Most of the Mnet modules can be used independely of each other, except where
 otherwise noted.
 
-Refer to the modules listed in the SEE ALSO section below for more details.
+Refer to the individual Mnet modules listed in the SEE ALSO section below for
+more detail.
 
 =head1 INSTALLATION
 
-The Mnet perl modules should work in just about any unix perl environment. To
-interact with command line sessions the perl Expect module is required.
+The latest Mnet release can be installed from CPAN
 
-This installation is distributed as an Mnet-X.y.tar.gz file. To unpack the
-distribution and install it using commands like the following:
+    cpan install Mnet
+
+Or downloaded and installed from L<https://github.com/menzascripting/Mnet>
 
     tar -xf Mnet-X.y.tar.gz
     cd Mnet-X.y
-    perl Makefile.PL
-    make
-    make test
+    perl Makefile.PL # INSTALL_BASE=/different/path
     make install
 
-The default Makefile.PL install requires root access to copy files to system
-perl directories. Run `perl Makefile.PL INSTALL_BASE=/different/path` to have
-everything installed to a different path.
+The Mnet perl modules should work in just about any unix perl environment. To
+interact with command line sessions the perl Expect module is required.
 
 =head1 AUTHOR
 
@@ -169,7 +167,7 @@ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-this program. If not, see <http://www.gnu.org/licenses/>
+this program. If not, see L<http://www.gnu.org/licenses/>
 
 =head1 SEE ALSO
 
@@ -194,8 +192,6 @@ L<Mnet::Opts::Set::Silent>
 L<Mnet::Report::Table>
 
 L<Mnet::Stanza>
-
-L<Mnet::Tee>
 
 L<Mnet::Test>
 

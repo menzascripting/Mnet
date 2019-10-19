@@ -735,6 +735,8 @@ outputting report data so it can be included in testing.
 
 L<Mnet>
 
+L<Mnet::Dump>
+
 L<Mnet::Test>
 
 =cut
