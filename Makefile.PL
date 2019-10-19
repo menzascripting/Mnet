@@ -22,13 +22,14 @@
 #       vim lib/Mnet.pm, update $VERSION variable to the new <REELEASE> number
 #       git rm Mnet-*.tar.gz, to remove old distribution in repository
 #       make realclean && perl Makefile.PL && make dist && make realclean
+#       upload new Mnet-<RELEASE>.tar.gz to cpan using capn PAUSE account
+#       firefox https://pause.perl.org/pause/authenquery?ACTION=add_uri
+#       wait for upload and index confirmation emails from PAUSE, fix issues
 #       git add Changes Mnet-*.tar.gz && git commit -m 'new release'
 #       git push origin master
 #       git tag "v<RELEASE>" `git log -1 --pretty=%H`
 #       git push origin "v<RELEASE>"
 #       vim lib/Mnet.pm and update $VERSION variable to "dev"
-#       upload new Mnet-<RELEASE>.tar.gz to cpan using capn PAUSE account
-#       firefox https://pause.perl.org/pause/authenquery?ACTION=add_uri
 
 # required modules
 use warnings;
