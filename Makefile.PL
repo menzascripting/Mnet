@@ -2,10 +2,6 @@
 
 # user install info is in the INSTALLATION section of perldoc lib/Mnet.pm
 
-#? upload script to cpan
-#   https://www.perl.com/article/how-to-upload-a-script-to-cpan/
-#   add cpan update to developer new release steps below
-
 # developer new release info is below
 #
 #   description of the new release process:
@@ -13,7 +9,7 @@
 #       check that all tests pass and all necessary files are in manifest
 #       Changes doc and Mnet module version information get updated
 #       github is updated, replacing old release with tagged new release
-#       github master contains new release README.md and Mnet-*.tar.gz
+#       github master contains latest release readme and Mnet-*.tar.gz files
 #       cpan is updated with new release distribution file
 #       github development ready to continue on master branch
 #
@@ -31,6 +27,8 @@
 #       git tag "v<RELEASE>" `git log -1 --pretty=%H`
 #       git push origin "v<RELEASE>"
 #       vim lib/Mnet.pm and update $VERSION variable to "dev"
+#       upload new Mnet-<RELEASE>.tar.gz to cpan using capn PAUSE account
+#       firefox https://pause.perl.org/pause/authenquery?ACTION=add_uri
 
 # required modules
 use warnings;
