@@ -1,12 +1,4 @@
-2019-10-19 Mnet-5.03
+2019-10-19 Mnet-5.04
 
 - initial CPAN release
 
-2019-10-13 Mnet-5.02
-
-- added new Mnet::Stanza module
-- Mnet::Expect::Cli::Ios default failed_re changed to undef
-
-2018-09-23 Mnet-5.01
-
-- feature complete v5 release
