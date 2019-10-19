@@ -105,7 +105,7 @@ Refer to the Mnet::Expect module for more information.
         _command_cache_counter => 0,
         delay       => 250,
         eol_unix    => 1,
-        failed_re   => undef,
+        failed_re   => undef,  # see t/Expect_Cli.t failed_re comment
         paging_key  => ' ',
         paging_re   => '(--more--|---\(more( \d\d?%)?\)---)',
         password    => undef,
@@ -170,60 +170,9 @@ sub _login {
     my $self = shift // die "missing self arg";
     $self->debug("_login starting");
 
-    #? Mnet::Expect::Cli/Ios failed_re matching on login/exec banner text
-    #   this happens when pre or post login banner text matches failed_re
-    #       this prevented login from working on route-views.oregon-ix.net
-    #   set _login_new opt to run this new _login sub, else runs _login_old
-    #   default failed_re was changed to undef, used to be the following:
-    #       (?i)(closed|error|denied|fail|incorrect|invalid|refused|sorry)
-    #       it would be safer to leave this to be set as an optimization
-    #       maybe calling scripts need to get failed/user/pass/prompt correct
-    #   or should we hit the enter key before checking first prompt?
-    #       did we do this in old code? if we don't get username or password?
-    #           (we are confirming a prompt instead of failed_re right away)
-    #   or should we change _login_expect to check only last line coming in?
-    #       would need some kind of hires delay loop to gather expect lines?
-    #       maybe login could then work with username/password autodetect?
-    #   we need to flowchart the various login scenarios
-    #       banner, user, pass, banner, prompt, failed_re, etc
-    #       maybe we could handle skipped username and/or password prompts
-    #   hopefully we come up with something more robust and easy to adjust?
-    #       sub _login_expct { return match for input regexes, in last lines }
-    #       $m = _login_expect(fail/user/pass/prompt)
-    #       if (not $m) { send \n; $m = _login_expect(fail/user/pass/prompt) }
-    #       if ($m = user) { send user; $m = _login_expect(fail/pass) }
-    #       if ($m = pass) { send pass; $m = _login_expect(fail/prompt) }
-    #       if ($m = prompt) { send enter; return true if prompt verified }
-    #       return undef if not $m;
-    #   refer to commented out tests at the end of t/Expect_Cli.t
-    #       enable these tests to check new login logic
-    #       ideally we could leave these tests enabled permanently
-    #   after fix modify failed_re text in Mnet::Expect::Cli/Ios->new perldoc
-    if (not $self->{_login_new}) {
-        $self->debug("_login_old being called");
-        return $self->_login_old;
-    }
-
-    # finished _login method, return true false for failure
-    $self->debug("_login finished, returning false");
-    return 0;
-}
-
-
-
-sub _login_old {
-
-# $ok = $self->_login_old
-# purpose: used to authenticate expect session
-# $ok: set true on success, false on failure
-
-    # read input object
-    my $self = shift // die "missing self arg";
-    $self->debug("_login starting");
-
     # if username is set then wait and respond to username_re prompt
     if (defined $self->{username}) {
-        _login_expect_old($self, "username_re");
+        _login_expect($self, "username_re");
         $self->expect->send("$self->{username}\r");
     }
 
@@ -231,7 +180,7 @@ sub _login_old {
     #   prompt user for password if password not set and password_in is set
     #   _log_filter used to keep password out of Mnet::Expect->log
     if (defined $self->{password} or $self->{password_in}) {
-        _login_expect_old($self, "password_re");
+        _login_expect($self, "password_re");
         my $password = $self->{password};
         if (not defined $password and $self->{password_in}) {
             if ($self->{password_in}) {
@@ -274,7 +223,7 @@ sub _login_old {
     my ($prompt1, $prompt2, $attempts) = ("", "", 3);
     foreach my $attempt (1.. $attempts) {
         $self->debug("_login detect prompt attempt $attempt");
-        $prompt1 = _login_expect_old($self, "prompt_re") // return undef;
+        $prompt1 = _login_expect($self, "prompt_re") // return undef;
         $prompt1 =~ s/^(\r|\n)//;
         $self->{_log_filter} = undef;
         if ($prompt1 ne "" and $prompt1 eq $prompt2) {
@@ -299,9 +248,9 @@ sub _login_old {
 
 
 
-sub _login_expect_old {
+sub _login_expect {
 
-# $match = _login_expect_old($self, $re)
+# $match = _login_expect($self, $re)
 #   purpose: wait for specified login prompt, output debug and error messages
 #   $self: current Mnet::Expect::Cli object
 #   $re: set to keyword username_re, password_re, or prompt_re

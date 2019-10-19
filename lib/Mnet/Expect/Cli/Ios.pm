@@ -91,7 +91,7 @@ Refer to the Mnet::Expect::Cli and Mnet::Expect modules for more information.
         _enable_    => undef,
         enable_in   => undef,
         enable_user => undef,
-        failed_re   => '(?i)^\s*%',
+        failed_re   => undef,  # see t/Expect_Cli.t failed_re comment
         paging_key  => ' ',
         paging_re   => '--(M|m)ore--',
         prompt_re   => '(^|\r|\n)\S+(>|#) $',
