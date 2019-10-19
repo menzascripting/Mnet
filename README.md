@@ -1,12 +1,8 @@
-package Mnet;
-
-our $VERSION = "dev";
-
-=head1 NAME
+# NAME
 
 Mnet - Testable network automation and reporting
 
-=head1 SYNOPSIS
+# SYNOPSIS
 
     # sample script to report Loopback0 address on cisco devices
     #
@@ -87,52 +83,31 @@ Mnet - Testable network automation and reporting
     # finished
     exit;
 
-=head1 DESCRIPTION
+# DESCRIPTION
 
 The Mnet modules are for perl programmers who want to create testable network
 automation and/or reporting scripts.
 
 The main features of the Mnet perl modules are:
 
-=over
-
-=item *
-
-Facilitate easy log, debug, alert and error output from automation scripts,
+- Facilitate easy log, debug, alert and error output from automation scripts,
 outputs can be redirected to per-device files
-
-=item *
-
-Automation scripts can run in batch mode to concurrently process a list of
+- Automation scripts can run in batch mode to concurrently process a list of
 devices, using a simple command line argument and a device list file.
-
-=item *
-
-Flexible config settings via command line, environment variable, and/or batch
+- Flexible config settings via command line, environment variable, and/or batch
 device list files.
-
-=item *
-
-Reliable automation of cisco IOS and other command line sessions, including
+- Reliable automation of cisco IOS and other command line sessions, including
 reliable authentication and command prompt handling.
-
-=item *
-
-Report data from scripts can be output as plain .csv files, json, or sql.
-
-=item *
-
-Record and replay connected command line sessions, speeding the development
+- Report data from scripts can be output as plain .csv files, json, or sql.
+- Record and replay connected command line sessions, speeding the development
 of automation scripts and allowing for proper regression testing.
-
-=back
 
 Most of the Mnet modules can be used independely of each other, except where
 otherwise noted.
 
 Refer to the modules listed in the SEE ALSO section below for more details.
 
-=head1 INSTALLATION
+# INSTALLATION
 
 The Mnet perl modules should work in just about any unix perl environment. To
 interact with command line sessions the perl Expect module is required.
@@ -148,15 +123,15 @@ distribution and install it using commands like the following:
     make install
 
 The default Makefile.PL install requires root access to copy files to system
-perl directories. Run `perl Makefile.PL INSTALL_BASE=/different/path` to have
+perl directories. Run \`perl Makefile.PL INSTALL\_BASE=/different/path\` to have
 everything installed to a different path.
 
-=head1 AUTHOR
+# AUTHOR
 
 The Mnet perl distribution has been created and is maintained by Mike Menza.
 Mike can be reached via email at <mmenza@cpan.org>.
 
-=head1 COPYRIGHT AND LICENSE
+# COPYRIGHT AND LICENSE
 
 Copyright 2006, 2013-2019 Michael J. Menza Jr.
 
@@ -169,38 +144,32 @@ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-this program. If not, see <http://www.gnu.org/licenses/>
+this program. If not, see &lt;http://www.gnu.org/licenses/>
 
-=head1 SEE ALSO
+# SEE ALSO
 
-L<Mnet::Batch>
+[Mnet::Batch](https://metacpan.org/pod/Mnet::Batch)
 
-L<Mnet::Expect>
+[Mnet::Expect](https://metacpan.org/pod/Mnet::Expect)
 
-L<Mnet::Expect::Cli>
+[Mnet::Expect::Cli](https://metacpan.org/pod/Mnet::Expect::Cli)
 
-L<Mnet::Expect::Cli::Ios>
+[Mnet::Expect::Cli::Ios](https://metacpan.org/pod/Mnet::Expect::Cli::Ios)
 
-L<Mnet::Log>
+[Mnet::Log](https://metacpan.org/pod/Mnet::Log)
 
-L<Mnet::Opts::Cli>
+[Mnet::Opts::Cli](https://metacpan.org/pod/Mnet::Opts::Cli)
 
-L<Mnet::Opts::Set::Debug>
+[Mnet::Opts::Set::Debug](https://metacpan.org/pod/Mnet::Opts::Set::Debug)
 
-L<Mnet::Opts::Set::Quiet>
+[Mnet::Opts::Set::Quiet](https://metacpan.org/pod/Mnet::Opts::Set::Quiet)
 
-L<Mnet::Opts::Set::Silent>
+[Mnet::Opts::Set::Silent](https://metacpan.org/pod/Mnet::Opts::Set::Silent)
 
-L<Mnet::Report::Table>
+[Mnet::Report::Table](https://metacpan.org/pod/Mnet::Report::Table)
 
-L<Mnet::Stanza>
+[Mnet::Stanza](https://metacpan.org/pod/Mnet::Stanza)
 
-L<Mnet::Tee>
+[Mnet::Tee](https://metacpan.org/pod/Mnet::Tee)
 
-L<Mnet::Test>
-
-=cut
-
-# normal end of package
-1;
-
+[Mnet::Test](https://metacpan.org/pod/Mnet::Test)
