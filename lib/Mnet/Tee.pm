@@ -17,16 +17,15 @@ Mnet::Tee - Redirect stdout and stderr to a file
 
 =head1 DESCRIPTION
 
-This module captures all stdout and stderr output from an executing script and
-saves that output to the specified file. Be sure to call Mnet::Tee::file() or
-parse cli options before generating any other output.
+This module captures all stdout and stderr output from the calling script and
+saves that output to the specified file.
 
 The variables stdout and stderr can be imported from this module to use for
-output that should not be captured by the Mnet::Tee module. The pause and
-unpause functions in this module can be used for this purpose also.
+output that should not be captured by the Mnet::Tee module.
 
-Note that output captured by this module is stored in memory. That could be
-a problem for scripts that generate gigabytes of stdout and/or stderr output.
+Note that output captured by this module is stored in memory during script
+execution. That could be a problem for scripts that generate gigabytes of
+stdout and/or stderr output.
 
 The perl tie command is used to implement the functionality of this module.
 
@@ -188,8 +187,9 @@ sub file {
 
     Mnet::Tee::file($file)
 
-The function can be used to write output to the specified file, including all
-prior output. The script will abort if unable to open the new file.
+The function can be used to have script output written to the specified file,
+including all output prior to the call. The script will abort if unable to
+open the new file.
 
 =cut
 
