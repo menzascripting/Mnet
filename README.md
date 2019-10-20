@@ -1,6 +1,6 @@
 # NAME
 
-[Mnet](https://metacpan.org/pod/Mnet) - Testable network automation and reporting
+Mnet - Testable network automation and reporting
 
 # SYNOPSIS
 
@@ -86,10 +86,10 @@
 
 # DESCRIPTION
 
-The Mnet modules are for perl programmers who want to create testable network
-automation and/or reporting scripts as simply as possible.
+The [Mnet](https://metacpan.org/pod/Mnet) modules are for perl programmers who want to create testable
+network automation and/or reporting scripts as simply as possible.
 
-The main features of the Mnet perl modules are:
+The main features are:
 
 - Facilitate easy log, debug, alert and error output from automation scripts,
 outputs can be redirected to per-device files
@@ -103,17 +103,17 @@ reliable authentication and command prompt handling.
 - Record and replay connected command line sessions, speeding the development
 of automation scripts and allowing for proper regression testing.
 
-Most of the Mnet modules can be used independently of each other, unless
-otherwise noted.
+Most of the [Mnet](https://metacpan.org/pod/Mnet) isub-modules can be used independently of each other,
+unless otherwise noted.
 
-Refer to the individual Mnet modules listed in the SEE ALSO section below
+Refer to the individual modules listed in the SEE ALSO section below
 for more detail.
 
 # INSTALLATION
 
-The Mnet perl modules should work in just about any unix perl environment.
+The [Mnet](https://metacpan.org/pod/Mnet) perl modules should work in just about any unix perl environment.
 
-The latest Mnet release can be installed from CPAN
+The latest release can be installed from CPAN
 
     cpan install Mnet
 
@@ -129,16 +129,17 @@ the INSTALL\_BASE option above.
 
 # AUTHOR
 
-The Mnet perl distribution has been created and is maintained by Mike Menza.
+The [Mnet](https://metacpan.org/pod/Mnet) perl distribution has been created and is maintained by Mike Menza.
 Mike can be reached via email at <mmenza@cpan.org>.
 
 # COPYRIGHT AND LICENSE
 
 Copyright 2006, 2013-2019 Michael J. Menza Jr.
 
-Mnet is free software: you can redistribute it and/or modify it under the terms
-of the GNU General Public License as published by the Free Software Foundation,
-either version 3 of the License, or (at your option) any later version.
+[Mnet](https://metacpan.org/pod/Mnet) is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
