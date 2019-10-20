@@ -66,7 +66,6 @@ use Mnet::Tee;
 
 # modules required for diff output
 BEGIN { push @INC, "$1/Depends" if $INC{"Mnet/Test.pm"} =~ /(.+)Test\.pm$/; }
-use Text::Diff;
 
 
 
@@ -228,9 +227,10 @@ sub _diff {
     FATAL("undefined --replay test data")
         if not defined $test_data->{outputs};
 
-    # init diff output, use Text::Diff if available
+    # init diff output, use Text::Diffs if available
     my $diff = "";
     if ($outputs ne $test_data->{outputs}) {
+        eval("require Text::Diff; 1");
         $diff = "Test output is different, need Text::Diff to show more.\n";
         $diff = Text::Diff::diff(\$outputs, \$test_data->{outputs})
             if $INC{"Text/Diff.pm"};
@@ -238,6 +238,8 @@ sub _diff {
 
     # output detected differences, unless running in --batch mode
     if (not $opts->{batch}) {
+        my $was_paused = Mnet::Tee::test_paused();
+        Mnet::Tee::test_pause();
         syswrite STDOUT, "\n" . "-" x 79 . "\n";
         syswrite STDOUT, "diff --test --replay $opts->{replay}";
         syswrite STDOUT, "\n" . "-" x 79 . "\n\n";
@@ -247,6 +249,7 @@ sub _diff {
             syswrite STDOUT, "Test output is identical.\n";
         }
         syswrite STDOUT, "\n";
+        Mnet::Tee::test_unpause() if not $was_paused;
     }
 
     # finished _diff function
