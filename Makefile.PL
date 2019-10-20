@@ -16,8 +16,8 @@
 #   follow the steps listed below to correctly create a new release:
 #
 #       perl Makefile.PL && make realclean, to start with a clean slate
-#       perl Makefile.PL && make distcheck, commit any necessary fixes
-#       make test, commit any necessary fixes, then we're ready for release
+#       perl Makefile.PL && make distcheck, skip README.md and Mnet-*.tar.gz
+#       make test, commit any fixes made so far, then we're ready for release
 #       vim Changes, update w/date and new <RELEASE> number, 5.09, 5.011, etc
 #       vim lib/Mnet.pm, update $VERSION variable to the new <REELEASE> number
 #       git rm Mnet-*.tar.gz, to remove old distribution in repository
