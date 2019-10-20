@@ -13,7 +13,7 @@ Mnet - Testable network automation and reporting
     #   use --device <address> to connect to device with logging
     #   use --batch <file.batch> to process multiple --device lines
     #   add --report csv:<file.csv> to create output csv repory file
-    #   add --record <file.test> to create test output dif  file
+    #   add --record <file.test> to create replayable test file
     #   use --test --replay <file.test> to show script test diff
 
     # load modules
@@ -62,7 +62,7 @@ Mnet - Testable network automation and reporting
     $log->info("processing device");
 
     # create an expect ssh session to --device
-    #   perldoc Mnet::Expect shows how to disable ssh host/key checks
+    #   perldoc Mnet::Expect::Cli::Ios to disable ssh host/key checks
     my $ssh = Mnet::Expect::Cli::Ios->new({
         spawn => [ "ssh", $cli->{device} ],
     });
@@ -71,14 +71,14 @@ Mnet - Testable network automation and reporting
     my $config = $ssh->command("show running-config");
     WARN("unable to read config") if not $config;
 
-    # retrieve interface vlan 1 stanza from config
+    # parse interface loopack0 stanza from config
     my $loop = Mnet::Stanza::parse($config, qr/^interface loopback0$/i);
 
-    # parse primary ip address from loopback config
+    # parse primary ip address from loopback0 config stanza
     my $ip = undef;
     $ip = $1 if $loop and $loop =~ /^ ip address (\S+) \S+$/m;
 
-    # report on parsed loopback interface ip addres
+    # report on parsed loopback0 interface ip addres
     $report->row({ device => $cli->device, ip => $ip });
 
     # finished
