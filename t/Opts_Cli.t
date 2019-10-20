@@ -67,8 +67,8 @@ Test::More::is(`perl -e '
     use Mnet::Opts::Cli;
     Mnet::Opts::Cli::define({ getopt => "test-opt=s" });
     my \$cli = Mnet::Opts::Cli->new;
-' -- --test-opt test extra1 extra2 2>&1`, 'invalid extra args extra1 extra2
-', 'invalid extra args');
+' -- --test-opt test extra1 extra2 2>&1`, 'invalid or missing args extra1 extra2
+', 'invalid or missing args');
 
 # check for error when reading bad cli opt
 Test::More::is(`perl -e '
@@ -76,7 +76,7 @@ Test::More::is(`perl -e '
     use strict;
     use Mnet::Opts::Cli;
     my \$cli = Mnet::Opts::Cli->new;
-' -- --test-opt test 2>&1`, 'invalid extra args --test-opt test
+' -- --test-opt test 2>&1`, 'invalid or missing args --test-opt test
 ', 'invalid cli opt');
 
 # check --reset option for undef default

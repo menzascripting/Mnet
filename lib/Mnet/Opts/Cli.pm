@@ -126,7 +126,7 @@ The following keys in the specs input hash reference argument are supported:
     help_tip    short tip text for --help list of available options
     help_text   longer help text to show in --help for specific options
     norecord    set so option is not saved to Mnet::Test record/replay
-    redact      set to revent option value from displaying in Mnet::Log
+    redact      set to prevent option value from displaying in Mnet::Log
 
 Refer to L<Getopt::Long> for more information.
 
@@ -200,9 +200,9 @@ sub new {
     $opts = Mnet::Opts::Cli->new()
     or ($cli, @extras) = Mnet::Opts::Cli->new()
 
-The class method may be used to retrieve an options object containing defined
-options parsed from the command line and an array contining any extra command
-line arguments.
+The new class method may be used to retrieve an options object containing
+defined options parsed from the command line and an array contining any extra
+command line arguments.
 
 If called in list context this method will return an opts object containing
 values for defined options parsed from the command line followed by a list of
@@ -211,7 +211,7 @@ any other extra arguments that were present on the command line.
     use Mnet::Opts::Cli;
     my ($cli, @extras) = Mnet::Opts::Cli->new();
 
-If called in scalar context an error will be issued if extra command line
+If not called in list context an error will be issued if extra command line
 arguments exist.
 
     use Mnet::Opts::Cli;
@@ -454,7 +454,7 @@ The perl ARGV array is not modified by this module.
     }
 
     # output extra cli arg error when not called to return extras args
-    die "invalid extra args @extras\n" if $extras[0] and not wantarray;
+    die "invalid or missing args @extras\n" if $extras[0] and not wantarray;
 
     # get test data hash ref from Mnet::Test module
     #   init to empty dummy hash ref if Mnet::Test not loaded
