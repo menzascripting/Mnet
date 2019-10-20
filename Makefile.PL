@@ -31,7 +31,7 @@
 #       git tag "v<RELEASE>" `git log -1 --pretty=%H`
 #       git push origin "v<RELEASE>"
 #       git push --delete origin "v<RELEASE>", to PERMANENTLY delete old tag
-#       vim lib/Mnet.pm and update $VERSION variable to "dev"
+#       vim lib/Mnet.pm and change $VERSION number back to "dev"
 
 # required modules
 use warnings;
