@@ -25,7 +25,7 @@
 #       perform any additional testing before upload to cpan, no going back
 #       upload new Mnet-<RELEASE>.tar.gz to cpan using capn PAUSE account
 #       firefox https://pause.perl.org/pause/authenquery?ACTION=add_uri
-#       wait for upload and index confirmation emails from PAUSE, fix issues
+#       wait for email confirmation that file upload to cpan is complete
 #       git add Changes Mnet-*.tar.gz && git commit -m 'new release'
 #       git push origin master
 #       git tag "v<RELEASE>" `git log -1 --pretty=%H`
