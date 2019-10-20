@@ -3,6 +3,7 @@
 # purpose: tests Mnet::Report::Table end_errors method functionality
 
 # required modules
+#   JSON required in Mnet::Report::Table, best to find our here if missing
 use warnings;
 use strict;
 use JSON;

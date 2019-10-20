@@ -3,10 +3,12 @@
 # purpose: tests Mnet::Test
 
 # required modules
+#   Text::Diff required in Mnet::Test diffs, best to find our here if missing
 use warnings;
 use strict;
 use File::Temp;
 use Test::More tests => 2;
+use Text::Diff;
 
 # create temp test/record/replay file
 my ($fh, $file) = File::Temp::tempfile( UNLINK => 1 );

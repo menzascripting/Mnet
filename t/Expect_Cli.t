@@ -3,10 +3,11 @@
 # purpose: tests Mnet::Expect::Cli functionality
 
 # required modules
+#   Expect required in Mnet::Expect modules, best to find our here if missing
 use warnings;
 use strict;
+use Expect;
 use Test::More tests => 9;
-use Mnet::Expect::Cli;
 
 # comment on failed_re, applies to Mnet::Expect::Cli and subclasses like Ios
 #   there was a problem when failed_re hit on text appearing in login banners

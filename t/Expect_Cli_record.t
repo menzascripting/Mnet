@@ -3,8 +3,10 @@
 # purpose: tests Mnet::Expect::Cli record and replay functionality
 
 # required modules
+#   Expect required in Mnet::Expect modules, best to find our here if missing
 use warnings;
 use strict;
+use Expect;
 use File::Temp;
 use Test::More tests => 4;
 
