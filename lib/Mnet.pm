@@ -144,7 +144,7 @@ The latest Mnet release can be installed from CPAN
 
 Or downloaded and installed from L<https://github.com/menzascripting/Mnet>
 
-    tar -xf Mnet-X.y.tar.gz
+    tar -xzf Mnet-X.y.tar.gz
     cd Mnet-X.y
     perl Makefile.PL  # INSTALL_BASE=/specify/path
     make install
