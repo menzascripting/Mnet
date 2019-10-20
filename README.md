@@ -62,7 +62,7 @@ Mnet - Testable network automation and reporting
     $log->info("processing device");
 
     # create an expect ssh session to --device
-    #   perldoc Mnet::Expect::Cli::Ios to disable ssh host/key checks
+    #   see perldoc Mnet::Expect::Cli::Ios to disable ssh host/key checks
     my $ssh = Mnet::Expect::Cli::Ios->new({
         spawn => [ "ssh", $cli->{device} ],
     });
