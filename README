@@ -108,7 +108,7 @@ DESCRIPTION
         development of automation scripts and allowing for proper regression
         testing.
 
-    Most of the Mnet isub-modules can be used independently of each other,
+    Most of the Mnet sub-modules can be used independently of each other,
     unless otherwise noted.
 
     Refer to the individual modules listed in the SEE ALSO section below for
@@ -128,8 +128,8 @@ INSTALLATION
         perl Makefile.PL  # INSTALL_BASE=/specify/path
         make install
 
-    You might need to update your PERL5LIB environment variable if you
-    uncommented the INSTALL_BASE option above.
+    You may nee to update your PERL5LIB environment variable if you
+    uncommented the INSTALL_BASE option, above.
 
 AUTHOR
     The Mnet perl distribution has been created and is maintained by Mike

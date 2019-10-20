@@ -103,7 +103,7 @@ reliable authentication and command prompt handling.
 - Record and replay connected command line sessions, speeding the development
 of automation scripts and allowing for proper regression testing.
 
-Most of the [Mnet](https://metacpan.org/pod/Mnet) isub-modules can be used independently of each other,
+Most of the [Mnet](https://metacpan.org/pod/Mnet) sub-modules can be used independently of each other,
 unless otherwise noted.
 
 Refer to the individual modules listed in the SEE ALSO section below
@@ -124,8 +124,8 @@ Or downloaded and installed from [https://github.com/menzascripting/Mnet](https:
     perl Makefile.PL  # INSTALL_BASE=/specify/path
     make install
 
-You might need to update your PERL5LIB environment variable if you uncommented
-the INSTALL\_BASE option above.
+You may nee to update your PERL5LIB environment variable if you uncommented
+the INSTALL\_BASE option, above.
 
 # AUTHOR
 

@@ -131,7 +131,7 @@ of automation scripts and allowing for proper regression testing.
 
 =back
 
-Most of the L<Mnet> isub-modules can be used independently of each other,
+Most of the L<Mnet> sub-modules can be used independently of each other,
 unless otherwise noted.
 
 Refer to the individual modules listed in the SEE ALSO section below
@@ -152,8 +152,8 @@ Or downloaded and installed from L<https://github.com/menzascripting/Mnet>
     perl Makefile.PL  # INSTALL_BASE=/specify/path
     make install
 
-You might need to update your PERL5LIB environment variable if you uncommented
-the INSTALL_BASE option above.
+You may nee to update your PERL5LIB environment variable if you uncommented
+the INSTALL_BASE option, above.
 
 =head1 AUTHOR
 
