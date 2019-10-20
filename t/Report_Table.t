@@ -5,6 +5,7 @@
 # required modules
 use warnings;
 use strict;
+use JSON;
 use Test::More tests => 6;
 
 # init perl code used to test end_error method
@@ -55,8 +56,7 @@ inf id Mnet::Report::Table row }
 my $sed = "sed 's/int\":\"5\",/int\":5,/'";
 Test::More::is(`echo; $perl_report --quiet json:test:/dev/stdout 2>&1 | $sed`,'
 test = {"err":null,"int":5,"str":"1\r\'2\n\""};
-', 'json output in alphabetical order') if eval("require JSON; 1");
-ok(1, "skipped JSON test, module not present") if not eval("require JSON; 1");
+', 'json output in alphabetical order');
 
 # sql output
 Test::More::is(`echo; $perl_report --quiet sql:"test":/dev/stdout 2>&1`, '
