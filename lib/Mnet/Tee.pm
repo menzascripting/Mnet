@@ -17,8 +17,8 @@ Mnet::Tee - Redirect stdout and stderr to a file
 
 =head1 DESCRIPTION
 
-This module captures all stdout and stderr output from the calling script and
-saves that output to the specified file.
+Mnet::Tee can be used to capture all stdout and stderr output from the calling
+script, saving the combined output to a file.
 
 The variables stdout and stderr can be imported from this module to use for
 output that should not be captured by the Mnet::Tee module.
@@ -28,6 +28,10 @@ execution. That could be a problem for scripts that generate gigabytes of
 stdout and/or stderr output.
 
 The perl tie command is used to implement the functionality of this module.
+
+=head1 FUNCTIONS
+
+Mnet::Tee implements the functions listed below.
 
 =cut
 

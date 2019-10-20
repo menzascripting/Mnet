@@ -10,10 +10,11 @@ Mnet::Log::Test - Use to filter Mnet::Log entries for testing
 
 =head1 DESCRIPTION
 
-Use this module to enable the filtering out of timestamps and other varying
-output from Mnet::Log entries. This was made for distribution test scripts.
+This module can be used as a pragma to enable the filtering out of timestamps
+and other varying output from L<Mnet::Log> entries. This was made to be used
+for test scripts that might fail with logged timestamps.
 
-Refer to perldoc Mnet::Log for more information.
+Refer to L<Mnet::Log> and L<Mnet::Test> for more information.
 
 =cut
 
@@ -26,6 +27,8 @@ use strict;
 L<Mnet>
 
 L<Mnet::Log>
+
+L<Mnet::Test>
 
 =cut
 

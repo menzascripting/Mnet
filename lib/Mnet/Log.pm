@@ -43,7 +43,7 @@ Mnet::Log - Logging compatible with Log4perl api
 
 =head1 DESCRIPTION
 
-This module supports generating the following types of log entries
+Mnet::Log supports generating the following types of log entries
 
     dbg   stdout   detailed info, visible when debug option is set
     inf   stdout   normal informational entries intended for users
@@ -59,12 +59,16 @@ The following options can be used to control log outputs:
     silent  disable all stdout and stderr log outputs
 
 Note that this module also installs __DIE__, __WARN__, INT, and TERM signal
-handlers, in order to augment the logging of these events. These are made to
-pass through compile evants as well as eval warn and die events as normal.
+handlers, in order to augment the logging of these events. These are made so
+that compile and eval signals are processed by perl as normal.
 
 Note that timestamps and other varying data are filtered out of log outputs
 when the --record, --replay, or --test cli options are enabled or if the
-Mnet::Log::Test module is otherwise loaded.
+L<Mnet::Log::Test> module is otherwise loaded.
+
+=head1 METHODS
+
+Mnet::Log implements the methods listed below.
 
 =cut
 
@@ -223,9 +227,9 @@ sub new {
 
     $log = Mnet::Log->new(\%opts)
 
-This class method creates a new Mnet::Log object. The opts hash ref argument is
-not requried but may be used to override any parsed cli options parsed with the
-Mnet::Opts::Cli module.
+This class method creates a new Mnet::Log object. The opts hash ref
+argument is not requried but may be used to override any parsed cli options
+parsed with the L<Mnet::Opts::Cli> module.
 
 The returned object may be used to call other documented methods in this module.
 
@@ -396,7 +400,7 @@ sub debug {
 
     $log->debug($text)
 
-Method call to output a debug entry to stdout with an Mnet::Log prefix of dbg.
+Output a debug entry to stdout with an Mnet::Log prefix of dbg.
 
 =cut
 
@@ -413,7 +417,7 @@ sub info {
 
     $log->info($text)
 
-Method call to output an info entry to stdout with an Mnet::Log prefix of inf.
+Output an info entry to stdout with an Mnet::Log prefix of inf.
 
 =cut
 
@@ -442,7 +446,7 @@ sub warn {
 
     $log->warn($text)
 
-Method call to output a warn entry to stderr with an Mnet::Log prefix of WRN.
+Output a warn entry to stderr with an Mnet::Log prefix of WRN.
 
 =cut
 
@@ -459,9 +463,8 @@ sub fatal {
 
     $log->fatal($text)
 
-Method to output a fatal entry to stderr with an Mnet::log prefix of DIE.
-
-Note that calls to fatal are handled in an eval the same as calls to die.
+Output a fatal entry to stderr with an Mnet::log prefix of DIE. Note that calls
+to fatal are handled in an eval the same as calls to die.
 
 =cut
 
@@ -475,13 +478,21 @@ Note that calls to fatal are handled in an eval the same as calls to die.
 
 
 
+=head1 FUNCTIONS
+
+Mnet::Log also implements the functions listed below.
+
+=cut
+
+
+
 sub DEBUG {
 
 =head2 DEBUG
 
     DEBUG($text)
 
-Function to output a debug entry to stdout with an Mnet::Log prefix of dbg.
+Output a debug entry to stdout with an Mnet::Log prefix of dbg.
 
 =cut
 
@@ -498,7 +509,7 @@ sub INFO {
 
     INFO($text)
 
-Function to output an info entry to stdout with an Mnet::Log prefix of inf.
+Output an info entry to stdout with an Mnet::Log prefix of inf.
 
 =cut
 
@@ -527,7 +538,7 @@ sub WARN {
 
     WARN($text)
 
-Function to output a warn entry to stderr with an Mnet::Log prefix of WRN.
+Output a warn entry to stderr with an Mnet::Log prefix of WRN.
 
 =cut
 
@@ -544,9 +555,8 @@ sub FATAL {
 
     FATAL($text)
 
-Function to output a fatal entry to stderr with an Mnet::Log prefix of DIE.
-
-Note that calls to fatal are handled in an eval the same as calls to die.
+Output a fatal entry to stderr with an Mnet::Log prefix of DIE. Note that calls
+to fatal are handled in an eval the same as calls to die.
 
 =cut
 
@@ -603,10 +613,11 @@ END {
 
 =head1 TESTING
 
-When used with the Mnet::Test --record option all stdout and stderr log entry
-output from this module is captured with the exception of dbg and log entries.
+When used with the L<Mnet::Test> --record option all stdout and stderr log
+entry output from this module is captured with the exception of dbg and log
+entries.
 
-Refer to the Mnet::Test module for more information.
+Refer to the L<Mnet::Test> module for more information.
 
 =head1 SEE ALSO
 

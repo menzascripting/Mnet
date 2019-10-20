@@ -12,26 +12,24 @@ Mnet::Test - Record, replay, and test script inputs and outputs
 
 =head1 DESCRIPTION
 
-This module can record script inputs and outputs to a file, then replay the
-file inputs at a later time and test that outputs are still the same.
+Mnet::Test can be used to allow script inputs and output to be recorded to a
+file, which can be replayed later to test that the outputs are still the same.
 
-Other Mnet modules are designed to detect and make use of Mnet::Test, if it is
-being used by the current script. For example, the Mnet::Log start, finish, and
-debug entries are not saved with stdout, and Mnet::Opts::Cli allows for command
-line options and arguments to be recorded and replayed with Mnet::Test files.
+Other L<Mnet> modules are designed to detect and make use of Mnet::Test, if
+it is being used by the current script. For example, the L<Mnet::Log> start,
+finish, and debug entries are not saved with stdout, and L<Mnet::Opts::Cli>
+allows for command line options and arguments to be recorded and replayed
+with Mnet::Test files.
 
-Refer to the perldoc TESTING sections in other Mnet modules for an explanation
+Refer to the perldoc TESTING sections in other L<Mnet> modules for explanations
 of how each module supports the Mnet::Test test, record, and replay options.
 
-This module uses the Mnet::Tee module to capture all stdout and stderr outputs
-from an executing script and can record, replay, and test for changes in those
-outputs. Refer to perldoc Mnet::Tee form more information.
+This module uses the L<Mnet::Tee> module to capture all stdout and stderr
+outputs from an executing script and can record, replay, and test for changes
+in those outputs.
 
 When --test is used the exit status of the script will reflect whether output
 matched what is in the specified --replay file.
-
-Mnet modules with Mnet::Test support will contain a TESTING pod section with a
-description of how that module interacts with the options in this module.
 
 Scripts that use these modules may not need to do anything else to benefit from
 Mnet::Test support. At its most basic a script using this module can create a
@@ -40,7 +38,9 @@ stderr output from the script. The --replay and --test options can be used to
 execute the script again and alert the user to any change in output.
 
 Also note that the Mnet::Test::time function can be used to return repeatable
-sequences of outputs from the perl time command during --test execution.
+sequences of outputs from the perl time command during --test execution. This
+helps to avoid changing timestamps causing test failures. The L<Mnet::Log>
+module automatically normalizes timestamps when running tests.
 
 Scripts or modules that need to save additional data to --record test data
 files can call the Mnet::Test::data function to get a referenced hash key that
@@ -49,9 +49,13 @@ will save this data to a file at the end of script execution, and the --replay
 option can be used to load that data back from the file into the
 Mnet::Test::data hash.
 
-Scripts that do not use Mnet::Opts::Cli to parse command line options can pass
-the replay file as an argument to the Mnet::Test::data function and call the
-Mnet::Test::done function at the end of script execution.
+Scripts that do not use L<Mnet::Opts::Cli> to parse command line options can
+pass the replay file as an argument to the Mnet::Test::data function and call
+the Mnet::Test::done function at the end of script execution.
+
+=head1 FUNCTIONS
+
+Mnet::Test implements the functions listed below.
 
 =cut
 
@@ -146,9 +150,9 @@ This function returns a hash reference containing test/record/replay data for
 the calling module or the main script. It is up to the calling module or main
 script to manage its own test/record/replay data.
 
-The opts hash ref argument is optional, and may be used if desired to specify a
-replay file. Otherwise the --replay cli option will be checked if the
-Mnet::Opts::Cli module is used to parse command line options.
+The opts hash ref argument is optional, and may be used if desired to specify
+a replay file. Otherwise the --replay cli option will be checked if the
+L<Mnet::Opts::Cli> module is used to parse command line options.
 
 Note that care must be taken to use the hash reference returned from this
 function properly. You want to save data in the returned hash reference, not
@@ -276,8 +280,11 @@ current script execution will be saved to the specified file.
 This function is called automatically at script exit using the --record,
 --replay, and --test options parsed from a prior Mnet::Opts::Cli->new
 call. You do not need to call this function unless you are not using
-Mnet::Opts::Cli to parse command line options or if you want to examine
+L<Mnet::Opts::Cli> to parse command line options or if you want to examine
 your own test diff data.
+
+If the test output has changed a fiff will be presented using the L<Text::Diff>
+module.
 
 Refer to the DESCRIPTION section of this document for more information.
 
@@ -424,7 +431,7 @@ returned time being incremented by one second for each call to this function.
 
 This function can be called with an opts hash ref, which can have record and
 replay keys set to indicate test output is needed. Otherwise these options are
-expected to be set via the Mnet::Opts::Cli module.
+expected to be set via the L<Mnet::Opts::Cli> module.
 
 =cut
 
@@ -469,9 +476,13 @@ END {
 
 L<Mnet>
 
+L<Mnet::Log>
+
 L<Mnet::Opts::Cli>
 
 L<Mnet::Tee>
+
+L<Text::Diff>
 
 =cut
 

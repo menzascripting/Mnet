@@ -16,15 +16,15 @@ Mnet::Opts::Cli::Cache - Access Mnet::Opts::Cli options if loaded
 
 =head1 DESCRIPTION
 
-This module can be used to access command line options that may be in effect,
-depending on if the Mnet::Opts::Cli module new method was used to parse them.
+Mnet::Opts::Cli::Cache can be used to access command line options that may be
+in effect, depending on if the L<Mnet::Opts::Cli> new method was loaded, as in
+the typical usage example above.
 
-The following is a typical usage example, showing a subroutine that allows for
-an Mnet::Opts object to be created using an input opts hash reference which is
-overaid onto any cached cli options that may have already been parsed by the
-running script:
+Refer to L<Mnet::Opts::Cli> and L<Mnet::Opts> for more info.
 
-Refer to the Mnet::Opts::Cli and Mnet::Opts modules for more info.
+=head1 METHODS
+
+Mnet::Opts::Cli::Cache implements the functions listed below.
 
 =cut
 
@@ -89,13 +89,13 @@ used to specify options that will override any cached cli opts.
 Note that the returned hash reference of cached cli options will be empty if
 the Mnet::Opts::Cli->new method was not called yet by the running script and
 no input hash reference was supplied. This can be used to tell if a script is
-using Mnet::Opts::Cli for command line option parsing.
+using L<Mnet::Opts::Cli> for command line option parsing.
 
 Also note that this function can be called in list context to return a hash ref
 of cached cli options and extra arguments paresed from the commmand line, or in
 scalar context to return cached cli options only.
 
-Refer to the SYNOPSIS section of this perldoc for usage examples and more info.
+Refer to the SYNOPSIS section of this document for usage examples and more info.
 
 =cut
 
@@ -120,6 +120,8 @@ Refer to the SYNOPSIS section of this perldoc for usage examples and more info.
 L<Mnet>
 
 L<Mnet::Log::Conditional>
+
+L<Mnet::Opts>
 
 L<Mnet::Opts::Cli>
 

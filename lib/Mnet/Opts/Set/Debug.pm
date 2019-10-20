@@ -10,9 +10,7 @@ Mnet::Opts::Set::Debug - Use this module to enable --debug option
 
 =head1 DESCRIPTION
 
-Use this module to enable the --debug option for the Mnet::Log module.
-
-Refer to the Mnet::Log module for more information.
+This module can be used as a pragma to enable the L<Mnet::Log> --debug option.
 
 =cut
 
@@ -25,6 +23,12 @@ use strict;
 L<Mnet>
 
 L<Mnet::Log>
+
+L<Mnet::Opts>
+
+L<Mnet::Opts::Cli>
+
+L<Mnet::Opts::Set>
 
 =cut
 

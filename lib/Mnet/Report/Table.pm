@@ -16,8 +16,12 @@ Mnet::Report::Table - Output rows of report data
 
 =head1 DESCRIPTION
 
-This module can be used to create new report table objects, add rows to those
-tables, with output of those rows at script exit in various formats.
+Mnet::Report::table can be used to create new report table objects, add rows
+to those tables, with output of those rows at script exit in various formats.
+
+=head1 METHODS
+
+Mnet::Report::Table implements the methods listed below.
 
 =cut
 
@@ -286,22 +290,22 @@ When a new Mnet::Report::Table object is created the output option can be set
 to any of the output format types listed in the documentation sections below,
 or left undefined.
 
-If the Mnet::Log module is loaded report rows are always logged with the info
-method.
+If the L<Mnet::Log> module is loaded report rows are always logged with the
+info method.
 
-Note that the Mnet::Test module --test command line option silently overrides
-all other report output options, outputting report data using the Mnet::Log
-module if loaded or sending report output to stdout in a format similar to
-Data::Dumper.
+Note that the L<Mnet::Test> module --test command line option silently
+overrides all other report output options, outputting report data using
+the L<Mnet::Log> module if loaded or sending report output to stdout in
+L<Data::Dumper> format using the L<Mnet::Dump> module.
 
 Output options below can use /dev/stdout as the output file, which works nicely
-with the Mnet::Log --silent option used with the Mnet::Batch module --batch
+with the L<Mnet::Log> --silent option used with the L<Mnet::Batch> --batch
 option, allowing report output from all concurrently exeecuting batch children
 to be easily piped or redirected in aggregate as necessary.
 
 Note that /dev/stdout report output is not captured by the Mnet::Tee module,
-and might be missed if the Mnet::Log module is not being used. In this case
-you should output the report data to stdout yourself, maybe with Data::Dumper.
+and might be missed if the L<Mnet::Log> module is not being used. In this case
+you should output report data to stdout yourself, maybe with L<Mnet::Dump>.
 
 =cut
 
@@ -463,8 +467,8 @@ sub _output_dump {
 
     dump:$var:$file
 
-The dump output option writes one row per line in Data::Dumper format prefixed
-by the specified variable name.
+The dump output option writes one row per line in L<Data::Dumper> format
+prefixed by the specified variable name, using the L<Mnet::Dump> module.
 
 This dump output can be read back into a perl script as follows:
 
@@ -518,7 +522,7 @@ sub _output_json {
     json:$var:$file
 
 The dump output option writes one row per line in json format prefixed by the
-table name as the variable name. This requires that the JSON module is
+table name as the variable name. This requires that the L<JSON> module is
 available.
 
 This json output can be read back into a perl script as follows:
@@ -614,7 +618,14 @@ sub _output_sql {
     sql:$table:$file
     or sql:"$table":$file
 
-The dump output option writes one row perl line as sql insert statements.
+The dump output option writes one row perl line as sql insert statements in
+the following format:
+
+    INSERT INTO <table> (<column>, ...) VALUES (<value>, ...);
+
+Column names are double quotes, and values are single quoted. Single quotes in
+values are escaped with an extra single quote character, LF and CR characters
+are escaped as '+CHAR(10)+' and '+CHAR(13)+' respectively.
 
 Note that sql output is appended to the specified file, so the perl unlink
 command can be used to remove this file prior to the Mnet::Report::Table new
@@ -669,7 +680,7 @@ sub _output_test {
 
 =head2 output test
 
-Normal Mnet::Report::Table output is overriden when the Mnet::Test module is
+Normal Mnet::Report::Table output is overriden when the L<Mnet::Test> module is
 loaded and the --test cli option is present. Normal file output is suppressed
 and instead test report output is sent to stdout.
 
@@ -728,10 +739,12 @@ END {
 
 =head1 TESTING
 
-This module supports the Mnet::Test test, record, and replay functionality,
-outputting report data so it can be included in testing.
+Mnet::Report::Table supports the L<Mnet::Test> module test, record, and replay
+functionality, tracking report data so it can be included in test results.
 
 =head1 SEE ALSO
+
+L<JSON>
 
 L<Mnet>
 

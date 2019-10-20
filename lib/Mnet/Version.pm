@@ -10,8 +10,12 @@ Mnet::Version - Returns Mnet version information
 
 =head1 DESCRIPTION
 
-This module makes available an Mnet::Version::info function that can be used
+Mnet::Version makes available an Mnet::Version::info function that can be used
 by other scripts and modules.
+
+=head1 FUNCTIONS
+
+Mnet::Version implements the functions listed below.
 
 =cut
 

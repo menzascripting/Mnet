@@ -14,9 +14,16 @@ Mnet::Expect::Cli - Expect sessions to command line interfaces
 
 =head1 DESCRIPTION
 
-This module can be used to create new Mnet::Expect::Cli objects, which inherit
-Mnet::Expect methods and have additional methods to handle logins, command
-execution, caching, and testing.
+Mnet::Expect::Cli can be used to spawn L<Expect> processes, which can be
+used to programmatically control command line sessions to devices, with
+support for L<Mnet> options, logging, caching, and testing.
+
+Refer to the perl L<Expect> module for more information. Also refer to the
+L<Mnet::Expct> and L<Mnet::Expct::Cli::Ios> modules.
+
+=head1 METHODS
+
+Mnet::Expect::Cli implements the methods listed below.
 
 =cut
 
@@ -39,8 +46,8 @@ sub new {
 
 This method can be used to create new Mnet::Expect::Cli objects.
 
-The following input opts may be specified, in addition to options from
-the Mnet::Expect module:
+The following input opts may be specified, in addition to options documented
+in the L<Mnet::Expect> module new method:
 
     delay           millseconds delay for command prompt detection
     eol_unix        default true for output with unix /n eol chars only
@@ -57,9 +64,14 @@ the Mnet::Expect module:
 
     An error is issued if there are login problems.
 
-For example, the following call will start an ssh expect session to a device:
+For example, the following call will start an ssh expect session to a device
+with host key checking disabled:
 
-    my $opts = { spawn => "ssh 1.2.3.4", prompt => 1 };
+    my @spawn = qw(ssh);
+    push @spawn, qw(-o StrictHostKeyChecking=no);
+    push @spawn, qw(-o UserKnownHostsFile=/dev/null);
+    push @spawn, qw(1.2.3.4);
+    my $opts = { spawn => \@spawn, prompt => 1 };
     my $expect = Mnet::Expect::Cli->new($opts);
 
 Set failed_re to detect failed logins faster, as long as there's no conflict
@@ -67,7 +79,7 @@ with text that appears in login banners. For example:
 
     (?i)(closed|error|denied|fail|incorrect|invalid|refused|sorry)
 
-Refer to the Mnet::Expect module for more information.
+Refer to the L<Mnet::Expect> module for more information.
 
 =cut
 
@@ -300,14 +312,7 @@ This method returns output from the specified command from the current expect
 cli session, or undefined if there was a timeout.
 
 The timeout input argument can be used to override the timeout for the current
-object. The prompts reference argument can be used to handle prompts that occur
-after entering a command, such as confirmation prompts. It should contain pairs
-of regex strings and responses. The regex string values should be what goes in
-between the forward slash characters of a regular expression. The response can
-be a string that is sent to the expect session without a carraige return, or
-may be a code reference that gets the current object and output as input args
-and returns a response string. An null prompt regex string is activated for
-timeouts. An undef prompt response causes an immediate return of output.
+object.
 
     # sends $command, uses default timeout, defines some prompts
     my $output = $expect->command($command, undef, [
@@ -322,6 +327,15 @@ timeouts. An undef prompt response causes an immediate return of output.
         undef => undef,
 
     ]);
+
+The prompts reference argument can be used to handle prompts that occur after
+entering a command, such as confirmation prompts. It should contain pairs of
+regex strings and responses. The regex string values should be what goes in
+between the forward slash characters of a regular expression. The response can
+be a string that is sent to the expect session without a carraige return, or
+may be a code reference that gets the current object and output as input args
+and returns a response string. An null prompt regex string is activated for
+timeouts. An undef prompt response causes an immediate return of output.
 
 Refer also to the command_cache_clear method for more info.
 
@@ -575,7 +589,7 @@ Get and/or set a new delay time in milliseconds for the current object. This
 delay is used when detecting extra command, prompt, or pagination output.
 
 A good rule of thumb may be to set this delay to at least the round trip
-response time for the spawned process.
+response time for a response from the connected process.
 
 =cut
 
@@ -615,7 +629,7 @@ Following are other observed pagination prompts, not covered by default:
     linux more cmd  =~ /--More--\(\d\d?%\)/
 
 Note that matched pagination text is not appended to command output. Refer also
-to the command method for more information.
+to the command method in this module for more information.
 
 =cut
 
@@ -674,7 +688,8 @@ sub timeout {
 
     $timeout = $expect->timeout($timeout)
 
-Get and/or set a new timeout for the current object, refer to perldoc Expect.
+Get and/or set a new timeout for the current object, refer to the L<Expect>
+module for more information.
 
 =cut
 
@@ -696,12 +711,11 @@ Get and/or set a new timeout for the current object, refer to perldoc Expect.
 
 =head1 TESTING
 
-The Mnet::Opts::Cli and Mnet::Test --record and --replay command line
-options work with this module to record and replay command method outputs
-associated with various issued commands, integrated with the
-command_cache_clear method.
+L<Mnet::Test> --record and --replay command line options are supported by this
+module, and will record and replay command method outputs associated with calls
+to the command method, integrated with the command_cache_clear method.
 
-Refer to the Mnet::Test module for more information.
+Refer to the L<Mnet::Test> module for more information.
 
 =head1 SEE ALSO
 
@@ -712,6 +726,10 @@ L<Mnet>
 L<Mnet::Expect>
 
 L<Mnet::Expect::Cli::Ios>
+
+L<Mnet::Log>
+
+L<Mnet::Opts::Cli>
 
 L<Mnet::Test>
 

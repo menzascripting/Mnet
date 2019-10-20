@@ -20,15 +20,18 @@ Mnet::Log::Conditional - Use Mnet::Log if Mnet::Log is loaded
 
 =head1 DESCRIPTION
 
-This module can be called to output log entries using the Mnet::Log module,
-but only if the Mnet::Log module has already been loaded.
+Mnet::Log::Conditional can be called to output log entries only if the
+L<Mnet::Log> module has already been otherwise loaded.
 
-This is module used by other Mnet modules for logging, so that they generate
-log output only if the calling script is using the Mnet::Log module. Users who
-create custom modules that expand on included Mnet modules may want to do the
-same thing.
+This is used by other L<Mnet> modules for logging, so that they generate
+log output only if the calling script is using the L<Mnet::Log> module. Users
+who create custom modules may want to do the same thing.
 
-Refer to perldoc Mnet::Log for more information.
+Refer to L<Mnet::Log> for more information.
+
+=head1 METHODS
+
+Mnet::Log::Conditional implements the methods listed below.
 
 =cut
 
@@ -55,12 +58,12 @@ sub new {
 
 This class method creates a new Mnet::Log::Conditional object. The opts hash
 ref argument is not requried but may be used to override any parsed cli options
-parsed with the Mnet::Opts::Cli module.
+parsed with the L<Mnet::Opts::Cli> module.
 
 The returned object may be used to call other documented functions and methods
-in this module, which will call the Mnet::Log module if it is loaded.
+in this module, which will call the L<Mnet::Log> module if it is loaded.
 
-Refer to the new method in perldoc Mnet::Log for more information.
+Refer to the new method in perldoc L<Mnet::Log> for more information.
 
 =cut
 
@@ -87,8 +90,7 @@ sub debug {
 
     $log->debug($text)
 
-Method to output a debug entry using the Mnet::Log module, if it is loaed. If
-the Mnet::Log module is not loaded then nothing happens.
+Output a debug entry using the L<Mnet::Log> module, if loaed.
 
 =cut
 
@@ -107,8 +109,7 @@ sub info {
 
     $log->info($text)
 
-Method to output an info entry using the Mnet::Log module, if it is loaed. If
-the Mnet::Log module is not loaded then nothing happens.
+Output an info entry using the L<Mnet::Log> module, if loaed.
 
 =cut
 
@@ -141,8 +142,7 @@ sub warn {
 
     $log->warn($text)
 
-Method to output a warn entry using the Mnet::Log module, if it is loaed. If
-the Mnet::Log module is not loaded then the perl warn command is called.
+Output a warn entry using the L<Mnet::Log> module, if loaed.
 
 =cut
 
@@ -166,8 +166,7 @@ sub fatal {
 
     $log->fatal($text)
 
-Method to output a fatal entry using the Mnet::Log module, if it is loaded. If
-the Mnet::Log module is not loaded then the perl die command is called.
+Output a fatal entry using the L<Mnet::Log> module, if loaded.
 
 =cut
 
@@ -184,14 +183,21 @@ the Mnet::Log module is not loaded then the perl die command is called.
 
 
 
+=head1 FUNCTIONS
+
+Mnet::Log::Conditional also implements the functions listed below.
+
+=cut
+
+
+
 sub DEBUG {
 
 =head2 DEBUG
 
     DEBUG($text)
 
-Function to output a debug entry using the Mnet::Log module, if it is loaed. If
-the Mnet::Log module is not loaded then nothing happens.
+Output a debug entry using the L<Mnet::Log> module, if loaed.
 
 =cut
 
@@ -210,8 +216,7 @@ sub INFO {
 
     INFO($text)
 
-Function to output an info entry using the Mnet::Log module, if it is loaed. If
-the Mnet::Log module is not loaded then nothing happens.
+Output an info entry using the L<Mnet::Log> module, if loaed.
 
 =cut
 
@@ -244,8 +249,7 @@ sub WARN {
 
     WARN($text)
 
-Function to output a debug entry using the Mnet::Log module, if it is loaed. If
-the Mnet::Log module is not loaded then the perl warn command is called.
+Output a warn entry using the L<Mnet::Log> module, if loaed.
 
 =cut
 
@@ -268,8 +272,7 @@ sub FATAL {
 
     FATAL($text)
 
-Function to output a debug entry using the Mnet::Log module, if it is loaed. If
-the Mnet::Log module is not loaded then the perl die command is called.
+Output a fatal entry using the L<Mnet::Log> module, if loaed.
 
 =cut
 
@@ -288,6 +291,8 @@ the Mnet::Log module is not loaded then the perl die command is called.
 =head1 SEE ALSO
 
 L<Mnet>
+
+L<Mnet::Log>
 
 L<Mnet::Opts::Cli::Cache>
 

@@ -15,8 +15,12 @@ This module can be used to check what Mnet::Opts::Set pragma sub-modules are
 currently loaded.
 
 Scripts should not need to use or call this module. Normally scripts would use
-the Mnet::Opts and Mnet::Opts::Cli modules, which handle checking the status of
-Mnet::Opts::Set pragma sub-modules.
+the L<Mnet::Opts> and L<Mnet::Opts::Cli> modules, which handle checking the
+status of Mnet::Opts::Set pragma sub-modules.
+
+=head1 FUNCTIONS
+
+Mnet::Opts::Set implements the functions listed below.
 
 =cut
 
@@ -52,7 +56,7 @@ sub pragmas {
 This function returns a hash containing true values for any Mnet::Opts::Set
 pragma sub-modules that have been loaded with the perl 'use' command.
 
-Refer to the SEE ALSO section of this perldoc for a list of these sub-modules.
+Refer to the SEE ALSO section of this document for a list of these sub-modules.
 
 =cut
 
@@ -71,9 +75,9 @@ Refer to the SEE ALSO section of this perldoc for a list of these sub-modules.
 
 L<Mnet>
 
-L<Mnet::Opts::Cli>
+L<Mnet::Opts>
 
-L<Mnet::Opts::Cli::Cache>
+L<Mnet::Opts::Cli>
 
 L<Mnet::Opts::Set::Debug>
 

@@ -1,10 +1,11 @@
 package Mnet;
 
+# version number used by Makefile.PL
 our $VERSION = "dev";
 
 =head1 NAME
 
-L<Mnet> - Testable network automation and reporting
+Mnet - Testable network automation and reporting
 
 =head1 SYNOPSIS
 
@@ -90,10 +91,10 @@ L<Mnet> - Testable network automation and reporting
 
 =head1 DESCRIPTION
 
-The Mnet modules are for perl programmers who want to create testable network
-automation and/or reporting scripts as simply as possible.
+The L<Mnet> modules are for perl programmers who want to create testable
+network automation and/or reporting scripts as simply as possible.
 
-The main features of the Mnet perl modules are:
+The main features are:
 
 =over
 
@@ -128,17 +129,17 @@ of automation scripts and allowing for proper regression testing.
 
 =back
 
-Most of the Mnet modules can be used independently of each other, unless
-otherwise noted.
+Most of the L<Mnet> isub-modules can be used independently of each other,
+unless otherwise noted.
 
-Refer to the individual Mnet modules listed in the SEE ALSO section below
+Refer to the individual modules listed in the SEE ALSO section below
 for more detail.
 
 =head1 INSTALLATION
 
-The Mnet perl modules should work in just about any unix perl environment.
+The L<Mnet> perl modules should work in just about any unix perl environment.
 
-The latest Mnet release can be installed from CPAN
+The latest release can be installed from CPAN
 
     cpan install Mnet
 
@@ -154,16 +155,17 @@ the INSTALL_BASE option above.
 
 =head1 AUTHOR
 
-The Mnet perl distribution has been created and is maintained by Mike Menza.
+The L<Mnet> perl distribution has been created and is maintained by Mike Menza.
 Mike can be reached via email at <mmenza@cpan.org>.
 
 =head1 COPYRIGHT AND LICENSE
 
 Copyright 2006, 2013-2019 Michael J. Menza Jr.
 
-Mnet is free software: you can redistribute it and/or modify it under the terms
-of the GNU General Public License as published by the Free Software Foundation,
-either version 3 of the License, or (at your option) any later version.
+L<Mnet> is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A

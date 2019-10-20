@@ -26,10 +26,12 @@ Mnet::Opts::Cli - Define and parse command line options
 
 =head1 DESCRIPTIONS
 
-The functions and methods in this module can be used by scripts to define and
-parse command line options, as shown in the example below:
+Mnet::Opts::Cli can be used by scripts to define and parse command line
+options, as shown in the example above.
 
-Refer to the Mnet::Opts and Mnet::Opts::Cli::Cache modules for more info.
+=head1 METHODS
+
+Mnet::Opts::Cli implements the methods listed below.
 
 =cut
 
@@ -108,7 +110,7 @@ letter and contain only letters, numbers, and the dash character. Dashes are
 replaced with underscores after the options are parsed, so they may be referred
 to more easily in script code.
 
-The following Getopt::Long option specification types are supported:
+The following L<Getopt::Long> option specification types are supported:
 
     opt    --opt       boolean option, set true if --opt is set
     opt!   --[no]opt   negatable option, returns false if --noopt is set
@@ -126,7 +128,7 @@ The following keys in the specs input hash reference argument are supported:
     norecord    set so option is not saved to Mnet::Test record/replay
     redact      set to revent option value from displaying in Mnet::Log
 
-Refer to perldoc Getopt::Long for more information.
+Refer to L<Getopt::Long> for more information.
 
 =cut
 
@@ -641,7 +643,7 @@ sub batch_fork {
 
 =head1 TESTING
 
-When used with the Mnet::Test --record option this module will save all cli
+When used with the L<Mnet::Test> --record option this module will save all cli
 options defined without the norecord hash key set true in the specified file
 along with any extra arguments specified on the command line. For more info
 about enabling the recording of individual options refer to the define
@@ -651,10 +653,10 @@ When the --replay option is used this module will load all cli options saved
 in the specified Mnet::Test file then apply options specified on the command
 line on top of the replayed options.
 
-When the --replay option is used for an Mnet::Test file which was recorded with
-extra arguments the extra arguments from the replay file will be used unless
-there were extra arguments on the command line, in which case the command
-line arguments will replace the arguments read from the replay file.
+When the --replay option is used for an L<Mnet::Test> file which was recorded
+with extra arguments the extra arguments from the replay file will be used
+unless there were extra arguments on the command line, in which case the
+command line arguments will replace the arguments read from the replay file.
 
 The --record option can be used to re-save the current --replay file after
 applying new command line options and/or extra arguments.
@@ -664,6 +666,8 @@ applying new command line options and/or extra arguments.
 L<Getopt::Long>
 
 L<Mnet>
+
+L<Mnet::Opts>
 
 L<Mnet::Opts::Cli::Cache>
 

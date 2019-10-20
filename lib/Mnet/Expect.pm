@@ -21,12 +21,16 @@ Mnet::Expect - Create Expect objects with Mnet::Log support
 
 =head1 DESCRIPTION
 
-This module can be used to create new Mnet::Expect objects, log spawned process
-expect activity, and close Mnet::Expect sessions.
+Mnet::Expect can be used to spawn L<Expect> processes, which can be used
+to programmatically control interactive terminal sessions, with support for
+L<Mnet> options and logging.
 
-This module requires that the perl Expect module is installed.
+Refer to the perl L<Expect> module for more information. Also refer to the
+L<Mnet::Expct::Cli> and L<Mnet::Expct::Cli::Ios> modules.
 
-The methods in this object are used by other Mnet::Expect modules.
+=head1 METHODS
+
+Mnet::Expect implements the methods listed below.
 
 =cut
 
@@ -58,17 +62,12 @@ The following input opts may be specified:
 
 An error is issued if there are spawn problems.
 
-For example, the following will spawn an ssh expect session to a device:
+For example, the following will spawn an telnet expect session to a device:
 
-    my $expect = Mnet::Expect->new({ spawn => [qw/
-        ssh
-         -o StrictHostKeyChecking=no
-         -o UserKnownHostsFile=/dev/null
-         1.2.3.4
-    /]});
+    my $expect = Mnet::Expect->new({ spawn => "telnet 1.2.3.4" });
 
-Note that all Mnet::Expect session activity is logged for debugging, refer to
-the Mnet::Log module for more information.
+Note that all connected session activity is logged for debugging, refer to
+the L<Mnet::Log> module for more information.
 
 =cut
 
@@ -217,8 +216,11 @@ sub close {
 
     $expect->close
 
-Attempt to call hard_close for the current Expect session, and send a kill
-signal if the process still exists. The Expect sesssion is set to udnefined.
+Attempt to call hard_close for the current Mnet::Expect objects L<Expect>
+session, and send a kill signal if the process still exists.
+
+The L<Expect> object associated with the current Mnet::Expect object will be
+set to undefined. Refer also to the expect method documented below.
 
 =cut
 
@@ -294,8 +296,8 @@ sub expect {
     $expect->expect
 
 Returns the underlying expect object used by this module, for access to fetures
-that may not be supported directly by Mnet::Expect modules.  Refer to perldoc
-Expect for more information.
+that may not be supported directly by Mnet::Expect modules. Refer to the
+L<Expect> module for more information.
 
 =cut
 
@@ -369,8 +371,10 @@ sub log {
 
 =head1 TESTING
 
-This module supports Mnet::Test --replay functionality for other Mnet::Expect
-submodules. Refer to those other Mnet::Expect submodules for more information.
+Mnet::Expect does not include iteself include support for L<Mnet::Test>
+functionality. This is a low level module that spawns expect sessions but does
+not know how to talk to devices. Any desired test fucntionality would need to
+be provided by the calling script.
 
 =head1 SEE ALSO
 
@@ -381,6 +385,12 @@ L<Mnet>
 L<Mnet::Expect::Cli>
 
 L<Mnet::Expect::Cli::Ios>
+
+L<Mnet::Log>
+
+L<Mnet::Opts::Cli>
+
+L<Mnet::Test>
 
 =cut
 

@@ -41,8 +41,8 @@ Mnet::Stanza - Manipulate stanza outline text
 
 =head1 DESCRIPTION
 
-This functions in this module can be used on text arranged in stanzas of
-indented lines or text, perhaps something like this:
+Mnet::Stanza can be used on text arranged in stanzas of indented lines or text
+in outline format, such as the following:
 
     line
     stanza 1
@@ -63,9 +63,11 @@ In the above example the following would be true:
     sub-stanza 1 contains two indented lines and a sub-sub-stanza 1
     sub-sub-stanza 1 contains two indented lines
 
-The functions below can be used to trip extra blank lines and spaces from
-stanza text, to parse stanzas and sub-stanzas, and to copare stanza text
-sections to each other.
+This can be used to parse cisco ios configs, amongst other things.
+
+=head1 FUNCTIONS
+
+Mnet::Stanza implements the functions listed below.
 
 =cut
 

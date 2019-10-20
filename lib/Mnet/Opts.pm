@@ -23,10 +23,14 @@ Mnet::Opts - Work with Mnet::Opts objects
 
 =head1 DESCRIPTION
 
-This module can be used to work with new Mnet::Opts objects, as shown in the
-example below:
+Mnet::Opts can be used to work with new Mnet::Opts objects, as shown in the
+example above.
 
-Refer also to the Mnet::Opts::Cli module for parsing command line options.
+Refer also to L<Mnet::Opts::Cli> module, used for parsing command line options.
+
+=head1 METHODS
+
+Mnet::Opts implements the methods listed below.
 
 =cut
 
@@ -55,8 +59,8 @@ The Mnet::Opts->new class method returns an Mnet::Opts option object.
 The input opts hash reference argument is not required. Any
 An input hash reference of options can be supplied but is not required.
 
-Note that any Mnet::Opts::Set sub-modules that have been used will be set in
-the output Mnet::Opts object. Refer to the SEE ALSO section of this perldoc.
+Note that any L<Mnet::Opts::Set> sub-modules that have been used will be set in
+the output Mnet::Opts object.
 
 =cut
 
@@ -123,7 +127,7 @@ L<Mnet>
 
 L<Mnet::Dump>
 
-L<Mnet::Log::Conditional>
+L<Mnet::Opts::Cli>
 
 L<Mnet::Opts::Set>
 

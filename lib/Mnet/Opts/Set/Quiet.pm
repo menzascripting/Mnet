@@ -10,9 +10,7 @@ Mnet::Opts::Set::Quiet - Use this module to enable --quiet option
 
 =head1 DESCRIPTION
 
-Use this module to enable the --quiet option for the Mnet::Log module.
-
-Refer to the Mnet::Log module for more information.
+This module can be used as a pragma to enable the L<Mnet::Log> --quiet option.
 
 =cut
 
@@ -25,6 +23,12 @@ use strict;
 L<Mnet>
 
 L<Mnet::Log>
+
+L<Mnet::Opts>
+
+L<Mnet::Opts::Cli>
+
+L<Mnet::Opts::Set>
 
 =cut
 

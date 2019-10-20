@@ -11,7 +11,11 @@ Mnet::Dump - Data::Dumper related functions with sorted outputs
 
 =head1 DESCRIPTION
 
-This module contains Data::Dumper related functions with sorted outputs.
+Mnet::Dump contains L<Data::Dumper> related functions with sorted outputs.
+
+=head1 FUNCTIONS
+
+Mnet::Dump implements the functions listed below.
 
 =cut
 
@@ -28,7 +32,7 @@ sub line {
 
     $line = Mnet::Dump::line($value)
 
-This function returns Data::Dumper output for the specified input value as
+This function returns L<Data::Dumper> output for the specified input value as
 a single line in sorted order.
 
 =cut

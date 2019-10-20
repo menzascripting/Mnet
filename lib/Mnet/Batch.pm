@@ -29,16 +29,17 @@ Mnet::Batch - Concurrently process a list of command line options
 
 =head1 DESCRIPTION
 
-This module can be used in a script to concurrently process a --batch list of
-command option lines.
+Mnet::Batch can be used in a script to concurrently process a --batch list
+of command option lines.
 
-For example, you might run a script sequentially, like this:
+For example, you might run a script sequentially over and over, like this:
 
  script.pl --sample 1
  script.pl --sample 2a
  script.pl --sample ...
 
-This module allows you to process a list of option command lines, like this:
+Or use Mnet::Batch which allows you to process a list of option command
+lines after loading the script once, like this:
 
  echo '
      --sample 1
@@ -51,17 +52,23 @@ and forks a child worker process for each line in the list. The --batch list
 option can be set to a file, a named pipe, or /dev/stdin as above.
 
 The --batch list lines are processed one at a time unless linux /proc/stat is
-detected, in which case list command lines are processed concurrently as fast
+detected, in which case batch command lines are processed concurrently as fast
 as possible without overutilizing the cpu.
 
-Note that a script using the Mnet::Batch module will exit with an error if the
-Mnet::Opts::Cli new method was used to parse the command line and the --batch
-option is set and Mnet::Batch::fork function was never called.
+Note that a script using this module will throw an error when it ends if
+the L<Mnet::Opts::Cli> new method was used to parse command line arguments
+and the --batch option is set and Mnet::Batch::fork function was never called.
 
-Refer also to the documentation for the Mnet::Batch::fork function for more
-information.
+Refer also to the documentation for the Mnet::Batch::fork function in this
+module for more information.
+
+=head1 FUNCTIONS
+
+Mnet::Batch implements the functions listed below.
 
 =cut
+
+#? future: add cpu utilization measurements for openbsd and freebsd
 
 # required modules
 use warnings;
@@ -102,8 +109,8 @@ sub fork {
     \%child_opts = Mnet::Batch::fork(\%opts)
     or ($child_opts, @child_extras) = Mnet::Batch::fork(\%opts)
 
-The Mnet::Batch::fork function requires an input options hash ref containing at
-least a batch setting key.
+The Mnet::Batch::fork function requires an input opts hash ref containing at
+least a 'batch' key.
 
 The returned child opts hash ref will contain settings from the input opts hash
 overlaid with options from the current batch command options line. Extra args
@@ -115,11 +122,12 @@ when the parent process is finished.
     my ($cli, @extras) = Mnet::Opts::Cli->new;
     ($cli, @extras) = Mnet::Batch::fork($cli);
     exit if not defined $cli;
+    # child processing continues...
 
 Also note that this function can be called by scripts that are not using the
-Mnet::Opts::Cli module to parse command line options. In this case the returned
-child_opts value will be a scalar containing the input batch line, as in the
-following example:
+L<Mnet::Opts::Cli> module to parse command line options. In this case the
+returned child_opts value will be a scalar containing the input batch line,
+as in the following example:
 
     ( echo "line = 1"; echo "line = 2" ) | perl -e '
         use Mnet::Batch

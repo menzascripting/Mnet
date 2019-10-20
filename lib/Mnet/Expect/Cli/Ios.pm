@@ -17,8 +17,16 @@ Mnet::Expect::Cli::Ios - Expect sessions to cisco ios devices
 
 =head1 DESCRIPTION
 
-This module can be used to create new Mnet::Expect::Cli::Ios objects,
-which inherit Mnet::Expect::Cli methods.
+Mnet::Expect::Cli::Ios can be used to spawn L<Expect> processes which can
+be used to programmatically control command line sessions to cisco ios devices,
+with support for L<Mnet> options, logging, caching, and testing.
+
+Refer to the perl L<Expect> module for more information. Also refer to the
+L<Mnet::Expct> and L<Mnet::Expct::Cli> modules.
+
+=head1 METHODS
+
+Mnet::Expect::Cli::Ios implements the methods listed below.
 
 =cut
 
@@ -40,7 +48,7 @@ sub new {
 This method can be used to create new Mnet::Expect::Cli::Ios objects.
 
 The following input opts may be specified, in addition to options from
-the Mnet::Expect::Cli and Mnet::Expect modules:
+the L<Mnet::Expect::Cli> and L<Mnet::Expect> modules:
 
     enable          set to password for enable mode during login
     enable_in       stderr prompt for stdin entry of enable if not set
@@ -52,9 +60,14 @@ the Mnet::Expect::Cli and Mnet::Expect modules:
 
 An error is issued if there are login problems.
 
-For example, the following call will start an ssh expect session to a device:
+For example, the following call will start an ssh expect session to a device
+with host key checking disabled:
 
-    my $opts = { spawn => "ssh 1.2.3.4" };
+    my @spawn = qw(ssh);
+    push @spawn, qw(-o StrictHostKeyChecking=no);
+    push @spawn, qw(-o UserKnownHostsFile=/dev/null);
+    push @spawn, qw(1.2.3.4);
+    my $opts = { spawn => \@spawn };
     my $expect = Mnet::Expect::Cli->new($opts);
 
 Set failed_re to detect failed logins faster, as long as there's no conflict
@@ -62,7 +75,8 @@ with text that appears in login banners. For example:
 
     (?i)(^\s*%|closed|error|denied|fail|incorrect|invalid|refused|sorry)
 
-Refer to the Mnet::Expect::Cli and Mnet::Expect modules for more information.
+Refer to the L<Mnet::Expect::Cli> and L<Mnet::Expect> modules for more
+information.
 
 =cut
 
@@ -225,7 +239,7 @@ sub close {
 
 This method sends the end and exit ios commands before closing the current
 expect session. Timeouts are gracefully handled. Refer to the close method
-in the Mnet::Expect module for more information.
+in the L<Mnet::Expect> module for more information.
 
 =cut
 
@@ -242,8 +256,8 @@ in the Mnet::Expect module for more information.
 
 =head1 TESTING
 
-Mnet::Test --record and --replay functionality are supported. Refer to the
-Mnet::Expect::Cli module for more information.
+L<Mnet::Test> --record and --replay functionality are supported. Refer to the
+TESTING perldoc section of L<Mnet::Expect::Cli> module for more information.
 
 =head1 SEE ALSO
 
@@ -254,6 +268,10 @@ L<Mnet>
 L<Mnet::Expect>
 
 L<Mnet::Expect::Cli>
+
+L<Mnet::Log>
+
+L<Mnet::Opts::Cli>
 
 L<Mnet::Test>
 
