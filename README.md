@@ -27,7 +27,7 @@ Mnet - Testable network automation and reporting
     use Mnet::Stanza;
     use Mnet::Test;
 
-    # define --device name and --report output cli options
+    # define --device related and --report cli options
     #   options can also be set via Mnet environment variable
     Mnet::Opts::Cli::define({ getopt => "device=s" });
     Mnet::Opts::Cli::define({ getopt => "username=s" });
@@ -49,11 +49,14 @@ Mnet - Testable network automation and reporting
     });
 
     # handle concurrent --batch processing, parent exits when finished
-    #   process a list of thousands of devices, hundreds at a time, etc
+    #   process one device or ten thousand devices with the same script
+
+    # read command line options, fork children if in --batch mode
+    #   exit --batch parent process when finished forking children
     $cli = Mnet::Batch::fork($cli);
     exit if not $cli;
 
-    # ensure that errors are reported if script aborts for any reason
+    # ensure that errors are reported if script aborts before finishing
     $report->row_on_error({ device => $cli->device });
 
     # use log function and set up log object for device
