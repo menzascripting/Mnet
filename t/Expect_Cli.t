@@ -15,7 +15,7 @@ use Mnet::Expect::Cli;
 #       undef works with any login banner, but has to timeout on failures
 #       faster if failed_re can pick up 'connection refused", for example
 #       users responsible for setting in their network, as noted in perldocs
-#   ideas in 5.02 release lib/Mnet/Expect/Cli.pm to-do note, w/tests created
+#   refer to notes/ideas/tests in git commit 65d08eb, lib/Mnet/Expect/Cli.pm
 
 # init perl code used for new login tests
 #   for debug uncomment the use Mnet::Opts::Set::Debug line below
