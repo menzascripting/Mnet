@@ -60,7 +60,7 @@ An error is issued if there are spawn problems.
 
 For example, the following will spawn an ssh expect session to a device:
 
-    my $expect = Mnet::Expect->new({ spawn => [qw
+    my $expect = Mnet::Expect->new({ spawn => [qw/
         ssh
          -o StrictHostKeyChecking=no
          -o UserKnownHostsFile=/dev/null

@@ -23,6 +23,11 @@ Mnet::Log::Conditional - Use Mnet::Log if Mnet::Log is loaded
 This module can be called to output log entries using the Mnet::Log module,
 but only if the Mnet::Log module has already been loaded.
 
+This is module used by other Mnet modules for logging, so that they generate
+log output only if the calling script is using the Mnet::Log module. Users who
+create custom modules that expand on included Mnet modules may want to do the
+same thing.
+
 Refer to perldoc Mnet::Log for more information.
 
 =cut

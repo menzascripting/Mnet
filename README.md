@@ -1,6 +1,6 @@
 # NAME
 
-Mnet - Testable network automation and reporting
+[Mnet](https://metacpan.org/pod/Mnet) - Testable network automation and reporting
 
 # SYNOPSIS
 
@@ -62,7 +62,8 @@ Mnet - Testable network automation and reporting
     $log->info("processing device");
 
     # create an expect ssh session to --device
-    my $ssh = Mnet::Expect::Cli->new({
+    #   perldoc Mnet::Expect shows how to disable ssh host/key checks
+    my $ssh = Mnet::Expect::Cli::Ios->new({
         spawn => [ "ssh", $cli->{device} ],
     });
 
@@ -86,7 +87,7 @@ Mnet - Testable network automation and reporting
 # DESCRIPTION
 
 The Mnet modules are for perl programmers who want to create testable network
-automation and/or reporting scripts.
+automation and/or reporting scripts as simply as possible.
 
 The main features of the Mnet perl modules are:
 
@@ -102,13 +103,15 @@ reliable authentication and command prompt handling.
 - Record and replay connected command line sessions, speeding the development
 of automation scripts and allowing for proper regression testing.
 
-Most of the Mnet modules can be used independely of each other, except where
+Most of the Mnet modules can be used independently of each other, unless
 otherwise noted.
 
-Refer to the individual Mnet modules listed in the SEE ALSO section below for
-more detail.
+Refer to the individual Mnet modules listed in the SEE ALSO section below
+for more detail.
 
 # INSTALLATION
+
+The Mnet perl modules should work in just about any unix perl environment.
 
 The latest Mnet release can be installed from CPAN
 
@@ -118,11 +121,11 @@ Or downloaded and installed from [https://github.com/menzascripting/Mnet](https:
 
     tar -xf Mnet-X.y.tar.gz
     cd Mnet-X.y
-    perl Makefile.PL # INSTALL_BASE=/different/path
+    perl Makefile.PL  # INSTALL_BASE=/specify/path
     make install
 
-The Mnet perl modules should work in just about any unix perl environment. To
-interact with command line sessions the perl Expect module is required.
+Be sure to update your PERL5LIB environment variable if you specified your
+own install path.
 
 # AUTHOR
 
