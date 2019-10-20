@@ -180,8 +180,6 @@ this program. If not, see L<http://www.gnu.org/licenses/>
 
 L<Mnet::Batch>
 
-L<Mnet::Expect>
-
 L<Mnet::Expect::Cli>
 
 L<Mnet::Expect::Cli::Ios>
@@ -190,11 +188,7 @@ L<Mnet::Log>
 
 L<Mnet::Opts::Cli>
 
-L<Mnet::Opts::Set::Debug>
-
-L<Mnet::Opts::Set::Quiet>
-
-L<Mnet::Opts::Set::Silent>
+L<Mnet::Opts::Set>
 
 L<Mnet::Report::Table>
 

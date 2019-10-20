@@ -154,8 +154,6 @@ COPYRIGHT AND LICENSE
 SEE ALSO
     Mnet::Batch
 
-    Mnet::Expect
-
     Mnet::Expect::Cli
 
     Mnet::Expect::Cli::Ios
@@ -164,11 +162,7 @@ SEE ALSO
 
     Mnet::Opts::Cli
 
-    Mnet::Opts::Set::Debug
-
-    Mnet::Opts::Set::Quiet
-
-    Mnet::Opts::Set::Silent
+    Mnet::Opts::Set
 
     Mnet::Report::Table
 

@@ -152,8 +152,6 @@ this program. If not, see [http://www.gnu.org/licenses/](http://www.gnu.org/lice
 
 [Mnet::Batch](https://metacpan.org/pod/Mnet::Batch)
 
-[Mnet::Expect](https://metacpan.org/pod/Mnet::Expect)
-
 [Mnet::Expect::Cli](https://metacpan.org/pod/Mnet::Expect::Cli)
 
 [Mnet::Expect::Cli::Ios](https://metacpan.org/pod/Mnet::Expect::Cli::Ios)
@@ -162,11 +160,7 @@ this program. If not, see [http://www.gnu.org/licenses/](http://www.gnu.org/lice
 
 [Mnet::Opts::Cli](https://metacpan.org/pod/Mnet::Opts::Cli)
 
-[Mnet::Opts::Set::Debug](https://metacpan.org/pod/Mnet::Opts::Set::Debug)
-
-[Mnet::Opts::Set::Quiet](https://metacpan.org/pod/Mnet::Opts::Set::Quiet)
-
-[Mnet::Opts::Set::Silent](https://metacpan.org/pod/Mnet::Opts::Set::Silent)
+[Mnet::Opts::Set](https://metacpan.org/pod/Mnet::Opts::Set)
 
 [Mnet::Report::Table](https://metacpan.org/pod/Mnet::Report::Table)
 
