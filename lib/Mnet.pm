@@ -19,8 +19,8 @@ Mnet - Testable network automation and reporting
     #   use --help to list all options, or --help <option>
     #   use --device <address> to connect to device with logging
     #   use --batch <file.batch> to process multiple --device lines
-    #   add --report csv:<file.csv> to create an output csv file
-    #   add --record <file.test> to create a --device test file
+    #   add --report csv:<file.csv> to create output csv repory file
+    #   add --record <file.test> to create test output dif  file
     #   use --test --replay <file.test> to show script test diff
 
     # load modules
