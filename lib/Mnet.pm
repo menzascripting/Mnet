@@ -149,8 +149,8 @@ Or downloaded and installed from L<https://github.com/menzascripting/Mnet>
     perl Makefile.PL  # INSTALL_BASE=/specify/path
     make install
 
-Be sure to update your PERL5LIB environment variable with the specified path
-if you uncommented the INSTALL_BASE option above.
+You might need to update your PERL5LIB environment variable if you uncommented
+the INSTALL_BASE option above.
 
 =head1 AUTHOR
 
