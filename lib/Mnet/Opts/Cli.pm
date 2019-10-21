@@ -74,7 +74,7 @@ INIT {
     # define --help cli option
     Mnet::Opts::Cli::define({
         getopt      => 'help:s',
-        help_tip    => 'display option text, *try --help help',
+        help_tip    => 'display option help, *try --help help',
         norecord    => 1,
     });
 
