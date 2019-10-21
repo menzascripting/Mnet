@@ -19,8 +19,8 @@ Mnet::Batch - Concurrently process a list of command line options
     # usually cli options are read before calling Mnet::Batch::fork()
     my $cli = Mnet::Opts::Cli->new;
 
-    # fork child worker processes and exit when parent is finished
-    #   returns opts for worker processes and undef for parent process
+    # read command line options, fork children if in --batch mode
+    #   exit --batch parent process when finished forking children
     $cli = Mnet::Batch::fork($cli);
     exit if not $cli;
 
@@ -51,13 +51,15 @@ In the above example the script accepts a --batch list of command option lines
 and forks a child worker process for each line in the list. The --batch list
 option can be set to a file, a named pipe, or /dev/stdin as above.
 
-The --batch list lines are processed one at a time unless linux /proc/stat is
-detected, in which case batch command lines are processed concurrently as fast
-as possible without overutilizing the cpu.
+By default --batch list lines are processed one at a time unless linux
+/proc/stat is detected, in which case batch command lines are processed with
+as many concurrent processes as possible without overutilizing the cpu. The
+--batch-idle and --batch-min options can be used to adjust this.
 
 Note that a script using this module will throw an error when it ends if
 the L<Mnet::Opts::Cli> new method was used to parse command line arguments
-and the --batch option is set and Mnet::Batch::fork function was never called.
+and the --batch option is set and the Mnet::Batch::fork function was never
+called.
 
 Refer also to the documentation for the Mnet::Batch::fork function in this
 module for more information.
@@ -67,8 +69,6 @@ module for more information.
 Mnet::Batch implements the functions listed below.
 
 =cut
-
-#? future: add cpu utilization measurements for openbsd and freebsd
 
 # required modules
 use warnings;
@@ -84,8 +84,10 @@ use Time::HiRes;
 
 # init global variables and cli options for this module
 #   $fork_called used by end block to warn if Mnet::Batch::fork was not called
+#   $def used to set default options, that may or may not be set via cli
 INIT {
     my $fork_called = undef;
+    our $def = { batch_idle => 10, batch_min => 1 };
     Mnet::Opts::Cli::define({
         getopt      => 'batch=s',
         help_tip    => 'process command lines from file',
@@ -94,10 +96,40 @@ INIT {
             batch list may be read from standard input by specifying /dev/stdin
             for a dir try: find /dir -name *.test | sed "s/^/--replay /" | ...
             children are --silent, warnings are issued for child exit errors
-            refer also to perldoc Mnet::Batch for more information
+            use --batch-idle to set percentage of idle cpu to target
+            use --batch-min to set number of concurrent batch processes
+            refer to perldoc Mnet::Batch for more information
         ',
         norecord    => 1,
     }) if $INC{"Mnet/Opts/Cli.pm"};
+    Mnet::Opts::Cli::define({
+        getopt      => 'batch-idle=i',
+        default     => $def->{batch_idle},
+        help_hide   => 1,
+        help_tip    => 'set percentage of idle cpu to target',
+        help_text   => '
+            default is to fork child processes until idle cpu is at 10%
+            currently linux /proc/stat is supported to determine idle cpu
+            otherwise --batch-min controls count of concurrent children
+            set --batch-idle 100 to limit maximum children to --batch-min
+            refer to --help batch and --help batch-min for more info
+            refer also to perldoc Mnet::Batch for more information
+        ',
+        norecord    => 1,
+    }) if $INC{"Mnet/Opts/Cli.pm"};;
+    Mnet::Opts::Cli::define({
+        getopt      => 'batch-min=i',
+        default     => $def->{batch_min},
+        help_hide   => 1,
+        help_tip    => 'set number of concurrent batch processes',
+        help_text   => '
+            default is to allow a minimum of 1 batch child processes
+            this may be increased on systems that support --batch-idle
+            refer to --help batch and --help --batch-idle for more infor
+            refer also to perldoc Mnet::Batch for more information
+        ',
+        norecord    => 1,
+    }) if $INC{"Mnet/Opts/Cli.pm"};;
 }
 
 
@@ -107,10 +139,10 @@ sub fork {
 =head2 Mnet::Batch::fork
 
     \%child_opts = Mnet::Batch::fork(\%opts)
-    or ($child_opts, @child_extras) = Mnet::Batch::fork(\%opts)
+    or (\%child_opts, @child_extras) = Mnet::Batch::fork(\%opts)
 
 The Mnet::Batch::fork function requires an input opts hash ref containing at
-least a 'batch' key.
+least a 'batch' key. Input can be an L<Mnet::Opts::Cli> object.
 
 The returned child opts hash ref will contain settings from the input opts hash
 overlaid with options from the current batch command options line. Extra args
@@ -148,18 +180,19 @@ Refer also to the SYNOPSIS section of this perldoc for more information.
     $Mnet::Batch::fork_called = 1;
 
     # return input options if --batch option is not set
+    #   this means we are running the script normally - not in batch mode
     if (not $opts->{batch}) {
         DEBUG("fork returning input opts, batch option not set");
         return $opts;
     }
 
-    # abort with error if --record would be set the same for all batch children
+    # abort with error if --record is set for batch parent
     #   this would result in all children trying to save to the same file
     FATAL("invalid non-null --record with --batch on parent command line")
         if defined $opts->{record} and $opts->{record} ne "";
 
     # abort with error if --replay would be set the same for all batch children
-    #   to be safe, so children don't write to same file w/null --record
+    #   to be safe, so multiple children don't write same file w/null --record
     FATAL("invalid --replay with --batch on parent command line")
         if defined $opts->{replay};
 
@@ -168,7 +201,7 @@ Refer also to the SYNOPSIS section of this perldoc for more information.
     #   we unpause this for children after they fork
     Mnet::Tee::test_pause() if $INC{"Mnet/Test.pm"};
 
-    # read lines of --batch list file
+    # read all lines of --batch list file
     my @batch_lines = ();
     open(my $fh, "<", $opts->{batch}) or FATAL("fork batch $opts->{batch}, $!");
     while (<$fh>) {
@@ -187,7 +220,11 @@ Refer also to the SYNOPSIS section of this perldoc for more information.
     my $pid_batch_lines = {};
 
     # init hash ref used to track when it is ok to fork, refer to _fork_ok()
-    my $fork_data = { child_count => 0, child_min => 1, idle_target => 10 };
+    my $fork_data = {
+        child_count => 0,
+        child_min   => $opts->{batch_min}  // $Mnet::Batch::def->{batch_min},
+        idle_target => $opts->{batch_idle} // $Mnet::Batch::def->{batch_idle},
+    };
 
     # prepare signal handler to properly wait on forked child processes
     #   otherwise these would remain in process table as zombies
@@ -275,15 +312,13 @@ Refer also to the SYNOPSIS section of this perldoc for more information.
     }
 
     # output that parent finished processing batch list, along with idle info
-    my $fork_info = "processed ".scalar(@batch_lines)." children";
-    if ($fork_data->{cpu_count}) {
-        $fork_info .= ", max $fork_data->{stat_max} concurrent";
-        if ($fork_data->{stat_idle_c} and $fork_data->{stat_idle_s}) {
-            my $avg = int($fork_data->{stat_idle_s}/$fork_data->{stat_idle_c});
-            $fork_info .= ", average $avg\% idle cpu";
-        }
+    my $info = "processed ".scalar(@batch_lines)." children";
+    $info .=", max $fork_data->{stat_max} concurrent" if $fork_data->{stat_max};
+    if ($fork_data->{stat_idle_c} and $fork_data->{stat_idle_s}) {
+        my $avg = int($fork_data->{stat_idle_s}/$fork_data->{stat_idle_c});
+        $info .= ", average $avg\% idle cpu";
     }
-    NOTICE("fork $fork_info");
+    NOTICE("fork $info");
 
     # finished Mnet::Batch::fork() function, return undef for parent
     DEBUG("fork parent finished");
