@@ -38,11 +38,14 @@ a single line in sorted order.
 =cut
 
     # read input value, dump it as a sorted single Data::Dumper line
+    #   Quotekeys set explicity here because some cpan tests failed otherwise
+    #   www.cpantesters.org/cpan/report/9f2d1876-f370-11e9-a65e-fe3acca03743
     my $value = shift;
     my $value_dumper = Data::Dumper->new([$value]);
     $value_dumper->Indent(0);
     $value_dumper->Sortkeys(1);
     $value_dumper->Useqq(1);
+    $value_dumper->Quotekeys(1);
     my $value_dump = $value_dumper->Dump;
     $value_dump =~ s/(^\$VAR1 = |;\n*$)//g;
     return $value_dump;
