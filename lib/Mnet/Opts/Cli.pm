@@ -74,7 +74,7 @@ INIT {
     # define --help cli option
     Mnet::Opts::Cli::define({
         getopt      => 'help:s',
-        help_tip    => 'display tips, or matching option text',
+        help_tip    => 'display option text, try --help help',
         norecord    => 1,
     });
 
@@ -123,6 +123,7 @@ The following keys in the specs input hash reference argument are supported:
 
     getopt      required option name and type, see perldoc Getopt::Long
     default     default value for option, defaults to undefined
+    help_hide   set to hide option in --help list of available options
     help_tip    short tip text for --help list of available options
     help_text   longer help text to show in --help for specific options
     norecord    set so option is not saved to Mnet::Test record/replay
@@ -138,8 +139,8 @@ Refer to L<Getopt::Long> for more information.
 
     # check for required getopt key in input specs, note opt name
     croak("missing specs hash getopt key") if not defined $specs->{getopt};
-    croak("invalid specs hash getopt value")
-        if $specs->{getopt} !~ /^([a-z][-a-z0-9]+)/;
+    croak("invalid specs hash getopt value $specs->{getopt}")
+        if $specs->{getopt} !~ /^([a-z0-9](-|[a-z0-9])*)(!|=i|:i|=s|:s)?$/;
     my $opt = $1;
 
     # abort if option was already defined
@@ -527,12 +528,16 @@ sub _new_help {
     my $output = "\n";
 
     # output list of help usage tips, one line per option
-    if ($help eq "") {
+    if ($help eq "" or $help eq "help") {
+
+        my $hidden = "";
+        $hidden = ", including hidden options" if $help eq "help";
 
         # calculate width to align usage and tip columns
         my $width = 0;
         foreach my $opt (sort keys %{$Mnet::Opts::Cli::defined}) {
             my $defined_opt = $Mnet::Opts::Cli::defined->{$opt};
+            next if $help ne "help" and $defined_opt->{help_hide};
             next if $width > length($defined_opt->{help_usage});
             $width = length($defined_opt->{help_usage});
         }
@@ -549,16 +554,18 @@ sub _new_help {
         my $other_options = "";
         foreach my $opt (sort keys %{$Mnet::Opts::Cli::defined}) {
             my $defined_opt = $Mnet::Opts::Cli::defined->{$opt};
+            next if $help ne "help" and $defined_opt->{help_hide};
             next if $defined_opt->{caller} =~ /^Mnet(::|$)/;
-            $other_options = "Script options:\n\n" if not $other_options;
+            $other_options = "Script options$hidden:\n\n" if not $other_options;
             $other_options .= _new_help_tip($width, $defined_opt);
         }
         $output .= "$other_options\n" if $other_options;
 
         # output Mnet options
-        $output .= "Mnet options:\n\n";
+        $output .= "Mnet options$hidden:\n\n";
         foreach my $opt (sort keys %{$Mnet::Opts::Cli::defined}) {
             my $defined_opt = $Mnet::Opts::Cli::defined->{$opt};
+            next if $help ne "help" and $defined_opt->{help_hide};
             next if $defined_opt->{caller} !~ /^Mnet(::|$)/;
             $output .= _new_help_tip($width, $defined_opt);
         }

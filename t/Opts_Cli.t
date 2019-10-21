@@ -24,7 +24,7 @@ Test::More::is(`perl -e '
     use Mnet::Opts::Cli;
     Mnet::Opts::Cli->new;
 ' -- --help 2>&1 | grep -e Mnet -e '^ *--'`, 'Mnet options:
- --help [s]   display tips, or matching option text
+ --help [s]   display option text, try --help help
  --version    display version and system information
 ', 'display --help');
 
