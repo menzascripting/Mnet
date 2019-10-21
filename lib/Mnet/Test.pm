@@ -125,7 +125,7 @@ INIT {
     Mnet::Opts::Cli::define({
         getopt      => 'test-reset:s',
         help_hide   => '1',
-        help_tip    => 'reset opts/args from replay file',
+        help_tip    => 'reset options/args to their defaults',
         help_text   => '
             this option works from the command line only
             use --test-reset with an option name to reset option to default
