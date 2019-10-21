@@ -13,6 +13,11 @@ Mnet::Version - Returns Mnet version information
 Mnet::Version makes available an Mnet::Version::info function that can be used
 by other scripts and modules.
 
+ our $VERSION = "1.00";
+
+User scripts can use the above command to declare a version number string that
+will be detected by this module and included in its output.
+
 =head1 FUNCTIONS
 
 Mnet::Version implements the functions listed below.
@@ -63,22 +68,22 @@ and operating system. This is used by Mnet::Opts::Cli and Mnet::Log.
     my ($info, $spad) = ("", "35s");
     $spad = "1s =" if caller eq "Mnet::Log";
 
-    # output caller script version if known, and mnet version
-    $info .= sprintf("%-$spad $main::VERSION", $script_name) if $main::VERSION;
-    $info .= sprintf("%-$spad $Mnet::VERSION\n", "Mnet");
-
-    # add a blank line in before md5 outputs, looks better from cli --version
+    # output caller script version if known, no blank line in Mnet::Log --debug
+    my $script_version = $main::VERSION // "?";
+    $info .= sprintf("%-$spad $script_version\n", $script_name);
     $info .= "\n" if caller ne "Mnet::Log";
 
-    # append basic version info to output string
+    # output mnet, perl, and os version, no blank line in Mnet::Log --debug
+    $info .= sprintf("%-$spad $Mnet::VERSION\n", "Mnet");
     $info .= sprintf("%-$spad $^V\n",        "perl version");
     $info .= sprintf("%-$spad $uname\n",     "system uname");
+    $info .= "\n" if caller ne "Mnet::Log";
+
+    # output path information, no blank line in Mnet::Log --debug
     $info .= sprintf("%-$spad $cwd\n",       "current dir");
     $info .= sprintf("%-$spad $0\n",         "exec path");
     $info .= sprintf("%-$spad $mnet_path\n", "Mnet path");
     $info .= sprintf("%-$spad $perl_path\n", "perl path");
-
-    # add a blank line in before md5 outputs, looks better from cli --version
     $info .= "\n" if caller ne "Mnet::Log";
 
     # append m5d info for executable and all Mnet modules to output string
