@@ -386,8 +386,9 @@ The perl ARGV array is not modified by this module.
     foreach my $opt (sort keys %{$Mnet::Opts::Cli::defined}) {
         my $defined_opt = $Mnet::Opts::Cli::defined->{$opt};
 
-        # options can be reset with --test-reset cli option
-        if ($cli_opts->{'test-reset'} and $cli_opts->{'test-reset'} eq $opt) {
+        # options can be reset with --replay-reset cli option
+        if ($cli_opts->{'replay-reset'}
+            and $cli_opts->{'replay-reset'} eq $opt) {
             $log_entries->{$opt} = "def";
             $opts->{$opt} = $defined_opt->{default};
 
@@ -480,8 +481,8 @@ The perl ARGV array is not modified by this module.
     if (defined $extras[0]) {
         $log->debug("new extra cli args will record from command line");
         $test_data->{extras} = \@extras;
-    } elsif (defined $opts->{'test-reset'} and $opts->{'test-reset'} eq "") {
-        $log->debug("new extra cli args will reset via --test-reset");
+    } elsif (defined $opts->{'replay-reset'} and $opts->{'replay-reset'} eq ""){
+        $log->debug("new extra cli args will reset via --replay-reset");
         delete $test_data->{extras};
     } elsif (exists $test_data->{extras}) {
         $log->debug("new extra cli args will replay from Mnet::Test data");
@@ -530,9 +531,6 @@ sub _new_help {
     # output list of help usage tips, one line per option
     if ($help eq "" or $help eq "help") {
 
-        my $hidden = "";
-        $hidden = ", including hidden options" if $help eq "help";
-
         # calculate width to align usage and tip columns
         my $width = 0;
         foreach my $opt (sort keys %{$Mnet::Opts::Cli::defined}) {
@@ -547,6 +545,7 @@ sub _new_help {
             my ($width, $defined_opt) = (shift, shift);
             my $usage = $defined_opt->{help_usage};
             my $tip = $defined_opt->{help_tip} // "";
+            $tip = "*$tip" if $defined_opt->{help_hide};
             return sprintf(" --%-${width}s   $tip\n", $usage);
         }
 
@@ -556,19 +555,21 @@ sub _new_help {
             my $defined_opt = $Mnet::Opts::Cli::defined->{$opt};
             next if $help ne "help" and $defined_opt->{help_hide};
             next if $defined_opt->{caller} =~ /^Mnet(::|$)/;
-            $other_options = "Script options$hidden:\n\n" if not $other_options;
+            $other_options = "Script option:\n\n" if not $other_options;
             $other_options .= _new_help_tip($width, $defined_opt);
         }
         $output .= "$other_options\n" if $other_options;
 
         # output Mnet options
-        $output .= "Mnet options$hidden:\n\n";
+        $output .= "Mnet options:\n\n";
         foreach my $opt (sort keys %{$Mnet::Opts::Cli::defined}) {
             my $defined_opt = $Mnet::Opts::Cli::defined->{$opt};
             next if $help ne "help" and $defined_opt->{help_hide};
             next if $defined_opt->{caller} !~ /^Mnet(::|$)/;
             $output .= _new_help_tip($width, $defined_opt);
         }
+
+        $output .= "\n* hidden options\n" if $help eq "help";
 
     # output long form help text for options matching input --help value
     } else {
@@ -654,7 +655,7 @@ When used with the L<Mnet::Test> --record option this module will save all cli
 options defined without the norecord hash key set true in the specified file
 along with any extra arguments specified on the command line. For more info
 about enabling the recording of individual options refer to the define
-function in this module and the --test-reset option.
+function in this module and the --replay-reset option.
 
 When the --replay option is used this module will load all cli options saved
 in the specified Mnet::Test file then apply options specified on the command

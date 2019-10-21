@@ -79,7 +79,7 @@ Test::More::is(`perl -e '
 ' -- --test-opt test 2>&1`, 'invalid or missing args --test-opt test
 ', 'invalid cli opt');
 
-# check --test-reset option for undef default
+# check --replay-reset option for undef default
 Test::More::is(`perl -e '
     use warnings;
     use strict;
@@ -87,9 +87,9 @@ Test::More::is(`perl -e '
     use Mnet::Test;
     Mnet::Opts::Cli::define({ getopt => "test-opt=s" });
     warn "test-opt" if defined Mnet::Opts::Cli->new->test_opt;
-' -- --test-opt test --test-reset test-opt 2>&1`, '', 'undef --test-reset');
+' -- --test-opt test --replay-reset test-opt 2>&1`, '', 'undef --replay-reset');
 
-# check --test-reset option for defined default
+# check --replay-reset option for defined default
 Test::More::is(`perl -e '
     use warnings;
     use strict;
@@ -97,7 +97,7 @@ Test::More::is(`perl -e '
     use Mnet::Test;
     Mnet::Opts::Cli::define({ getopt => "test-opt=s", default => "default" });
     warn "test-opt" if Mnet::Opts::Cli->new->test_opt ne "default";
-' -- --test-opt test --test-reset test-opt 2>&1`,'','defined --test-reset');
+' -- --test-opt test --replay-reset test-opt 2>&1`,'','defined --replay-reset');
 
 # check logging of options
 Test::More::is(`perl -e '
