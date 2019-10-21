@@ -74,7 +74,7 @@ INIT {
     # define --help cli option
     Mnet::Opts::Cli::define({
         getopt      => 'help:s',
-        help_tip    => 'display option text, try --help help',
+        help_tip    => 'display option text, *try --help help',
         norecord    => 1,
     });
 
@@ -535,7 +535,6 @@ sub _new_help {
         my $width = 0;
         foreach my $opt (sort keys %{$Mnet::Opts::Cli::defined}) {
             my $defined_opt = $Mnet::Opts::Cli::defined->{$opt};
-            next if $help ne "help" and $defined_opt->{help_hide};
             next if $width > length($defined_opt->{help_usage});
             $width = length($defined_opt->{help_usage});
         }
@@ -568,8 +567,6 @@ sub _new_help {
             next if $defined_opt->{caller} !~ /^Mnet(::|$)/;
             $output .= _new_help_tip($width, $defined_opt);
         }
-
-        $output .= "\n* hidden options\n" if $help eq "help";
 
     # output long form help text for options matching input --help value
     } else {
