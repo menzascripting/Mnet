@@ -37,7 +37,7 @@ use Test::More tests => 5;
     my ($time, $pid, $elapsed) = ("hh:mm:ss", "pid", "secs seconds elapsed");
     $time = $1 if $out =~ /^(\d\d:\d\d:\d\d)/;
     $pid = $1 if $out =~ /errors, pid (\d+)/;
-    $elapsed = $1 if $out =~ /(\d+ seconds elapsed)$/;
+    $elapsed = $1 if $out =~ /(\d+\.\d+ seconds elapsed)$/;
     Test::More::is(
         $out,
         "$time  -  - Mnet::Log finished with no errors, pid $pid, $elapsed",

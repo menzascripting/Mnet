@@ -83,7 +83,7 @@ use Exporter qw( import );
 use Mnet::Opts;
 use Mnet::Opts::Cli::Cache;
 use Mnet::Version;
-
+use Time::HiRes;
 # export function names
 our @EXPORT_OK = qw( DEBUG INFO WARN FATAL );
 
@@ -96,8 +96,8 @@ BEGIN {
     #   so that multi-process syswrite lines are not split
     $| = 1;
 
-    # note start time of script
-    our $start_time = $^T;
+    # note start time of script, seconds since epoch, floating point
+    our $start_time = Time::HiRes::time();
 
     # init global flag to track that first log message was output
     #   this is used to output log entry when script started and finished
@@ -269,7 +269,7 @@ sub batch_fork {
     # reset error, start time, and first log entry for forked batch child
     my $error_reset = shift;
     $Mnet::Log::error = $error_reset;
-    $Mnet::Log::start_time = time;
+    $Mnet::Log::start_time = Time::HiRes::time();
     $Mnet::Log::first = 0;
 }
 
@@ -571,7 +571,6 @@ to fatal are handled in an eval the same as calls to die.
 
 
 # output Mnet::Log finished entry at end of script
-#   note that $^T, aka $BASETIME, is the unixtime script started running
 #   output log prefix " - " bypasses Mnet::Test recording of these entries
 END {
 
@@ -583,7 +582,8 @@ END {
         my $finished = "with no errors";
         $finished = "with exit error status" if $?;
         $finished = "with errors" if defined $Mnet::Log::error;
-        my $elapsed = (time-$Mnet::Log::start_time)." seconds elapsed";
+        my $elapsed = Time::HiRes::time - $Mnet::Log::start_time;
+        $elapsed = sprintf("%.3f seconds elapsed", $elapsed);
         $finished .= ", pid $$, $elapsed" if not $INC{"Mnet/Log/Test.pm"};
         NOTICE("detected at least one error, $Mnet::Log::error")
             if defined $Mnet::Log::error and not $INC{"Mnet/Log/Test.pm"};
