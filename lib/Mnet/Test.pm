@@ -101,8 +101,8 @@ INIT {
         getopt      => 'replay=s',
         help_tip    => 'run with test data from record file',
         help_text   => '
-            execute script using replay file created with --record option
             this option works from the command line only
+            execute script using replay file created with --record option
             refer to perldoc Mnet::Test for more info
         ',
         norecord    => 1,
@@ -112,7 +112,7 @@ INIT {
     Mnet::Opts::Cli::define({
         getopt      => 'replay-reset:s',
         help_hide   => '1',
-        help_tip    => 'reset opts/args in test record file',
+        help_tip    => 'reset opts/args from replay file',
         help_text   => '
             this option works from the command line only
             use --replay-reset with --record to reset options to default values
@@ -130,8 +130,8 @@ INIT {
         getopt      => 'test',
         help_tip    => 'diff output with test replay output',
         help_text   => '
-            use to compare current script output to --replay output
             this option works from the command line only
+            use to compare current script output to --replay output
             refer to perldoc Mnet::Test for more info
         ',
         norecord    => 1,
