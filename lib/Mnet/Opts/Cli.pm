@@ -386,8 +386,8 @@ The perl ARGV array is not modified by this module.
     foreach my $opt (sort keys %{$Mnet::Opts::Cli::defined}) {
         my $defined_opt = $Mnet::Opts::Cli::defined->{$opt};
 
-        # options can be reset to with --reset cli option
-        if ($cli_opts->{reset} and $cli_opts->{reset} eq $opt) {
+        # options can be reset with --test-reset cli option
+        if ($cli_opts->{'test-reset'} and $cli_opts->{'test-reset'} eq $opt) {
             $log_entries->{$opt} = "def";
             $opts->{$opt} = $defined_opt->{default};
 
@@ -480,8 +480,8 @@ The perl ARGV array is not modified by this module.
     if (defined $extras[0]) {
         $log->debug("new extra cli args will record from command line");
         $test_data->{extras} = \@extras;
-    } elsif (defined $opts->{reset} and $opts->{reset} eq "") {
-        $log->debug("new extra cli args will record as reset to --reset");
+    } elsif (defined $opts->{'test-reset'} and $opts->{'test-reset'} eq "") {
+        $log->debug("new extra cli args will reset via --test-reset");
         delete $test_data->{extras};
     } elsif (exists $test_data->{extras}) {
         $log->debug("new extra cli args will replay from Mnet::Test data");
@@ -654,7 +654,7 @@ When used with the L<Mnet::Test> --record option this module will save all cli
 options defined without the norecord hash key set true in the specified file
 along with any extra arguments specified on the command line. For more info
 about enabling the recording of individual options refer to the define
-function in this module and the --reset option.
+function in this module and the --test-reset option.
 
 When the --replay option is used this module will load all cli options saved
 in the specified Mnet::Test file then apply options specified on the command

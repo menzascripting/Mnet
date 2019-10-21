@@ -89,6 +89,7 @@ INIT {
             files recorded can be replayed using the --replay option
             data is saved with a .new suffix, then renamed after writing
             set null to update --replay filename with new --test diff outputs
+            use --test-reset option to remove opts/args from recorded file
             this option works from the command line only
             refer to perldoc Mnet::Test for more info
         ',
@@ -107,28 +108,29 @@ INIT {
         norecord    => 1,
     }) if $INC{"Mnet/Opts/Cli.pm"};
 
-    # defined --reset option
-    Mnet::Opts::Cli::define({
-        getopt      => 'reset:s',
-        help_tip    => 'reset opts/args in test record file',
-        help_text   => '
-            use --reset with --record to reset options to default values
-            use --reset with no option name to reset extra args to default
-            use --help for individual options to check if they are recordable
-            error issued if --reset is specified for non-recordable option
-            refer also to norecord option in Mnet::Opts::Cli::define function
-            this option works from the command line only
-            refer to perldoc Mnet::Test for more info
-        ',
-        norecord    => 1,
-    }) if $INC{"Mnet/Opts/Cli.pm"};
-
     # define --test option
     Mnet::Opts::Cli::define({
         getopt      => 'test',
         help_tip    => 'diff output with test replay output',
         help_text   => '
             use to compare current script output to --replay output
+            this option works from the command line only
+            refer to perldoc Mnet::Test for more info
+        ',
+        norecord    => 1,
+    }) if $INC{"Mnet/Opts/Cli.pm"};
+
+    # define --test-reset option
+    Mnet::Opts::Cli::define({
+        getopt      => 'test-reset:s',
+        help_hide   => '1',
+        help_tip    => 'reset opts/args in test record file',
+        help_text   => '
+            use --test-reset with --record to reset options to default values
+            use --test-reset with no option to reset extra args to default
+            use --help for individual options to check if they are recordable
+            error if --test-reset is specified for non-recordable option
+            refer also to norecord option in Mnet::Opts::Cli::define function
             this option works from the command line only
             refer to perldoc Mnet::Test for more info
         ',
