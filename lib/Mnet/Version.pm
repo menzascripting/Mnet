@@ -70,17 +70,17 @@ and operating system. This is used by Mnet::Opts::Cli and Mnet::Log.
 
     # output caller script version if known, no blank line in Mnet::Log --debug
     my $script_version = $main::VERSION // "?";
-    $info .= sprintf("%-$spad $script_version\n", $script_name);
+    $info .= sprintf("%-$spad $script_version\n", "$script_name");
     $info .= "\n" if caller ne "Mnet::Log";
 
     # output mnet, perl, and os version, no blank line in Mnet::Log --debug
-    $info .= sprintf("%-$spad $Mnet::VERSION\n", "Mnet");
+    $info .= sprintf("%-$spad $Mnet::VERSION\n", "Mnet version");
     $info .= sprintf("%-$spad $^V\n",        "perl version");
     $info .= sprintf("%-$spad $uname\n",     "system uname");
     $info .= "\n" if caller ne "Mnet::Log";
 
     # output path information, no blank line in Mnet::Log --debug
-    $info .= sprintf("%-$spad $cwd\n",       "current dir");
+    $info .= sprintf("%-$spad $cwd\n",       "cwd path");
     $info .= sprintf("%-$spad $0\n",         "exec path");
     $info .= sprintf("%-$spad $mnet_path\n", "Mnet path");
     $info .= sprintf("%-$spad $perl_path\n", "perl path");
