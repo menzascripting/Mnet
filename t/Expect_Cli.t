@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Expect::Cli functionality
 
@@ -8,6 +7,9 @@ use warnings;
 use strict;
 use Expect;
 use Test::More tests => 9;
+
+# use current perl for tests
+my $perl = $^X;
 
 # comment on failed_re, applies to Mnet::Expect::Cli and subclasses like Ios
 #   there was a problem when failed_re hit on text appearing in login banners
@@ -20,11 +22,11 @@ use Test::More tests => 9;
 
 # init perl code used for new login tests
 #   for debug uncomment the use Mnet::Opts::Set::Debug line below
-my $perl_new_login = "chmod 700 \$CLI; echo; perl -e '" . '
+my $perl_new_login = "chmod 700 \$CLI; echo; $perl -e '" . '
     use warnings;
     use strict;
     use Mnet::Expect::Cli;
-    # use Mnet::Log; use Mnet::Opts::Set::Debug;
+    # use Mnet::Log; use Mnet::Opts::Set::Debug; #?
     my $opts = { spawn => $ENV{CLI}, timeout => 2, failed_re => "fail" };
     $opts->{username} = "user" if "@ARGV" =~ /user/;
     $opts->{password} = "pass" if "@ARGV" =~ /pass/;

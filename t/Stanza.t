@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Stanza
 

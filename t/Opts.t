@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Opts
 
@@ -7,8 +6,11 @@ use warnings;
 use strict;
 use Test::More tests => 1;
 
+# use current perl for tests
+my $perl = $^X;
+
 # check Mnet::Opts for pragma, hash, method, input, and non-existant opts
-Test::More::is(`perl -e 'use warnings; use strict;
+Test::More::is(`$perl -e 'use warnings; use strict;
     use Mnet::Opts;
     use Mnet::Opts::Set::Debug;
     print Mnet::Opts->new->{debug} . "\n";

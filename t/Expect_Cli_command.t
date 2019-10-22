@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Expect::Cli command method functionality
 
@@ -8,6 +7,9 @@ use warnings;
 use strict;
 use Expect;
 use Test::More tests => 12;
+
+# use current perl for tests
+my $perl = $^X;
 
 # init perl code used for command method tests
 #   for debug uncomment the use Mnet::Opts::Set::Debug line below
@@ -30,7 +32,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n prompt%; read INPUT
     echo output
     echo -n prompt%; read INPUT
-' >\$CLI; chmod 700 \$CLI; echo; perl -e '
+' >\$CLI; chmod 700 \$CLI; echo; $perl -e '
     $perl_command_setup
     print \$expect->command("test") // "<undef>";
 ' 2>&1; echo; rm \$CLI`, '
@@ -42,7 +44,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n prompt%; read INPUT
     echo -n prompt%; read INPUT
     echo output; read INPUT
-' >\$CLI; chmod 700 \$CLI; echo; perl -e '
+' >\$CLI; chmod 700 \$CLI; echo; $perl -e '
     $perl_command_setup
     print \$expect->command("test") // "<undef>";
 ' 2>&1; echo; rm \$CLI`, '
@@ -54,7 +56,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n prompt%; read INPUT
     echo -n prompt%; read INPUT
     echo output; read INPUT
-' >\$CLI; chmod 700 \$CLI; echo; perl -e '
+' >\$CLI; chmod 700 \$CLI; echo; $perl -e '
     $perl_command_setup
     print \$expect->command("test", undef, [ "" => undef ]) // "<undef>";
 ' 2>&1; echo; rm \$CLI`, '
@@ -68,7 +70,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n question; read INPUT
     echo output
     echo -n prompt%; read INPUT
-' >\$CLI; chmod 700 \$CLI; echo; perl -e '
+' >\$CLI; chmod 700 \$CLI; echo; $perl -e '
     $perl_command_setup
     print \$expect->command("test", undef, [ question => "-\\r" ]) // "<undef>";
 ' 2>&1; echo; rm \$CLI`, '
@@ -83,7 +85,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n question; read INPUT
     echo output
     echo -n prompt%; read INPUT
-' >\$CLI; chmod 700 \$CLI; echo; perl -e '
+' >\$CLI; chmod 700 \$CLI; echo; $perl -e '
     $perl_command_setup
     print \$expect->command("test", undef, [ question => undef ]) // "<undef>";
 ' 2>&1; echo; rm \$CLI`, '
@@ -98,7 +100,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n question; read INPUT
     echo output
     echo -n prompt%; read INPUT
-' >\$CLI; chmod 700 \$CLI; echo; perl -e '
+' >\$CLI; chmod 700 \$CLI; echo; $perl -e '
     $perl_command_setup
     print \$expect->command("test", undef, [ question => sub {
         shift; return "-\\r" if shift =~ /preamble/;
@@ -117,7 +119,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n question; read INPUT
     echo output
     echo -n prompt%; read INPUT
-' >\$CLI; chmod 700 \$CLI; echo; perl -e '
+' >\$CLI; chmod 700 \$CLI; echo; $perl -e '
     $perl_command_setup
     print \$expect->command("test", undef, [ question => sub {
         shift; return undef if shift =~ /preamble/;
@@ -134,7 +136,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo prompt%
     echo output
     echo -n prompt%; read INPUT
-' >\$CLI; chmod 700 \$CLI; echo; perl -e '
+' >\$CLI; chmod 700 \$CLI; echo; $perl -e '
     $perl_command_setup
     print \$expect->command("test") // "<undef>";
 ' 2>&1; echo; rm \$CLI`, '
@@ -150,7 +152,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n two; read INPUT
     echo output
     echo -n prompt%; read INPUT
-' >\$CLI; chmod 700 \$CLI; echo; perl -e '
+' >\$CLI; chmod 700 \$CLI; echo; $perl -e '
     $perl_command_setup
     print \$expect->command("test", undef,
         [ one => "1\\r", two => "2\\r" ]) // "<undef>";
@@ -168,7 +170,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo MORE; read INPUT
     echo more output
     echo -n prompt%; read INPUT
-' >\$CLI; chmod 700 \$CLI; echo; perl -e '
+' >\$CLI; chmod 700 \$CLI; echo; $perl -e '
     $perl_command_setup
     print \$expect->command("test") // "<undef>";
 ' 2>&1; echo; rm \$CLI`, '
@@ -184,7 +186,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n prompt%; read INPUT
     echo uncached output
     echo -n prompt%; read INPUT
-' >\$CLI; chmod 700 \$CLI; echo; perl -e '
+' >\$CLI; chmod 700 \$CLI; echo; $perl -e '
     $perl_command_setup
     print \$expect->command("test") // "<undef>";
     print "\\n";
@@ -202,7 +204,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n prompt%; read INPUT
     echo uncached output
     echo -n prompt%; read INPUT
-' >\$CLI; chmod 700 \$CLI; echo; perl -e '
+' >\$CLI; chmod 700 \$CLI; echo; $perl -e '
     $perl_command_setup
     print \$expect->command("test") // "<undef>";
     print "\\n";

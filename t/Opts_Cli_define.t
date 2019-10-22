@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Opts::Cli define function and various option types
 
@@ -7,8 +6,11 @@ use warnings;
 use strict;
 use Test::More tests => 7;
 
+# use current perl for tests
+my $perl = $^X;
+
 # check default option type
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -31,7 +33,7 @@ Test::More::is(`perl -e '
 ', 'default option type');
 
 # check negatable option type
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -54,7 +56,7 @@ Test::More::is(`perl -e '
 ', 'negatable option type');
 
 # check integer required option type
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -77,7 +79,7 @@ Test::More::is(`perl -e '
 ', 'integer required option type');
 
 # check integer optional option type
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -100,7 +102,7 @@ Test::More::is(`perl -e '
 ', 'integer optional option type');
 
 # check string required option type
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -121,7 +123,7 @@ Test::More::is(`perl -e '
 '', 'string required option type');
 
 # check string optional option type
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -142,7 +144,7 @@ Test::More::is(`perl -e '
 ', 'string optional option type');
 
 # check string optional option type
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log;

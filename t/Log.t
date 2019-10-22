@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Log basic functionality, functions, and methods
 
@@ -7,9 +6,12 @@ use warnings;
 use strict;
 use Test::More tests => 5;
 
+# use current perl for tests
+my $perl = $^X;
+
 # check starting log entry without Mnet::Log::Test, with time, pid, and date
 {
-    chomp(my $out = `perl -e '
+    chomp(my $out = `$perl -e '
         use warnings;
         use strict;
         use Mnet::Log qw( INFO );
@@ -28,7 +30,7 @@ use Test::More tests => 5;
 
 # check finished log entry without Mnet::Log::Test, with time, pid, and date
 {
-    chomp(my $out = `perl -e '
+    chomp(my $out = `$perl -e '
         use warnings;
         use strict;
         use Mnet::Log qw( DEBUG );
@@ -46,7 +48,7 @@ use Test::More tests => 5;
 }
 
 # check output from Mnet::Log functions
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log qw( DEBUG INFO WARN FATAL );
@@ -63,7 +65,7 @@ DIE - main fatal
 ', 'function calls');
 
 # check output from Mnet::Log methods
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log;
@@ -80,7 +82,7 @@ DIE - main fatal
 ', 'method calls');
 
 # check output from Mnet::Log with exit status set for error
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log;

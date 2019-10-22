@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Expect::Cli record and replay functionality
 
@@ -12,6 +11,9 @@ use Test::More tests => 4;
 
 # create temp record/replay/test file
 my ($fh, $file) = File::Temp::tempfile( UNLINK => 1 );
+
+# use current perl for tests
+my $perl = $^X;
 
 # init perl code used for command record and replay tests
 #   for debug uncomment the use Mnet::Opts::Set::Debug line below
@@ -34,7 +36,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n prompt%; read INPUT
     echo output
     echo -n prompt%; read INPUT
-' >\$CLI; chmod 700 \$CLI; echo; perl -e '
+' >\$CLI; chmod 700 \$CLI; echo; $perl -e '
     $perl_record_replay
     print \$expect->command("test") // "<undef>";
 ' -- --record $file 2>&1; echo; rm \$CLI`, '
@@ -42,7 +44,7 @@ output
 ', 'command method --record');
 
 # command method replay
-Test::More::is(`echo; perl -e '
+Test::More::is(`echo; $perl -e '
     $perl_record_replay
     print \$expect->command("test") // "<undef>";
 ' -- --replay $file 2>&1; echo`, '
@@ -57,7 +59,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n prompt%; read INPUT
     echo output two
     echo -n prompt%; read INPUT
-' >\$CLI; chmod 700 \$CLI; echo; perl -e '
+' >\$CLI; chmod 700 \$CLI; echo; $perl -e '
     $perl_record_replay
     print \$expect->command("test") // "<undef>";
     print "\\n";
@@ -69,7 +71,7 @@ output two
 ', 'command method --record with cache clear');
 
 # command method replay with cache clear
-Test::More::is(`echo; perl -e '
+Test::More::is(`echo; $perl -e '
     $perl_record_replay
     print \$expect->command("test") // "<undef>";
     print "\\n";

@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Opts::Cli precendence of options
 
@@ -7,8 +6,11 @@ use warnings;
 use strict;
 use Test::More tests => 4;
 
+# use current perl for tests
+my $perl = $^X;
+
 # check default, using --quiet as our test option since it has a pragma
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log;
@@ -21,7 +23,7 @@ Test::More::is(`perl -e '
 ', 'default option value');
 
 # check that pragma setting overrides default
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log;
@@ -33,7 +35,7 @@ Test::More::is(`perl -e '
 ' -- 2>&1`, '', 'Mnet::Opts::Set pragma');
 
 # check that Mnet env var overrides pragma setting
-Test::More::is(`export Mnet="--noquiet"; echo; perl -e '
+Test::More::is(`export Mnet="--noquiet"; echo; $perl -e '
     use warnings;
     use strict;
     use Mnet::Log;
@@ -50,7 +52,7 @@ inf - Mnet::Opts::Cli new parsed opt env quiet = 0
 
 
 # check that Mnet env var overrides pragma setting
-Test::More::is(`export Mnet="--noquiet"; perl -e '
+Test::More::is(`export Mnet="--noquiet"; $perl -e '
     use warnings;
     use strict;
     use Mnet::Log;

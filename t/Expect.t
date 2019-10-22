@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Expect functionality
 
@@ -9,8 +8,12 @@ use strict;
 use Expect;
 use Test::More tests => 2;
 
+# use current perl for tests
+my $perl = $^X;
+
 # check basic Mnet::Expect functionality
-Test::More::is(`echo; perl -e '
+#   some cpan testers needed `grep -v log hex` to pass, must've closed first
+Test::More::is(`echo; $perl -e '
     use warnings;
     use strict;
     use Mnet::Expect;
@@ -24,7 +27,7 @@ Test::More::is(`echo; perl -e '
     die "expect undef" if not defined \$expect;
     \$expect->expect->expect(1, "-re", ".-test");
     \$expect->close;
-' -- 2>&1 | grep -v pid | grep -v HASH`, '
+' -- 2>&1 |grep -v pid |grep -v HASH |grep -v 'Mnet::Expect log hex: 0d 0a'`, '
  -  - Mnet::Log script -e started
 dbg - Mnet::Expect new starting
 dbg - Mnet::Expect new opts debug = 1
@@ -34,7 +37,6 @@ dbg - Mnet::Expect new calling spawn
 dbg - Mnet::Expect spawn starting
 dbg - Mnet::Expect spawn finished, returning true
 dbg - Mnet::Expect log txt: x-test
-dbg - Mnet::Expect log hex: 0d 0a
 dbg - Mnet::Expect close starting
 dbg - Mnet::Expect close calling hard_close
 dbg - Mnet::Expect close finished, hard_close confirmed
@@ -42,7 +44,7 @@ dbg - Mnet::Expect close finished, hard_close confirmed
 ', 'new, expect, log, and close');
 
 # check Mnet::Expect spawn error
-Test::More::is(`echo; perl -e '
+Test::More::is(`echo; $perl -e '
     use warnings;
     use strict;
     use Mnet::Expect;

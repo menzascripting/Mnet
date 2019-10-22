@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Report::Table weith Mnet::Batch
 
@@ -7,9 +6,12 @@ use warnings;
 use strict;
 use Test::More tests => 2;
 
+# use current perl for tests
+my $perl = $^X;
+
 # check batch fork error
 #   for debug uncomment the use Mnet::Opts::Set::Debug line below
-Test::More::is(`echo; echo "batch" | perl -e '
+Test::More::is(`echo; echo "batch" | $perl -e '
     use warnings;
     use strict;
     # use Mnet::Log; use Mnet::Opts::Set::Debug;
@@ -24,7 +26,7 @@ new Mnet::Report::Table must be created before Mnet::Batch::fork
 
 # check batch csv output
 #   for debug uncomment the use Mnet::Opts::Set::Debug line below
-Test::More::is(`echo; ( echo 1; echo 2 ) | perl -e '
+Test::More::is(`echo; ( echo 1; echo 2 ) | $perl -e '
     use warnings;
     use strict;
     # use Mnet::Log; use Mnet::Opts::Set::Debug;

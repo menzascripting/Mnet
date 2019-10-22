@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Dump
 
@@ -7,8 +6,11 @@ use warnings;
 use strict;
 use Test::More tests => 1;
 
+# use current perl for tests
+my $perl = $^X;
+
 # check output from Mnet::Dump line function
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Dump;

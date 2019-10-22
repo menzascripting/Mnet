@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Report::Table row_on_error method functionality
 
@@ -6,6 +5,9 @@
 use warnings;
 use strict;
 use Test::More tests => 4;
+
+# use current perl for tests
+my $perl = $^X;
 
 # init perl code used to test row_on_error method
 #   for debug uncomment the use Mnet::Opts::Set::Debug line below
@@ -15,7 +17,7 @@ sub perl_row_on_error {
     my ($log, $die) = ("", "");
     $log = 'use Mnet::Log;' if $input =~ /log/;
     $die = 'die "died\n";' if $input =~ /die/;
-    return "perl -e '" . '
+    return "$perl -e '" . '
         use warnings;
         use strict;
         ' . $log . '

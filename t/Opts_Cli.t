@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Opts::Cli
 
@@ -7,9 +6,12 @@ use warnings;
 use strict;
 use Test::More tests => 9;
 
+# use current perl for tests
+my $perl = $^X;
+
 # check --version
 #   extra sed was needed on openbsd
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -18,7 +20,7 @@ Test::More::is(`perl -e '
 ', 'display --version');
 
 # check --help
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -29,7 +31,7 @@ Test::More::is(`perl -e '
 ', 'display --help');
 
 # parse cli opt and check that ARGV doesn't change
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -44,7 +46,7 @@ test
 ', 'parse cli opt without changing ARGV');
 
 # parse cli opt and extras and check that ARGV doesn't change
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -61,7 +63,7 @@ extra1 extra2
 ', 'parse cli opt and extras without changing ARGV');
 
 # check for error when reading invalid extra args
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -71,7 +73,7 @@ Test::More::is(`perl -e '
 ', 'invalid or missing args');
 
 # check for error when reading bad cli opt
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -80,7 +82,7 @@ Test::More::is(`perl -e '
 ', 'invalid cli opt');
 
 # check --test-reset option for undef default
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -90,7 +92,7 @@ Test::More::is(`perl -e '
 ' -- --test-opt test --test-reset test-opt 2>&1`, '', 'undef --test-reset');
 
 # check --test-reset option for defined default
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -100,7 +102,7 @@ Test::More::is(`perl -e '
 ' -- --test-opt test --test-reset test-opt 2>&1`,'','defined --test-reset');
 
 # check logging of options
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log;

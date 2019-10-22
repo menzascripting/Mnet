@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Test::time function
 
@@ -11,8 +10,11 @@ use Test::More tests => 6;
 # create temp test/record/replay file
 my ($fh, $file) = File::Temp::tempfile( UNLINK => 1 );
 
+# use current perl for tests
+my $perl = $^X;
+
 # check for real time using no cli opts
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Test;
@@ -23,7 +25,7 @@ Test::More::is(`perl -e '
 ' -- 2>&1`, '', 'real time no cli opts');
 
 # check for test time using no cli opts
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Test;
@@ -34,7 +36,7 @@ Test::More::is(`perl -e '
 ' -- 2>&1`, '', 'test time no cli opts');
 
 # check for real time using cli opts
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -45,7 +47,7 @@ Test::More::is(`perl -e '
 ' -- 2>&1`, '', 'real time with cli opts');
 
 # check for test time with --record cli opt
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -57,7 +59,7 @@ Test::More::is(`perl -e '
 ' -- --record $file 2>&1`, '', 'test time --record cli opts');
 
 # check for test time with --replay cli opt
-Test::More::is(`echo '\$Mnet::Test::data = {}' | perl -e '
+Test::More::is(`echo '\$Mnet::Test::data = {}' | $perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -69,7 +71,7 @@ Test::More::is(`echo '\$Mnet::Test::data = {}' | perl -e '
 ' -- --replay /dev/stdin 2>&1`, '', 'test time --replay cli opts');
 
 # check for test time with --test cli opt
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;

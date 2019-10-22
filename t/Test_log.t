@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Test with Mnet::Log module
 
@@ -13,8 +12,11 @@ use Text::Diff;
 # create temp test/record/replay file
 my ($fh, $file) = File::Temp::tempfile( UNLINK => 1 );
 
+# use current perl for tests
+my $perl = $^X;
+
 # save record file using Mnet::Log
-Test::More::is(`( perl -e '
+Test::More::is(`( $perl -e '
     use warnings;
     use strict;
     use Mnet::Log;
@@ -41,7 +43,7 @@ WRN - main warn2
 ", 'record with mnet log');
 
 # replay file using Mnet::Log and exit status
-Test::More::is(`( echo; perl -e '
+Test::More::is(`( echo; $perl -e '
     use warnings;
     use strict;
     use Mnet::Log;

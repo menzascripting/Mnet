@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Report::Table errors
 
@@ -15,11 +14,12 @@ use Test::More tests => 11;
 #
 
 # subroutine to catch Mnet::Report::Table->new opts errors
+#   some systems return 'error at ... line x' and some with a dot at end
 sub new_errors {
     my $opts = shift;
     eval { Mnet::Report::Table->new($opts) };
     my $error = $@ // return "";
-    $error =~ s/ at \S+ line \d+\.$//;
+    $error =~ s/ at \S+ line \d+\.?$//;
     return "\n$error";
 }
 

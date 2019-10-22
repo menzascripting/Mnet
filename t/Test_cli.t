@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Test with Mnet::Opts::Cli module
 
@@ -12,6 +11,9 @@ use Text::Diff;
 
 # create temp record/replay/test file
 my ($fh, $file) = File::Temp::tempfile( UNLINK => 1 );
+
+# use current perl for tests
+my $perl = $^X;
 
 # init script used to test mnet cli opt and extra arg
 my $script = '
@@ -30,7 +32,7 @@ my $script = '
 ';
 
 # save record file using Mnet::Opts::Cli
-Test::More::is(`( perl -e '
+Test::More::is(`( $perl -e '
     $script
 ' -- --record $file --sample 2 extra; cat $file | sed "s/^ *//" ) 2>&1`,
 "sample = 2
@@ -53,7 +55,7 @@ extras = extra
 ", 'record with mnet cli opt and extra arg');
 
 # replay file using Mnet::Opts::Cli
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     $script
 ' -- --replay $file --test 2>&1 | sed "s/tmp\\/.*/tmp\\/file/"`,
 "sample = 2
@@ -69,7 +71,7 @@ Test output is identical.
 
 
 # replay file using Mnet::Opts::Cli
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     $script
 ' -- --replay $file --test --sample 3 arg 2>&1 | sed "s/tmp\\/.*/tmp\\/file/"`,
 "sample = 3

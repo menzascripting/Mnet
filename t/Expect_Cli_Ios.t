@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Expect::Cli::Ios functionality
 
@@ -9,6 +8,9 @@ use strict;
 use Expect;
 use File::Temp;
 use Test::More tests => 8;
+
+# use current perl for tests
+my $perl = $^X;
 
 
 
@@ -35,7 +37,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"prompt# \"; read INPUT
     echo -n \"prompt# \"; read INPUT
     echo -n \"prompt# \"; read INPUT
-' >\$CLI; chmod 700 \$CLI; perl -e '
+' >\$CLI; chmod 700 \$CLI; $perl -e '
     $perl_command_setup
     print \$expect->enable("test") // "<undef>";
 ' 2>&1; rm \$CLI`, '1', 'enable when already in enable');
@@ -45,7 +47,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"prompt> \"; read INPUT
     echo -n \"prompt> \"; read INPUT
     echo -n \"prompt# \"; read INPUT
-' >\$CLI; chmod 700 \$CLI; perl -e '
+' >\$CLI; chmod 700 \$CLI; $perl -e '
     $perl_command_setup
     print \$expect->enable("test") // "<undef>";
 ' 2>&1; rm \$CLI`, '1', 'enable with no prompts');
@@ -56,7 +58,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"prompt> \"; read INPUT
     echo -n \"password: \"; read INPUT
     echo -n \"prompt# \"; read INPUT
-' >\$CLI; chmod 700 \$CLI; perl -e '
+' >\$CLI; chmod 700 \$CLI; $perl -e '
     $perl_command_setup
     print \$expect->enable("test") // "<undef>";
 ' 2>&1; rm \$CLI`, '1', 'enable with password prompt');
@@ -68,7 +70,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"username: \"; read INPUT
     echo -n \"password: \"; read INPUT
     echo -n \"prompt# \"; read INPUT
-' >\$CLI; chmod 700 \$CLI; perl -e '
+' >\$CLI; chmod 700 \$CLI; $perl -e '
     $perl_command_setup
     print \$expect->enable("test") // "<undef>";
 ' 2>&1; rm \$CLI`, '1', 'enable with username and password prompts');
@@ -82,7 +84,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"password: \"; read INPUT
     echo -n \"% Bad enable passwords, too many failures!\"
     echo -n \"prompt> \"; read INPUT
-' >\$CLI; chmod 700 \$CLI; perl -e '
+' >\$CLI; chmod 700 \$CLI; $perl -e '
     $perl_command_setup
     print \$expect->enable("test") // "<undef>";
 ' 2>&1; rm \$CLI`, '0', 'enable failed');
@@ -116,13 +118,13 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"prompt> \"; read INPUT
     echo -n \"prompt> \"; read INPUT
     echo -n \"prompt# \"; read INPUT
-' >\$CLI; chmod 700 \$CLI; perl -e '
+' >\$CLI; chmod 700 \$CLI; $perl -e '
     $perl_record_replay
     print \$expect->enable("test") // "<undef>";
 ' -- --record $file 2>&1; rm \$CLI`, '1', 'enable method --record');
 
 # enable method --replay
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     $perl_record_replay
     print \$expect->enable("test") // "<undef>";
 ' -- --replay $file 2>&1`, '1', 'enable method --replay');
@@ -138,7 +140,7 @@ Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"prompt# \"; read INPUT
     echo -n \"prompt# \"; read INPUT
     echo -n \"prompt> \"; read INPUT
-' >\$CLI; chmod 700 \$CLI; echo; perl -e '
+' >\$CLI; chmod 700 \$CLI; echo; $perl -e '
     use warnings;
     use strict;
     use Mnet::Expect::Cli::Ios;

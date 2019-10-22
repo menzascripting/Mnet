@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Log perl die and warn handlers
 
@@ -7,8 +6,11 @@ use warnings;
 use strict;
 use Test::More tests => 10;
 
+# use current perl for tests
+my $perl = $^X;
+
 # check output from perl compile warning for invalid 'foo' command
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log qw( DEBUG INFO WARN FATAL );
@@ -21,7 +23,7 @@ Execution of -e aborted due to compilation errors.
 
 # check output from perl runtime warning
 {
-    my $out = `perl -e '
+    my $out = `$perl -e '
         use warnings;
         use strict;
         use Mnet::Log qw( DEBUG INFO WARN FATAL );
@@ -41,7 +43,7 @@ err - main perl warn, $? = 0
 
 # check output from perl warn command
 {
-    my $out = `perl -e '
+    my $out = `$perl -e '
         use warnings;
         use strict;
         use Mnet::Log qw( DEBUG INFO WARN FATAL );
@@ -61,7 +63,7 @@ err - main perl warn, $? = 0
 
 # check output from perl die command
 {
-    my $out = `perl -e '
+    my $out = `$perl -e '
         use warnings;
         use strict;
         use Mnet::Log qw( DEBUG INFO WARN FATAL );
@@ -80,7 +82,7 @@ err - main perl die, $? = 0
 }
 
 # check output from perl eval warning
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log qw( DEBUG INFO WARN FATAL );
@@ -93,7 +95,7 @@ ERR - main perl warn, Use of uninitialized value in addition (+) at -e line 6.
 ', 'eval with perl warn');
 
 # check perl warnings in eval with sig handler trapping warnings
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log;
@@ -102,7 +104,7 @@ Test::More::is(`perl -e '
 ' -- 2>&1 | grep -v ^err`, '', 'eval with perl sig warn handler');
 
 # check output from perl die eval
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log qw( DEBUG INFO WARN FATAL );
@@ -112,7 +114,7 @@ Test::More::is(`perl -e '
 ' -- 2>&1`, '', 'eval with perl die');
 
 # check output from fatal function call in eval
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log qw( DEBUG INFO WARN FATAL );
@@ -122,7 +124,7 @@ Test::More::is(`perl -e '
 ' -- 2>&1`, '', 'eval with fatal function call');
 
 # check output from fatal method call in eval
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log;
@@ -133,7 +135,7 @@ Test::More::is(`perl -e '
 ' -- 2>&1`, '', 'eval with fatal method call');
 
 # check output from warn call in eval
-Test::More::is(`echo; perl -e '
+Test::More::is(`echo; $perl -e '
     use warnings;
     use strict;
     use Mnet::Log qw( DEBUG INFO WARN FATAL );

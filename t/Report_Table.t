@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Report::Table end_errors method functionality
 
@@ -9,9 +8,12 @@ use strict;
 use JSON;
 use Test::More tests => 6;
 
+# use current perl for tests
+my $perl = $^X;
+
 # init perl code used to test end_error method
 #   for debug uncomment the use Mnet::Opts::Set::Debug line below
-my $perl_report = "perl -e '". '
+my $perl_report = "$perl -e '". '
     use warnings;
     use strict;
     use Mnet::Log;
@@ -66,13 +68,14 @@ INSERT INTO "test" ("int","err","str") '
 ", 'sql output in specified order');
 
 # test output
+#   sed is used because epoch local time can vary, by timezone or something
 $perl_report =~ s/use Mnet::Log;//;
-Test::More::is(`$perl_report --test 2>&1`, '
+Test::More::is(`$perl_report --test 2>&1|sed 's/....\\/..\\/.. ..:..:../DT/'`,'
 Mnet::Report::Table row = {
   int  => 5
   err  => undef
   str  => "1\r\'2\n\""
-  time => "1969/12/31 19:00:01"
+  time => "DT"
 }
 ', 'test output in specified order');
 

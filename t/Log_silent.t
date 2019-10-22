@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Log silent
 
@@ -7,8 +6,11 @@ use warnings;
 use strict;
 use Test::More tests => 5;
 
+# use current perl for tests
+my $perl = $^X;
+
 # check functions with Mnet::Opts::Set::Silent pragma option
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log qw( DEBUG INFO WARN FATAL );
@@ -22,7 +24,7 @@ Test::More::is(`perl -e '
 ' -- 2>&1`, '', 'functions with silent pragma option');
 
 # check methods with Mnet::Opts::Set::Silent pragma option
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log;
@@ -36,7 +38,7 @@ Test::More::is(`perl -e '
 ' -- 2>&1`, '', 'methods with silent pragma option');
 
 # check methods with Mnet::Log->new object silent option
-Test::More::is(`echo; perl -e '
+Test::More::is(`echo; $perl -e '
     use warnings;
     use strict;
     use Mnet::Log;
@@ -53,7 +55,7 @@ dbg - Mnet::Version Mnet version = dev
 ', 'silent object option');
 
 # check functions with --silent cli option
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log qw( DEBUG INFO WARN FATAL );
@@ -69,7 +71,7 @@ Test::More::is(`perl -e '
 # check stdout and stderr with --silent cli option
 #   only Mnet::Log entries are affected by silent
 #   silence other script output using /dev/null redirect
-Test::More::is(`echo; perl -e '
+Test::More::is(`echo; $perl -e '
     use warnings;
     use strict;
     use Mnet::Log;

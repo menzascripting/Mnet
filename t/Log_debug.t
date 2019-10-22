@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Log debug
 
@@ -7,8 +6,11 @@ use warnings;
 use strict;
 use Test::More tests => 4;
 
+# use current perl for tests
+my $perl = $^X;
+
 # check that debug is disabled by default
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log qw( DEBUG );
@@ -20,7 +22,7 @@ Test::More::is(`perl -e '
 ', 'debug default disabled');
 
 # check Mnet::Log->new debug object option
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log qw( DEBUG );
@@ -31,7 +33,7 @@ Test::More::is(`perl -e '
 ', 'debug object option');
 
 # check Mnet::Opts::Set::Debug pragma option
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log qw( DEBUG );
@@ -44,7 +46,7 @@ dbg - main debug function
 ', 'debug pragma option');
 
 # check --debug cli option
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log qw( DEBUG );

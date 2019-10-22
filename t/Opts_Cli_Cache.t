@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Opts::Cli::Cache functionality
 
@@ -7,8 +6,11 @@ use warnings;
 use strict;
 use Test::More tests => 11;
 
+# use current perl for tests
+my $perl = $^X;
+
 # check cache get returns undef if cli options not parsed
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli::Cache;
@@ -17,7 +19,7 @@ Test::More::is(`perl -e '
 ' -- 2>&1`, '', 'get with undef input and no cli parsing');
 
 # check cache get returns empty input hash if cli opts not parsed
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli::Cache;
@@ -28,7 +30,7 @@ Test::More::is(`perl -e '
 ' -- 2>&1`, '', 'get with empty input hash and no cli parsing');
 
 # check cache get returns input opts if cli opts not parsed
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli::Cache;
@@ -37,7 +39,7 @@ Test::More::is(`perl -e '
 ' -- 2>&1`, '', 'get with input hash opt and no cli parsing');
 
 # check cache get returns empty hash for undef input with no cli opts to parse
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -50,7 +52,7 @@ Test::More::is(`perl -e '
 ' -- 2>&1`, '', 'get with undef input and no cli opts set');
 
 # check cache get returns empty input hash with no cli opts to parse
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -63,7 +65,7 @@ Test::More::is(`perl -e '
 ' -- 2>&1`, '', 'get with empty input hash and no cli opts set');
 
 # check cache get returns input opts if cli opts not parsed
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli::Cache;
@@ -72,7 +74,7 @@ Test::More::is(`perl -e '
 ' -- 2>&1`, '', 'get input hash opt with no cli opts');
 
 # check cache get returns parsed cli opts
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -84,7 +86,7 @@ Test::More::is(`perl -e '
 ' -- --sample 2>&1`, '', 'get with empty input hash and cli opt set');
 
 # check cache get overlays input opts over parsed cli opts
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -96,7 +98,7 @@ Test::More::is(`perl -e '
 ' -- --sample 2>&1`, '', 'get with input hash override of cli opt');
 
 # check Mnet::Opts::Cli::Cache::get returns parsed cli opts and extra args
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -109,7 +111,7 @@ Test::More::is(`perl -e '
 ' -- --sample extras 2>&1`, '', 'get with input hash, cli opt, and extra args');
 
 # check that changes to a cached options don't propogate
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;
@@ -122,7 +124,7 @@ Test::More::is(`perl -e '
 ' -- 2>&1`, '', 'isolated cache options');
 
 # check that changes to a cached Mnet::Opts::Cli->new objects don't propogate
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Opts::Cli;

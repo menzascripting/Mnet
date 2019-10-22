@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Log::Conditional
 
@@ -7,8 +6,11 @@ use warnings;
 use strict;
 use Test::More tests => 6;
 
+# use current perl for tests
+my $perl = $^X;
+
 # check output from Mnet::Log::Conditional functions without Mnet::Log loaded
-Test::More::is(`echo; perl -e '
+Test::More::is(`echo; $perl -e '
     use warnings;
     use strict;
     use Mnet::Log::Conditional qw( DEBUG INFO NOTICE WARN FATAL );
@@ -25,7 +27,7 @@ DIE - main fatal
 ', 'function calls without Mnet::Log');
 
 # check output from Mnet::Log::Conditional functions with Mnet::Log loaded
-Test::More::is(`echo; perl -e '
+Test::More::is(`echo; $perl -e '
     use warnings;
     use strict;
     use Mnet::Log;
@@ -48,7 +50,7 @@ DIE - main fatal
 ', 'function calls with Mnet::Log');
 
 # check output from Mnet::Log::Conditional methods without Mnet::Log loaded
-Test::More::is(`echo; perl -e '
+Test::More::is(`echo; $perl -e '
     use warnings;
     use strict;
     use Mnet::Log::Conditional;
@@ -65,7 +67,7 @@ DIE - main fatal
 ', 'method calls without Mnet::Log');
 
 # check output from Mnet::Log::Conditional methods with Mnet::Log loaded
-Test::More::is(`echo; perl -e '
+Test::More::is(`echo; $perl -e '
     use warnings;
     use strict;
     use Mnet::Log;
@@ -88,7 +90,7 @@ DIE - main fatal
 ', 'method calls with Mnet::Log');
 
 # check output from fatal in eval
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log::Conditional qw( DEBUG INFO WARN FATAL );
@@ -98,7 +100,7 @@ Test::More::is(`perl -e '
 ' -- 2>&1`, '', 'eval with fatal');
 
 # check output from warn in eval
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Log::Conditional qw( DEBUG INFO WARN FATAL );

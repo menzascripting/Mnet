@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Test
 
@@ -13,8 +12,11 @@ use Text::Diff;
 # create temp test/record/replay file
 my ($fh, $file) = File::Temp::tempfile( UNLINK => 1 );
 
+# use current perl for tests
+my $perl = $^X;
+
 # save record file without using Mnet::Opts::Cli
-Test::More::is(`( perl -e '
+Test::More::is(`( $perl -e '
     use warnings;
     use strict;
     use Mnet::Test;
@@ -40,7 +42,7 @@ stderr2
 ", 'record, no mnet cli');
 
 # diff from replay of record file without using Mnet::Opts::Cli
-Test::More::is(`perl -e '
+Test::More::is(`$perl -e '
     use warnings;
     use strict;
     use Mnet::Test;

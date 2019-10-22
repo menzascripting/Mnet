@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Batch
 
@@ -8,8 +7,11 @@ use strict;
 use File::Temp;
 use Test::More tests => 3;
 
+# use current perl for tests
+my $perl = $^X;
+
 # batch without mnet cli
-Test::More::is(`( echo child1; echo child2 child3 ) | perl -e '
+Test::More::is(`( echo child1; echo child2 child3 ) | $perl -e '
     use warnings;
     use strict;
     use Mnet::Batch;
@@ -21,7 +23,7 @@ line = child2 child3
 ', 'batch without mnet cli');
 
 # batch with mnet cli and extras
-Test::More::is(`( echo --opt1 1 --opt2 1; echo --opt1 2 ) | perl -e '
+Test::More::is(`( echo --opt1 1 --opt2 1; echo --opt1 2 ) | $perl -e '
     use warnings;
     use strict;
     use Mnet::Batch;
@@ -37,7 +39,7 @@ opt1 = 2, opt2 = 3
 ', 'batch with mnet cli');
 
 # batch with mnet cli and extras
-Test::More::is(`( echo --opt 1 child; echo --opt 2 ) | perl -e '
+Test::More::is(`( echo --opt 1 child; echo --opt 2 ) | $perl -e '
     use warnings;
     use strict;
     use Mnet::Batch;

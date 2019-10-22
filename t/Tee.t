@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Tee
 
@@ -11,9 +10,12 @@ use Test::More tests => 3;
 # create temp test/record/replay file
 my ($fh, $file) = File::Temp::tempfile( UNLINK => 1 );
 
+# use current perl for tests
+my $perl = $^X;
+
 # check all Mnet::Tee function calls, creating an output Mnet::Tee::file
 #   for debug uncomment the use Mnet::Opts::Set::Debug line below
-Test::More::is(`echo; echo SCRIPT; perl -e '
+Test::More::is(`echo; echo SCRIPT; $perl -e '
     use warnings;
     use strict;
     # use Mnet::Log; use Mnet::Opts::Set::Debug;
@@ -65,7 +67,7 @@ stderr4
 
 # tee to a file using the cli --tee option
 #   for debug uncomment the use Mnet::Opts::Set::Debug line below
-Test::More::is(`echo; echo SCRIPT; perl -e '
+Test::More::is(`echo; echo SCRIPT; $perl -e '
     use warnings;
     use strict;
     # use Mnet::Log; use Mnet::Opts::Set::Debug;
@@ -85,7 +87,7 @@ stderr
 
 # tee to a file with log --silent option
 #   for debug uncomment the use Mnet::Opts::Set::Debug line below
-Test::More::is(`echo; echo SCRIPT; perl -e '
+Test::More::is(`echo; echo SCRIPT; $perl -e '
     use warnings;
     use strict;
     use Mnet::Log;

@@ -1,4 +1,3 @@
-#!/usr/bin/env perl
 
 # purpose: tests Mnet::Log quiet
 
@@ -7,8 +6,11 @@ use warnings;
 use strict;
 use Test::More tests => 6;
 
+# use current perl for tests
+my $perl = $^X;
+
 # check functions with Mnet::Opts::Set::Quiet pragma option
-Test::More::is(`echo; perl -e 'use warnings; use strict; use Mnet::Log::Test;
+Test::More::is(`echo; $perl -e 'use warnings; use strict; use Mnet::Log::Test;
     use Mnet::Log qw( DEBUG INFO WARN FATAL );
     use Mnet::Opts::Set::Debug;
     use Mnet::Opts::Set::Quiet;
@@ -22,7 +24,7 @@ DIE - main fatal
 ', 'functions with quiet pragma option');
 
 # check methods with Mnet::Opts::Set::Quiet pragma option
-Test::More::is(`echo; perl -e 'use warnings; use strict; use Mnet::Log::Test;
+Test::More::is(`echo; $perl -e 'use warnings; use strict; use Mnet::Log::Test;
     use Mnet::Log;
     use Mnet::Opts::Set::Debug;
     use Mnet::Opts::Set::Quiet;
@@ -36,7 +38,7 @@ DIE - main fatal
 ', 'methods with quiet pragma option');
 
 # check methods with Mnet::Log->new object quiet option
-Test::More::is(`echo; perl -e 'use warnings; use strict; use Mnet::Log::Test;
+Test::More::is(`echo; $perl -e 'use warnings; use strict; use Mnet::Log::Test;
     use Mnet::Log;
     use Mnet::Opts::Set::Debug;
     Mnet::Log->new({ quiet => 1})->debug("TEST debug");
@@ -52,7 +54,7 @@ DIE - main TEST fatal
 ', 'quiet object option');
 
 # check functions with --quiet cli option
-Test::More::is(`echo; perl -e 'use warnings; use strict; use Mnet::Log::Test;
+Test::More::is(`echo; $perl -e 'use warnings; use strict; use Mnet::Log::Test;
     use Mnet::Log qw( DEBUG INFO WARN FATAL );
     use Mnet::Opts::Cli;
     Mnet::Opts::Cli->new;
@@ -67,7 +69,7 @@ DIE - main fatal
 
 # check perl warnings and die with quiet pragma and silent
 #   error output from quiet overrides any conflicting silent setting
-Test::More::is(`echo; perl -e 'use warnings; use strict; use Mnet::Log::Test;
+Test::More::is(`echo; $perl -e 'use warnings; use strict; use Mnet::Log::Test;
     use Mnet::Log;
     use Mnet::Opts::Set::Quiet;
     use Mnet::Opts::Set::Silent;
@@ -81,7 +83,7 @@ ERR - main perl die, die command at -e line 7.
 ', 'quiet perl warnings and die');
 
 # check output with no log calls
-Test::More::is(`echo; perl -e 'use warnings; use strict; use Mnet::Log::Test;
+Test::More::is(`echo; $perl -e 'use warnings; use strict; use Mnet::Log::Test;
     use Mnet::Log;
     print STDOUT "stdout\n";
     print STDERR "stderr\n";
