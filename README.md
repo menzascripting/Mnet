@@ -125,9 +125,12 @@ Or downloaded and installed from [https://github.com/menzascripting/Mnet](https:
     tar -xzf Mnet-X.y.tar.gz
     cd Mnet-X.y
     perl Makefile.PL  # INSTALL_BASE=/specify/path
+    make test
     make install
 
-Check your PERL5LIB environment variable if INSTALL\_BASE was used, above.
+Check your PERL5LIB environment variable if INSTALL\_BASE was used, or if you
+copied the lib/Mnet directory somewhere instead of using Makefile.PL. Refer
+to [ExtUtils::MakeMaker](https://metacpan.org/pod/ExtUtils::MakeMaker) for more information
 
 # AUTHOR
 
