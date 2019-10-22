@@ -35,6 +35,8 @@ dbg - Mnet::Expect new opts spawn = "echo x-test"
 dbg - Mnet::Expect new opts winsize = "99999x999"
 dbg - Mnet::Expect new calling spawn
 dbg - Mnet::Expect spawn starting
+dbg - Mnet::Expect spawn arg: echo
+dbg - Mnet::Expect spawn arg: x-test
 dbg - Mnet::Expect spawn finished, returning true
 dbg - Mnet::Expect log txt: x-test
 dbg - Mnet::Expect close starting

@@ -31,6 +31,7 @@ use strict;
 use parent qw( Mnet::Log::Conditional );
 use Carp;
 use Mnet::Dump;
+use Mnet::Log::Conditional qw( DEBUG INFO WARN FATAL NOTICE );
 use Mnet::Opts::Cli::Cache;
 
 # set autoflush and sig handlers to capture first error
@@ -728,6 +729,7 @@ END {
     if ($INC{'Mnet/Log.pm'} and Mnet::Log::error()
         or $Mnet::Report::Table::error) {
         foreach my $row_on_error (@Mnet::Report::Table::row_on_error) {
+            DEBUG("END row_on_error");
             my $self = $row_on_error->{self};
             my $data = $row_on_error->{data};
             $self->row($data) if not $self->{_row_on_error};

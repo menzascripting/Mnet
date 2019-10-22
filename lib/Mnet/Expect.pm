@@ -184,17 +184,16 @@ sub spawn {
     my @spawn = ();
     @spawn = @{$self->{spawn}} if ref $self->{spawn};
     @spawn = split(/\s/, $self->{spawn}) if not ref $self->{spawn};
+    $self->debug("spawn arg: $_") foreach @spawn;
 
     # call Expect spawn method
     #   disable Mnet::Tee stdout/stderr ties if not Mnet::Tee is loaded
     #   stdout/stderr ties cause spawn problems, but can be re-enabled after
     #   init global Mnet::Expect error to undef, set on expect spawn failures
     if ($INC{'Mnet/Tee.pm'}) {
-        $self->debug("spawn calling Mnet::Tee::tie_disable");
         Mnet::Tee::tie_disable();
         $self->debug("spawn calling Expect module spawm method");
         $self->fatal("spawn error, $!") if not $self->expect->spawn(@spawn);
-        $self->debug("spawn calling Mnet::Tee::tie_enable");
         Mnet::Tee::tie_enable();
     } else {
         $self->fatal("spawn error, $!") if not $self->expect->spawn(@spawn);

@@ -285,8 +285,7 @@ sub _login_expect {
 
     # error if none of the prompts were returned
     if (not $expect) {
-        my $match_before = Mnet::Dump::line($self->expect->before // "");
-        $self->fatal("login timed out waiting for $re, after $match_before");
+        $self->fatal("login timed out waiting for $re");
 
     # error if failed_re was matched
     } elsif ($self->{failed_re} and $expect == 1) {
