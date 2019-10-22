@@ -25,6 +25,7 @@ my $script = '
     Mnet::Opts::Cli::define({
         getopt      => "sample=i",
         default     => 1,
+        record      => 1,
     });
     my ($cli, @extras) = Mnet::Opts::Cli->new;
     syswrite STDOUT, "sample = $cli->{sample}\n";
@@ -57,12 +58,12 @@ extras = extra
 # replay file using Mnet::Opts::Cli
 Test::More::is(`$perl -e '
     $script
-' -- --replay $file --test 2>&1 | sed "s/tmp\\/.*/tmp\\/file/"`,
+' -- --replay $file --test 2>&1 | sed "s/replay .*/replay/"`,
 "sample = 2
 extras = extra
 
 -------------------------------------------------------------------------------
-diff --test --replay /tmp/file
+diff --test --replay
 -------------------------------------------------------------------------------
 
 Test output is identical.
@@ -73,12 +74,12 @@ Test output is identical.
 # replay file using Mnet::Opts::Cli
 Test::More::is(`$perl -e '
     $script
-' -- --replay $file --test --sample 3 arg 2>&1 | sed "s/tmp\\/.*/tmp\\/file/"`,
+' -- --replay $file --test --sample 3 arg 2>&1 | sed "s/replay .*/replay/"`,
 "sample = 3
 extras = arg
 
 -------------------------------------------------------------------------------
-diff --test --replay /tmp/file
+diff --test --replay
 -------------------------------------------------------------------------------
 
 @@ -1,2 +1,2 @@

@@ -23,6 +23,7 @@ my $script = '
     Mnet::Opts::Cli::define({
         getopt      => "test-opt=i",
         default     => 1,
+        record      => 1,
     });
     my ($cli, @extras) = Mnet::Opts::Cli->new;
     syswrite STDOUT, "test-opt = $cli->{test_opt}\n";

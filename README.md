@@ -28,10 +28,11 @@ Mnet - Testable network automation and reporting
     use Mnet::Test;
 
     # define --device, --username, --password, and --report cli options
+    #   record, default, redact, and help option attributes are shown
     #   help tips and text can be viewed with --help and --help report
     #   use the Mnet environment variable to securely set --password
     #   refer to Mnet::Opts::Cli for more information
-    Mnet::Opts::Cli::define({ getopt => "device=s" });
+    Mnet::Opts::Cli::define({ getopt => "device=s", record => 1 });
     Mnet::Opts::Cli::define({ getopt => "username=s", default => $ENV{USER} });
     Mnet::Opts::Cli::define({ getopt => "password=s", redact  => 1 });
     Mnet::Opts::Cli::define({ getopt => "report=s",

@@ -93,7 +93,6 @@ INIT {
             use --test-reset option to remove opts/args from --replay files
             refer to perldoc Mnet::Test for more info
         ',
-        norecord    => 1,
     }) if $INC{"Mnet/Opts/Cli.pm"};
 
     # define --replay option
@@ -106,7 +105,6 @@ INIT {
             use --test-reset option to remove opts/args from --replay file
             refer to perldoc Mnet::Test for more info
         ',
-        norecord    => 1,
     }) if $INC{"Mnet/Opts/Cli.pm"};
 
     # define --test option
@@ -118,7 +116,6 @@ INIT {
             use to compare current script output to --replay output
             refer to perldoc Mnet::Test for more info
         ',
-        norecord    => 1,
     }) if $INC{"Mnet/Opts/Cli.pm"};
 
     # define --test-reset option
@@ -135,7 +132,6 @@ INIT {
             refer also to norecord option in Mnet::Opts::Cli::define function
             refer to perldoc Mnet::Test for more info
         ',
-        norecord    => 1,
     }) if $INC{"Mnet/Opts/Cli.pm"};
 
 # finished init of options and global variables

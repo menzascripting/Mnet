@@ -165,7 +165,6 @@ INIT {
             this option works from the command line only
             refer to perldoc Mnet::Tee for more info
         ',
-        norecord    => 1,
     }) if $INC{"Mnet/Opts/Cli.pm"};
 }
 

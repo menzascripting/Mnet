@@ -21,7 +21,7 @@ my $script = '
     use Mnet::Batch;
     use Mnet::Opts::Cli;
     use Mnet::Test;
-    Mnet::Opts::Cli::define({ getopt => "sample=i" });
+    Mnet::Opts::Cli::define({ getopt => "sample=i", record => 1 });
     my $cli = Mnet::Opts::Cli->new;
     $cli = Mnet::Batch::fork($cli);
     exit if not defined $cli;

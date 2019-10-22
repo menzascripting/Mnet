@@ -11,8 +11,13 @@ Mnet::Opts::Cli - Define and parse command line options
 
     # define --sample cli option
     Mnet::Opts::Cli::define({
-        getopt   => "sample=s",
-        help_tip => "set to input string",
+        getopt      => "sample=s",
+        default     => "",
+        help_tip    => "set to input string",
+        help_text   => "
+            use --sample to set an input string
+            refer to perldoc for more information
+        ",
     });
 
     # call in list context for cli opts object and any extra args
@@ -75,14 +80,12 @@ INIT {
     Mnet::Opts::Cli::define({
         getopt      => 'help:s',
         help_tip    => 'display option help, *try --help help',
-        norecord    => 1,
     });
 
     # define --version cli option
     Mnet::Opts::Cli::define({
         getopt      => 'version',
         help_tip    => 'display version and system information',
-        norecord    => 1,
     });
 
 # finished init code block
@@ -126,8 +129,8 @@ The following keys in the specs input hash reference argument are supported:
     help_hide   set to hide option in --help list of available options
     help_tip    short tip text for --help list of available options
     help_text   longer help text to show in --help for specific options
-    norecord    set so option is not saved to Mnet::Test record/replay
-    redact      set to prevent option value from displaying in Mnet::Log
+    record      set so option gets saved in Mnet::Test record/replay files
+    redact      set to prevent option value in showing in Mnet::Log output
 
 Refer to L<Getopt::Long> for more information.
 
@@ -153,6 +156,13 @@ Refer to L<Getopt::Long> for more information.
 
     # set caller for defined option
     $Mnet::Opts::Cli::defined->{$opt}->{caller} = caller;
+
+    # set default help_tip if not defined
+    if (not defined $Mnet::Opts::Cli::defined->{$opt}->{help_text}) {
+        my $caller = $Mnet::Opts::Cli::defined->{$opt}->{caller};
+        my $text = "option defined by caller $caller, no help_text was set";
+        $Mnet::Opts::Cli::defined->{$opt}->{help_text} = $text;
+    }
 
     # set help_usage for defined option
     #   note that this aborts with an error for unsupported Getopt::Long types
@@ -346,13 +356,13 @@ The perl ARGV array is not modified by this module.
 
     # parse options from --replay file only if --test is also set
     #   force a re-read of the --replay file for forked batch children
-    #   ignore --replay file options that were defined norecord key set
+    #   ignore --replay file options that weren't defined with record set
     my $replay_opts = {};
     if (defined $cli_opts->{replay}) {
         my $test_data_opts = { replay => $cli_opts->{replay} };
         my $test_data = Mnet::Test::data($test_data_opts, "force");
         foreach my $opt (sort keys %{$Mnet::Opts::Cli::defined}) {
-            next if $Mnet::Opts::Cli::defined->{$opt}->{norecord};
+            next if not $Mnet::Opts::Cli::defined->{$opt}->{record};
             next if not exists $test_data->{opts}->{$opt};
             $replay_opts->{$opt} = $test_data->{opts}->{$opt};
             my $opt_dump = Mnet::Dump::line($replay_opts->{$opt});
@@ -445,7 +455,7 @@ The perl ARGV array is not modified by this module.
         $log_entry =~ s/(\S+)/opt $1 ${opt} =/;
         if ($log_entry =~ /^opt def/) {
             $log->debug("new parsed $log_entry");
-        } elsif ($Mnet::Opts::Cli::defined->{$opt}->{norecord}
+        } elsif (not $Mnet::Opts::Cli::defined->{$opt}->{record}
             and ($opts->{replay} or $opts->{record}
             or $opts->{batch})) {
             $log->notice("new parsed $log_entry");
@@ -463,10 +473,10 @@ The perl ARGV array is not modified by this module.
     $test_data = Mnet::Test::data() if $INC{"Mnet/Test.pm"};
 
     # update opts in test in case --record will be used later
-    #   skip opts that were defined with the norecord key enabled
+    #   skip opts that were defined without the record key enabled
     $test_data->{opts} = {};
     foreach my $opt (sort keys %$opts) {
-        next if $Mnet::Opts::Cli::defined->{$opt}->{norecord};
+        next if not $Mnet::Opts::Cli::defined->{$opt}->{record};
         my $value = $opts->{$opt};
         my $default = $Mnet::Opts::Cli::defined->{$opt}->{default};
         next if not defined $value and not defined $default;
@@ -553,7 +563,7 @@ sub _new_help {
             my $defined_opt = $Mnet::Opts::Cli::defined->{$opt};
             next if $help ne "help" and $defined_opt->{help_hide};
             next if $defined_opt->{caller} =~ /^Mnet(::|$)/;
-            $other_options = "Script option:\n\n" if not $other_options;
+            $other_options = "Script options:\n\n" if not $other_options;
             $other_options .= _new_help_tip($width, $defined_opt);
         }
         $output .= "$other_options\n" if $other_options;
@@ -583,7 +593,7 @@ sub _new_help {
 
             # output if option is saved in --record files
             my $recordable = "\n";
-            $recordable = "   (recordable)\n" if not $defined_opt->{norecord};
+            $recordable = "   (recordable)\n" if $defined_opt->{record};
             $output .= $recordable;
 
             # output tip for current command, if defined
@@ -647,11 +657,11 @@ sub batch_fork {
 
 =head1 TESTING
 
-When used with the L<Mnet::Test> --record option this module will save all cli
-options defined without the norecord hash key set true in the specified file
-along with any extra arguments specified on the command line. For more info
-about enabling the recording of individual options refer to the define
-function in this module and the --test-reset option.
+When used with the L<Mnet::Test> --record option this module will save all
+cli options to the specified file if they were defined with the record option
+attribute set true. Any extra arguments specified on the command line will also
+be saved. For more info about enabling the recording of individual options
+refer to the define function in this module and the --test-reset option.
 
 When the --replay option is used this module will load all cli options saved
 in the specified Mnet::Test file then apply options specified on the command

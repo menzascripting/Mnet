@@ -100,7 +100,6 @@ INIT {
             use --batch-min to set number of concurrent batch processes
             refer to perldoc Mnet::Batch for more information
         ',
-        norecord    => 1,
     }) if $INC{"Mnet/Opts/Cli.pm"};
     Mnet::Opts::Cli::define({
         getopt      => 'batch-idle=i',
@@ -115,7 +114,6 @@ INIT {
             refer to --help batch and --help batch-min for more info
             refer also to perldoc Mnet::Batch for more information
         ',
-        norecord    => 1,
     }) if $INC{"Mnet/Opts/Cli.pm"};;
     Mnet::Opts::Cli::define({
         getopt      => 'batch-min=i',
@@ -128,7 +126,6 @@ INIT {
             refer to --help batch and --help --batch-idle for more infor
             refer also to perldoc Mnet::Batch for more information
         ',
-        norecord    => 1,
     }) if $INC{"Mnet/Opts/Cli.pm"};;
 }
 
