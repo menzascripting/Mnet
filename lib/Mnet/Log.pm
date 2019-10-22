@@ -185,7 +185,6 @@ INIT {
             refer also to the Mnet::Opts::Set::Debug pragma module
             refer to perldoc Mnet::Log for more information
         ',
-        norecord    => 1,
     }) if $INC{"Mnet/Opts/Cli.pm"};
 
     # init --quiet option
@@ -199,7 +198,6 @@ INIT {
             refer also to the Mnet::Opts::Set::Quiet pragma module
             refer to perldoc Mnet::Log for more information
         ',
-        norecord    => 1,
     }) if $INC{"Mnet/Opts/Cli.pm"};
 
     # init --silent option
@@ -213,7 +211,6 @@ INIT {
             refer also to the Mnet::Opts::Set::Silent pragma module
             refer to perldoc Mnet::Log for more information
         ',
-        norecord    => 1,
     }) if $INC{"Mnet/Opts/Cli.pm"};
 
 # finished init code block
