@@ -31,7 +31,7 @@
 #       git tag "v<RELEASE>" `git log -1 --pretty=%H`
 #       git push origin "v<RELEASE>"
 #       git push --delete origin "v<RELEASE>", to PERMANENTLY delete old tag
-#       giti checkout -- lib/Mnet.pm, to restore $VERSION variable to "dev"
+#       git checkout -- lib/Mnet.pm, to restore $VERSION variable to "dev"
 
 # required modules
 use warnings;
