@@ -34,14 +34,19 @@ Mnet - Testable network automation and reporting
     use Mnet::Stanza;
     use Mnet::Test;
 
-    # define --device related and --report cli options
-    #   options can also be set via Mnet environment variable
-    Mnet::Opts::Cli::define({ getopt => "report=s" });
+    # define --device, --username, --password, and --report cli options
+    #   help tips and text can be viewed with --help and --help report
+    #   use the Mnet environment variable to securely set --password
+    #   refer to Mnet::Opts::Cli for more information
     Mnet::Opts::Cli::define({ getopt => "device=s" });
-    Mnet::Opts::Cli::define({ getopt => "username=s" });
-    Mnet::Opts::Cli::define({ getopt => "password=s", redact => 1 });
+    Mnet::Opts::Cli::define({ getopt => "username=s", default => $ENV{USER} });
+    Mnet::Opts::Cli::define({ getopt => "password=s", redact  => 1 });
+    Mnet::Opts::Cli::define({ getopt => "report=s",
+        help_tip    => "specify report output, like 'csv:<file>'",
+        help_text   => "refer to Mnet::Report::Table for more info",
+    });
 
-    # parse cli options, also parses Mnet environment variable
+    # parse command line and Mnet environment variable options
     my $cli = Mnet::Opts::Cli->new;
 
     # define output --report table, will include first of any errors
@@ -72,11 +77,14 @@ Mnet - Testable network automation and reporting
     $log->info("processing device");
 
     # create an expect ssh session to --device
-    #   see perldoc Mnet::Expect::Cli::Ios to disable ssh host/key checks
+    #   username set undef since this is included in spawn argument
+    #   password_in set to prompt for password if not set via cli option
+    #   ssh host/key checks can be skipped, see Mnet::Expect::Cli
     my $ssh = Mnet::Expect::Cli::Ios->new({
-        spawn => [ "ssh", $cli->{device} ],
-        username => $cli->username,
-        password => $cli->password,
+        spawn       => [ "ssh", "$cli->{username}\@$cli->{device}" ],
+        username    => undef,
+        password    => $cli->password,
+        password_in => 1,
     });
 
     # retrieve config from ssh command, warn otherwise
@@ -107,18 +115,8 @@ The main features are:
 
 =item *
 
-Facilitate easy log, debug, alert and error output from automation scripts,
-outputs can be redirected to per-device files
-
-=item *
-
-Automation scripts can run in batch mode to concurrently process a list of
-devices, using a simple command line argument and a device list file.
-
-=item *
-
-Flexible config settings via command line, environment variable, and/or batch
-device list files.
+Record and replay connected command line sessions, speeding development
+and allowing for regression testing of complex automation scripts.
 
 =item *
 
@@ -127,12 +125,22 @@ reliable authentication and command prompt handling.
 
 =item *
 
-Report data from scripts can be output as plain .csv files, json, or sql.
+Automation scripts can run in batch mode to concurrently process a list of
+devices, using a simple command line argument and a device list file.
 
 =item *
 
-Record and replay connected command line sessions, speeding the development
-of automation scripts and allowing for proper regression testing.
+Facilitate easy log, debug, alert and error output from automation scripts,
+outputs can be redirected to per-device files
+
+=item *
+
+Flexible config settings via command line, environment variable, and/or batch
+device list files.
+
+=item *
+
+Report data from scripts can be output as plain .csv files, json, or sql.
 
 =back
 

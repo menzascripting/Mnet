@@ -6,17 +6,16 @@ Mnet::Expect - Create Expect objects with Mnet::Log support
 
 =head1 SYNOPSIS
 
+    # refer to SEE ALSO section for other Mnet::Expect modules
     use Mnet::Expect;
 
-    my $expect = Mnet::Expect->new({ spawn => [qw(
-        ssh
-         -o StrictHostKeyChecking=no
-         -o UserKnownHostsFile=/dev/null
-         1.2.3.4
-    )]});
+    # spawn Expect telnet process connected to specified host
+    my $expect = Mnet::Expect->new({ spawn => "telnet 1.2.3.4" });
 
-    $expect->send("ls\r");
+    # access underlying Expect methods, refer to perldoc Expect
+    $expect->expect->send("ls\r");
 
+    # gracefully close spawned Expect process
     $expect->close;
 
 =head1 DESCRIPTION
@@ -26,7 +25,7 @@ to programmatically control interactive terminal sessions, with support for
 L<Mnet> options and logging.
 
 Refer to the perl L<Expect> module for more information. Also refer to the
-L<Mnet::Expct::Cli> and L<Mnet::Expct::Cli::Ios> modules.
+L<Mnet::Expect::Cli> and L<Mnet::Expect::Cli::Ios> modules.
 
 =head1 METHODS
 
