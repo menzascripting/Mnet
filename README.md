@@ -7,7 +7,7 @@ Mnet - Testable network automation and reporting
     # sample script to report Loopback0 ip on cisco devices
     #
     #   demonstrates typical use of all major Mnet modules
-    #   refer to various Mnet modules for complete api info
+    #   refer to various Mnet modules' perldoc for complete api info
     #
     #   use --help to list all options, or --help <option>
     #   use --device <address> to connect to device with logging
