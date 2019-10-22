@@ -139,7 +139,7 @@ BEGIN {
     #   return after _sig_handler call to output error and stack trace
     $SIG{__WARN__} = sub {
         if (not @_ or not defined $^S) {
-            &CORE::warn(@_);
+            CORE::warn(@_);
         } else {
             _sig_handler("perl warn", scalar(caller), "@_");
         }
