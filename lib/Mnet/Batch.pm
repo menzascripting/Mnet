@@ -121,7 +121,7 @@ INIT {
         getopt      => 'batch-min=i',
         default     => $def->{batch_min},
         help_hide   => 1,
-        help_tip    => 'set number of concurrent batch processes',
+        help_tip    => 'set number of concurrent processes',
         help_text   => '
             default is to allow a minimum of 1 batch child processes
             this may be increased on systems that support --batch-idle
