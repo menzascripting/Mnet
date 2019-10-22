@@ -112,8 +112,13 @@ information.
     };
 
     # update future object $self hash with default opts
+    #   debug set opts here, hide internal opts w/name starting w/underscore
     foreach my $opt (sort keys %$defaults) {
         $self->{$opt} = $defaults->{$opt} if not exists $self->{$opt};
+        if ($opt !~ /^_/) {
+            my $value = Mnet::Dump::line($self->{$opt});
+            $log->debug("new opt $opt = $value");
+        }
     }
 
     # call Mnet::Expect::Cli::new to create new object

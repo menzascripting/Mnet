@@ -105,17 +105,13 @@ the L<Mnet::Log> module for more information.
     };
 
     # update future object $self hash with default opts
+    #   debug opts set here, hide internal opts w/name starting w/underscore
     foreach my $opt (sort keys %$defaults) {
         $self->{$opt} = $defaults->{$opt} if not exists $self->{$opt};
-    }
-
-    # debug output opts if creating object of this class and not internal opt
-    #   hide options that have a corresponding _option_ name with underscores
-    foreach my $opt (sort keys %$self) {
-        next if $opt =~ /^_/ or not defined $self->{$opt};
-        my $value = Mnet::Dump::line($self->{$opt});
-        $value = "****" if defined $self->{$opt} and exists $self->{"_${opt}_"};
-        $log->debug("new opts $opt = $value");
+        if ($opt !~ /^_/) {
+            my $value = Mnet::Dump::line($self->{$opt});
+            $log->debug("new opt $opt = $value");
+        }
     }
 
     # bless new object

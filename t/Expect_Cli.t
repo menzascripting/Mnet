@@ -26,7 +26,7 @@ my $perl_new_login = "chmod 700 \$CLI; echo; $perl -e '" . '
     use warnings;
     use strict;
     use Mnet::Expect::Cli;
-    # use Mnet::Log; use Mnet::Opts::Set::Debug; #?
+    # use Mnet::Log; use Mnet::Opts::Set::Debug;
     my $opts = { spawn => $ENV{CLI}, timeout => 2, failed_re => "fail" };
     $opts->{username} = "user" if "@ARGV" =~ /user/;
     $opts->{password} = "pass" if "@ARGV" =~ /pass/;

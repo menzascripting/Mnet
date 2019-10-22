@@ -127,14 +127,21 @@ Refer to the L<Mnet::Expect> module for more information.
         prompt_re   => '(^|\r|\n)\S.*(\$|\%|#|:|>) ?(\r|\n|$)',
         record      => undef,
         replay      => undef,
-        timeout     => 35,
+        timeout     => 30,
         username    => undef,
         username_re => '(?i)(login|user(name)?):?\s*(\r|\n)?$',
     };
 
     # update future object $self hash with default opts
+    #   debug opts set here, hide internal opts w/name starting w/underscore
     foreach my $opt (sort keys %$defaults) {
         $self->{$opt} = $defaults->{$opt} if not exists $self->{$opt};
+        if ($opt !~ /^_/) {
+            my $value = Mnet::Dump::line($self->{$opt});
+            $value = "**** (redacted)"
+                if $opt eq "password" and defined $value and $value ne "";
+            $log->debug("new opt $opt = $value");
+        }
     }
 
     # set _no_spawn if replay is set so Mnet::Expect skips spawn

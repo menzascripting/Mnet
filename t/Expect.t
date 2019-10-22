@@ -27,20 +27,9 @@ Test::More::is(`echo; $perl -e '
     die "expect undef" if not defined \$expect;
     \$expect->expect->expect(1, "-re", ".-test");
     \$expect->close;
-' -- 2>&1 |grep -v pid |grep -v HASH |grep -v 'Mnet::Expect log hex: 0d 0a'`, '
+' -- 2>&1 | grep -e 'Mnet::Log' -e 'Mnet::Expect log txt' -e 'confirmed'`, '
  -  - Mnet::Log script -e started
-dbg - Mnet::Expect new starting
-dbg - Mnet::Expect new opts debug = 1
-dbg - Mnet::Expect new opts spawn = "echo x-test"
-dbg - Mnet::Expect new opts winsize = "99999x999"
-dbg - Mnet::Expect new calling spawn
-dbg - Mnet::Expect spawn starting
-dbg - Mnet::Expect spawn arg: echo
-dbg - Mnet::Expect spawn arg: x-test
-dbg - Mnet::Expect spawn finished, returning true
 dbg - Mnet::Expect log txt: x-test
-dbg - Mnet::Expect close starting
-dbg - Mnet::Expect close calling hard_close
 dbg - Mnet::Expect close finished, hard_close confirmed
  -  - Mnet::Log finished with no errors
 ', 'new, expect, log, and close');
