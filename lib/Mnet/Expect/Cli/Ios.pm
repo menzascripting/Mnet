@@ -6,13 +6,21 @@ Mnet::Expect::Cli::Ios - Expect sessions to cisco ios devices
 
 =head1 SYNOPSIS
 
-    my $opts = { spawn => "ssh 1.2.3.4", prompt => 1 };
-    my $expect = Mnet::Expect::Cli->new($opts);
+    # refer also to Mnet::Expect::Cli
+    use Mnet::Expect::Cli::Ios
 
-    $expect->enable($password) or die "enable failed";
+    # Mnet::Expect::Cli has example with ssh host/key checks disabled
+    my $expect = Mnet::Expect::Cli::Ios->new({
+        spawn => "ssh user@1.2.3.4", username => undef, password_in => 1
+    });
 
+    # ensure we are in ios enable mode
+    $expect->enable() or die "enable failed";
+
+    # get output from command on connected ios device
     my $output = $expect->command("show version");
 
+    # gracefully end/exit ios session
     $expect->close;
 
 =head1 DESCRIPTION
@@ -22,7 +30,7 @@ be used to programmatically control command line sessions to cisco ios devices,
 with support for L<Mnet> options, logging, caching, and testing.
 
 Refer to the perl L<Expect> module for more information. Also refer to the
-L<Mnet::Expct> and L<Mnet::Expct::Cli> modules.
+L<Mnet::Expect> and L<Mnet::Expect::Cli> modules.
 
 =head1 METHODS
 
@@ -63,12 +71,10 @@ An error is issued if there are login problems.
 For example, the following call will start an ssh expect session to a device
 with host key checking disabled:
 
-    my @spawn = qw(ssh);
-    push @spawn, qw(-o StrictHostKeyChecking=no);
-    push @spawn, qw(-o UserKnownHostsFile=/dev/null);
-    push @spawn, qw(1.2.3.4);
-    my $opts = { spawn => \@spawn };
-    my $expect = Mnet::Expect::Cli->new($opts);
+    # refer to SYNOPSIS example and Mnet::Expect::Cli for more info
+    my $expect = Mnet::Expect::Cli::Ios->new({
+        spawn => "ssh user@1.2.3.4", usename => undef, password_in => 1
+    });
 
 Set failed_re to detect failed logins faster, as long as there's no conflict
 with text that appears in login banners. For example:
@@ -156,8 +162,9 @@ sub enable {
 Use this method to check if an ios device session is currently in enable mode,
 and/or to enter enable mode on the device.
 
-The input password will be used, or the enable and enable_in options for the
-current object. An error results if a password is needed and none was set.
+The input password argument will be used if there is an enable password prompt,
+otherwise the enable option set for the current object will be used, or the
+user will be prompted if the enable_in option is set.
 
 A fatal error is issued if an enable password is required and none is set.
 
@@ -244,17 +251,24 @@ sub close {
 
 This method sends the end and exit ios commands before closing the current
 expect session. Timeouts are gracefully handled. Refer to the close method
-in the L<Mnet::Expect> module for more information.
+in the L<Mnet::Expect::Cli> module for more information.
 
 =cut
 
-    # send end and exit commands then close expect session
-    #   gracefully handle timeouts on end and exit commands
+    # read input object
     my $self = shift or croak("missing self arg");
+    $self->debug("close starting");
+
+    # send the end command, might be necessary on some platforms
+    #   gracefully handle any timeout when sending this command
     $self->command("end",  undef, [ "" => undef ]);
-    $self->command("exit", undef, [ "" => undef ]);
-    $self->SUPER::close();
-    return
+
+   # call parent module close method
+    $self->SUPER::close("exit");
+
+    # finished close method
+    $self->debug("close finished");
+    return;
 }
 
 
