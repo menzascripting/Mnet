@@ -126,7 +126,7 @@ BEGIN {
     #   exit with error after _sig_handler call to output error and stack trace
     $SIG{__DIE__} = sub {
         if (not @_ or not defined $^S or $^S) {
-            &CORE::die(@_);
+            CORE::die(@_);
         } else {
             _sig_handler("perl die", scalar(caller), "@_");
         }
