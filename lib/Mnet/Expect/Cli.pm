@@ -117,14 +117,14 @@ Refer to the L<Mnet::Expect> module for more information.
         _command_cache_counter => 0,
         delay       => 250,
         eol_unix    => 1,
-        failed_re   => undef,  # see t/Expect_Cli.t failed_re comment
+        failed_re   => undef,  # see failed_re perdoc, t/Expect_Cli.t comment
         paging_key  => ' ',
         paging_re   => '(--more--|---\(more( \d\d?%)?\)---)',
         password    => undef,
         _password_  => undef,
         password_in => undef,
         password_re => '(?i)pass(word|code):?\s*(\r|\n)?$',
-        prompt_re   => '(^|\r|\n)\S.*(\$|\%|#|:|>) ?$',
+        prompt_re   => '(^|\r|\n)\S.*(\$|\%|#|:|>) ?(\r|\n|$)',
         record      => undef,
         replay      => undef,
         timeout     => 35,
@@ -274,7 +274,7 @@ sub _login_expect {
     my $re = shift // die "missing re arg";
     $self->debug("_login_expect starting for $re");
 
-    # expect specified username/password/prompt re, also failed_re if defined
+    # expect input username/password/prompt re, also failed_re if defined
     my @matches = ('-re', $self->{$re});
     unshift(@matches, '-re', $self->{failed_re}) if $self->{failed_re};
     my $expect = $self->expect->expect($self->{timeout}, @matches);
@@ -285,10 +285,8 @@ sub _login_expect {
 
     # error if none of the prompts were returned
     if (not $expect) {
-        my $prior_line = $self->expect->before // "";
-        $prior_line =~ s/(\r|\n)+$//;
-        $prior_line =~ s/(\s|\S)+(\r|\n)//;
-        $self->fatal("login timed out waiting for $re, $prior_line");
+        my $match_before = Mnet::Dump::line($self->expect->before // "");
+        $self->fatal("login timed out waiting for $re, after $match_before");
 
     # error if failed_re was matched
     } elsif ($self->{failed_re} and $expect == 1) {

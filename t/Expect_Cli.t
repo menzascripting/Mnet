@@ -74,6 +74,7 @@ prompt = (^|\r|\n)prompt: \r?$
 Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"prompt:\"'"'"'\\n'"'"'\"prompt>\"; read INPUT
     echo -n \"prompt>\"; read INPUT
+    echo -n \"prompt>\"; read INPUT
 ' >\$CLI; $perl_new_login 2>&1; rm \$CLI`, '
 prompt = (^|\r|\n)prompt>\r?$
 ', 'new login with extra prompt, no trailing spaces prompt>');
