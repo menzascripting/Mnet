@@ -99,17 +99,23 @@ Refer to the SYNOPSIS section of this document for usage examples and more info.
 
 =cut
 
-    # return clone of cached cli options and extra cli args
-    #   return undef if Mnet::Opts::Cli was not used for cli option parsing
-    #   retrieve either cached cli opts or pragma opts if cli opts not parsed
-    #   overlay input options on top of parsed cli/prgama opts before returning
+    # read input options hash ref
     my $input = shift;
+
+    # return undef if Mnet::Opts::Cli was not used for cli option parsing
     return undef if not $input and not $Mnet::Opts::Cli::Cache::opts;
+
+    # clone cached cli options and extra cli args
+    #   retrieve either cached cli opts or pragma opts if cli opts not parsed
     my $opts = Storable::dclone(
         $Mnet::Opts::Cli::Cache::opts // Mnet::Opts::Set::pragmas()
     );
-    $opts->{$_} = $input->{$_} foreach keys %$input;
     my @extras = @Mnet::Opts::Cli::Cache::extras;
+
+    # overlay input options on top of parsed cli/prgama opts before returning
+    $opts->{$_} = $input->{$_} foreach keys %$input;
+
+    # finished new method, return opts hash, and extra args in list context
     return wantarray ? ($opts, @extras) : $opts
 }
 
