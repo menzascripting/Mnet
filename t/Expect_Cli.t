@@ -31,7 +31,7 @@ my $perl_new_login = "chmod 700 \$CLI; echo; $perl -e '" . '
     $opts->{username} = "user" if "@ARGV" =~ /user/;
     $opts->{password} = "pass" if "@ARGV" =~ /pass/;
     $opts->{prompt_re} = undef if "@ARGV" =~ /no_prompt_re/;
-    my $expect = Mnet::Expect::Cli->new($opts);
+    my $expect = Mnet::Expect::Cli->new($opts) or die "expect undef";
     syswrite STDOUT, "prompt = ".$expect->prompt_re."\n" if $expect->prompt_re;
     $expect->close;
 ' . "'";
@@ -75,6 +75,7 @@ prompt = (^|\r|\n)prompt: \r?$
 # new login prompt match with extra prompt text
 Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"prompt:\"'"'"'\\n'"'"'\"prompt>\"; read INPUT
+    echo -n \"prompt>\"; read INPUT
     echo -n \"prompt>\"; read INPUT
     echo -n \"prompt>\"; read INPUT
 ' >\$CLI; $perl_new_login 2>&1; rm \$CLI`, '

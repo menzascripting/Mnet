@@ -52,13 +52,13 @@ Test::More::is(`$perl -e '
     my \$data = Mnet::Test::data(\$opts);
     warn if \$data->{key} ne "value";
     Mnet::Test::done(\$opts);
-' -- $file 2>&1 | sed "s/tmp.*/tmp\\/file/"`, 'stdout1
+' -- $file 2>&1 | sed "s/replay .*/replay/"`, 'stdout1
 stdout3
 stderr1
 stderr3
 
 -------------------------------------------------------------------------------
-diff --test --replay /tmp/file
+diff --test --replay
 -------------------------------------------------------------------------------
 
 @@ -1,4 +1,4 @@
