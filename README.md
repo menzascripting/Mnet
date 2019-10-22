@@ -29,10 +29,10 @@ Mnet - Testable network automation and reporting
 
     # define --device related and --report cli options
     #   options can also be set via Mnet environment variable
+    Mnet::Opts::Cli::define({ getopt => "report=s" });
     Mnet::Opts::Cli::define({ getopt => "device=s" });
     Mnet::Opts::Cli::define({ getopt => "username=s" });
-    Mnet::Opts::Cli::define({ getopt => "password=s" });
-    Mnet::Opts::Cli::define({ getopt => "report=s" });
+    Mnet::Opts::Cli::define({ getopt => "password=s", redact => 1 });
 
     # parse cli options, also parses Mnet environment variable
     my $cli = Mnet::Opts::Cli->new;
@@ -68,6 +68,8 @@ Mnet - Testable network automation and reporting
     #   see perldoc Mnet::Expect::Cli::Ios to disable ssh host/key checks
     my $ssh = Mnet::Expect::Cli::Ios->new({
         spawn => [ "ssh", $cli->{device} ],
+        username => $cli->username,
+        password => $cli->password,
     });
 
     # retrieve config from ssh command, warn otherwise
