@@ -2,15 +2,15 @@ NAME
     Mnet - Testable network automation and reporting
 
 SYNOPSIS
-        # sample script to report Loopback0 address on cisco devices
+        # sample script to report Loopback0 ip on cisco devices
         #
         #   demonstrates typical use of all major Mnet modules
-        #   refer to perldoc for various Mnet modules for complete api info
+        #   refer to various Mnet modules for complete api info
         #
         #   use --help to list all options, or --help <option>
         #   use --device <address> to connect to device with logging
         #   use --batch <file.batch> to process multiple --device lines
-        #   add --report csv:<file.csv> to create an output csv report file
+        #   add --report csv:<file.csv> to create an output csv report
         #   add --record <file.test> to create replayable test file
         #   use --test --replay <file.test> to show script test diff
 
