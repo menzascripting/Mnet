@@ -6,10 +6,26 @@ Mnet::Expect::Cli - Expect sessions to command line interfaces
 
 =head1 SYNOPSIS
 
+    # refer also to Mnet::Expect
     use Mnet::Expect::Cli;
-    my $opts = { spawn => "ssh 1.2.3.4", prompt => 1 };
-    my $expect = Mnet::Expect::Cli->new($opts);
+
+    # prepare ssh command with host/key checking disabled
+    my @ssh = qw(
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+    );
+
+    # connect via ssh for user to specified host, prompt for password
+    #   username set undef, since ssh shouldn't be prompting for username
+    my $expect = Mnet::Expect::Cli->new({
+        spawn       => [ @ssh, "user\@1.2.3.4" ],
+        username    => undef,
+        password_in => 1,
+    });
+
+    # gather output for specified command over ssh
     my $output = $expect->command("ls");
+
+    # close ssh session
     $expect->close;
 
 =head1 DESCRIPTION
@@ -19,7 +35,7 @@ used to programmatically control command line sessions to devices, with
 support for L<Mnet> options, logging, caching, and testing.
 
 Refer to the perl L<Expect> module for more information. Also refer to the
-L<Mnet::Expct> and L<Mnet::Expct::Cli::Ios> modules.
+L<Mnet::Expect> and L<Mnet::Expect::Cli::Ios> modules.
 
 =head1 METHODS
 
@@ -67,12 +83,10 @@ in the L<Mnet::Expect> module new method:
 For example, the following call will start an ssh expect session to a device
 with host key checking disabled:
 
-    my @spawn = qw(ssh);
-    push @spawn, qw(-o StrictHostKeyChecking=no);
-    push @spawn, qw(-o UserKnownHostsFile=/dev/null);
-    push @spawn, qw(1.2.3.4);
-    my $opts = { spawn => \@spawn, prompt => 1 };
-    my $expect = Mnet::Expect::Cli->new($opts);
+    # refer to SYNOPSIS example for ssh with host/key checks disabled
+    my $expect = Mnet::Expect::Cli->new({
+        spawn => "ssh user@1.2.3.4", username => undef, password_in => 1
+    });
 
 Set failed_re to detect failed logins faster, as long as there's no conflict
 with text that appears in login banners. For example:
@@ -138,8 +152,9 @@ Refer to the L<Mnet::Expect> module for more information.
         $self->{$opt} = $defaults->{$opt} if not exists $self->{$opt};
         if ($opt !~ /^_/) {
             my $value = Mnet::Dump::line($self->{$opt});
-            $value = "**** (redacted)"
-                if $opt eq "password" and defined $value and $value ne "";
+            if ($opt eq "password" and defined $self->{$opt}) {
+                $value = "**** (redacted)" if $self->{$opt} ne "";
+            }
             $log->debug("new opt $opt = $value");
         }
     }
@@ -302,6 +317,36 @@ sub _login_expect {
     # finished _login_expect method, return input re match
     $self->debug("_login_expect finished $re, matched $match_dump");
     return $match;
+}
+
+
+
+sub close {
+
+=head2 close
+
+    $expect->close($command)
+
+This method sends closes the current expect session, sending the optional
+input command first. Timeouts are gracefully handled. Refer to the close
+method in the L<Mnet::Expect> module for more information.
+
+=cut
+
+    # read input object
+    my $self = shift or croak("missing self arg");
+    my $command = shift;
+    $self->debug("close starting");
+
+    # send command if specified, gracefully handle timeouts
+    $self->command($command,  undef, [ "" => undef ]) if defined $command;
+
+    # call parent module close method
+    $self->SUPER::close();
+
+    # finished close method
+    $self->debug("close finished");
+    return;
 }
 
 
