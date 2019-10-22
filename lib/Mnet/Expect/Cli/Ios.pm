@@ -56,7 +56,7 @@ the L<Mnet::Expect::Cli> and L<Mnet::Expect> modules:
     failed_re       default recognizes lines starting w/ios % error char
     paging_key      default space key to send for ios pagination prompts
     paging_re       default recognizes ios pagination prompt --more--
-    prompt_re       defaults to ios user or enable mode prompt
+    prompt_re       defaults to ios user or enable mode prompts
 
 An error is issued if there are login problems.
 
@@ -108,7 +108,7 @@ information.
         failed_re   => undef,  # see t/Expect_Cli.t failed_re comment
         paging_key  => ' ',
         paging_re   => '--(M|m)ore--',
-        prompt_re   => '(^|\r|\n)\S+(>|#) $',
+        prompt_re   => '(^|\r|\n)\S+(>|#) (\r|\n|$)',
     };
 
     # update future object $self hash with default opts
