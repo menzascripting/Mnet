@@ -1,5 +1,7 @@
 package Mnet::Dump;
 
+# purpose: functions to Data::Dumper used internally by other Mnet modules
+
 # required modules
 use warnings;
 use strict;
