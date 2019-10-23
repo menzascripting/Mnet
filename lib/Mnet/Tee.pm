@@ -19,16 +19,24 @@ Mnet::Tee - Redirect stdout and stderr to a file
 
 Mnet::Tee can be used to capture all stdout and stderr output from the
 calling script, saving the combined output to a file. This module is used
-by the L<Mnet::Test> module, and also works with the L<Mnet::Batch> module.
+by the L<Mnet::Test> module.
 
 The variables stdout and stderr can be imported from this module to use for
 output that should not be captured by the Mnet::Tee module.
+
+When used with the L<Mnet::Log> module the --tee file will contain log
+entries that are not displayed to the terminal due to the use of the --quiet
+or --silent options.
+
+When used with the L<Mnet::Batch> module the output from the batch parent and
+all child processes will be merged into a single file.
 
 Note that output captured by this module is stored in memory during script
 execution. That could be a problem for scripts that generate gigabytes of
 stdout and/or stderr output.
 
-The perl tie command is used to implement the functionality of this module.
+The perl tie command is used to implement the functionality of this module
+and requires perl 5.010 or newer.
 
 =head1 FUNCTIONS
 
@@ -162,8 +170,8 @@ INIT {
         help_tip    => 'redirect stdout and stderr to file',
         help_text   => '
             script stdout and stderr can be redirected to a --tee file
-            note that --tee with --batch merges all parent/child output in file
-            this option works from the command line only
+            use with Mnet::Log to capture output suppressed by --quiet/silent
+            use with Mnet::Batch parent to merge all parent/child outputs
             refer to perldoc Mnet::Tee for more info
         ',
     }) if $INC{"Mnet/Opts/Cli.pm"};
@@ -222,6 +230,21 @@ open the new file.
     # finished file function
     DEBUG("file finished");
     return;
+}
+
+
+
+sub tee_no_term {
+
+# Mnet::Tee::tee_no_term($text)
+# purpose: output text to tee file and test_outputs, but not stdout or stderr
+# note: this is used from Mnet::Log, for when --quiet or --silent are set
+# note: refer also to test_pause and test_unpause functions in this module
+
+    # send text to tee_file and accumulate in test_outputs if no test_paused
+    my $text = shift;
+    Mnet::Tee::tee_file($text) if defined $text;
+    $Mnet::Tee::test_outputs .= $text if not $Mnet::Tee::test_paused;
 }
 
 
