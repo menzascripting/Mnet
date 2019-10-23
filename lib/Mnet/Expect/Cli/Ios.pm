@@ -101,7 +101,7 @@ information.
     # note default options for this class
     #   refer also to Mnet::Expect::Cli defaults, these are overlaid on top
     #   includes recognized cli opts and opts for this object
-    #       failed_re here from Cnet::Expect::Cli default and ios error /^\s*%/
+    #       failed_re here from Mnet::Expect::Cli default and ios error /^\s*%/
     #       failed_re also used in the enable method in this module
     #   the following keys starting with underscore are used internally:
     #       _enable_ => causes enable password value to be hidden in opts debug
