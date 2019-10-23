@@ -160,6 +160,10 @@ Refer to the L<Mnet::Expect> module for more information.
         }
     }
 
+    # warn if timeout is not an even number, as per perldoc Expect
+    $log->warn("timeout $self->{timeout} should be even number, as per Expect")
+        if $self->{timeout} and $self->{timeout} % 2;
+
     # set _no_spawn if replay is set so Mnet::Expect skips spawn
     $self->{_no_spawn} = 1 if $self->{replay};
 
@@ -426,8 +430,8 @@ Refer also to the command_cache_clear method for more info.
     }
 
     # finished command method, return output
-    my $output_dbg = length($output) // "<undef>";
-    $output_dbg .= " chars" if defined $output_dbg;
+    my $output_dbg = "<undef>";
+    $output_dbg = length($output)." chars" if defined $output;
     $self->debug("command finished, returning $output_dbg");
     return $output;
 }
