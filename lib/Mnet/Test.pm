@@ -53,6 +53,10 @@ Scripts that do not use L<Mnet::Opts::Cli> to parse command line options can
 pass the replay file as an argument to the Mnet::Test::data function and call
 the Mnet::Test::done function at the end of script execution.
 
+Note that the Mnet environment variable is not parsed if the --test option
+is set on the command line, since the value of this envrionment variable may
+change over time, between users, systems, etc.
+
 =head1 FUNCTIONS
 
 Mnet::Test implements the functions listed below.
