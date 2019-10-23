@@ -78,12 +78,10 @@ Mnet - Testable network automation and reporting
     $log->info("processing device");
 
     # create an expect ssh session to --device
-    #   username set undef since this is included in spawn argument
     #   password_in set to prompt for password if not set via cli option
     #   ssh host/key checks can be skipped, see Mnet::Expect::Cli
     my $ssh = Mnet::Expect::Cli::Ios->new({
         spawn       => [ "ssh", "$cli->{username}\@$cli->{device}" ],
-        username    => undef,
         password    => $cli->password,
         password_in => 1,
     });
@@ -209,6 +207,8 @@ L<Mnet::Opts::Set>
 L<Mnet::Report::Table>
 
 L<Mnet::Stanza>
+
+L<Mnet::Tee>
 
 L<Mnet::Test>
 
