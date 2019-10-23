@@ -125,8 +125,6 @@ It is also ok to directly access the values of hash keys in the options object.
 
 L<Mnet>
 
-L<Mnet::Dump>
-
 L<Mnet::Opts::Cli>
 
 L<Mnet::Opts::Set>

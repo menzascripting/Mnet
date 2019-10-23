@@ -297,7 +297,7 @@ info method.
 Note that the L<Mnet::Test> module --test command line option silently
 overrides all other report output options, outputting report data using
 the L<Mnet::Log> module if loaded or sending report output to stdout in
-L<Data::Dumper> format using the L<Mnet::Dump> module.
+L<Data::Dumper> format.
 
 Output options below can use /dev/stdout as the output file, which works nicely
 with the L<Mnet::Log> --silent option used with the L<Mnet::Batch> --batch
@@ -306,7 +306,7 @@ to be easily piped or redirected in aggregate as necessary.
 
 Note that /dev/stdout report output is not captured by the Mnet::Tee module,
 and might be missed if the L<Mnet::Log> module is not being used. In this case
-you should output report data to stdout yourself, maybe with L<Mnet::Dump>.
+you should output report data to stdout yourself.
 
 =cut
 
@@ -469,7 +469,7 @@ sub _output_dump {
     dump:$var:$file
 
 The dump output option writes one row per line in L<Data::Dumper> format
-prefixed by the specified variable name, using the L<Mnet::Dump> module.
+prefixed by the specified variable name.
 
 This dump output can be read back into a perl script as follows:
 
@@ -749,8 +749,6 @@ functionality, tracking report data so it can be included in test results.
 L<JSON>
 
 L<Mnet>
-
-L<Mnet::Dump>
 
 L<Mnet::Test>
 

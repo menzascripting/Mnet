@@ -1,24 +1,5 @@
 package Mnet::Dump;
 
-=head1 NAME
-
-Mnet::Dump - Data::Dumper related functions with sorted outputs
-
-=head1 SYNOPSIS
-
-    use Mnet::Dump
-    $line = Mnet::Dump::line($value)
-
-=head1 DESCRIPTION
-
-Mnet::Dump contains L<Data::Dumper> related functions with sorted outputs.
-
-=head1 FUNCTIONS
-
-Mnet::Dump implements the functions listed below.
-
-=cut
-
 # required modules
 use warnings;
 use strict;
@@ -28,14 +9,10 @@ use Data::Dumper;
 
 sub line {
 
-=head2 Mnet::Dump::line
-
-    $line = Mnet::Dump::line($value)
-
-This function returns L<Data::Dumper> output for the specified input value as
-a single line in sorted order.
-
-=cut
+# $line = Mnet::Dump::line($value)
+# purpose: returns single line sorted Data::Dumper output for input value
+# $value: input variable to dump, can be a scalar, hash, array, reference, etc
+# $line: output Data::Dumper line, examples: undef, "value", [ list ], { etc }
 
     # read input value, dump it as a sorted single Data::Dumper line
     my $value = shift;
@@ -48,13 +25,6 @@ a single line in sorted order.
     return $value_dump;
 }
 
-
-
-=head1 SEE ALSO
-
-L<Mnet>
-
-=cut
 
 # normal end of package
 1;
