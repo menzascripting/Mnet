@@ -1,32 +1,8 @@
 package Mnet::Opts::Cli::Cache;
 
-=head1 NAME
+# purpose: functions to get/set cli opts, used internally by other Mnet modules
 
-Mnet::Opts::Cli::Cache - Access Mnet::Opts::Cli options if loaded
 
-=head1 SYNOPSIS
-
-    # requried to use this module
-    use Mnet::Opts::Cli::Cache;
-
-    # sample sub with input opts arg overlaid onto cached cli opts
-    sub example {
-        my $opts = Mnet::Opts::Cli::Cache::get(shift // {});
-    }
-
-=head1 DESCRIPTION
-
-Mnet::Opts::Cli::Cache can be used to access command line options that may be
-in effect, depending on if the L<Mnet::Opts::Cli> new method was loaded, as in
-the typical usage example above.
-
-Refer to L<Mnet::Opts::Cli> and L<Mnet::Opts> for more info.
-
-=head1 METHODS
-
-Mnet::Opts::Cli::Cache implements the functions listed below.
-
-=cut
 
 # required modules
 #   importing symbols from Mnet::Log::Conditional causes compile errors,
@@ -38,7 +14,6 @@ use strict;
 use Carp;
 use Mnet::Log::Conditional;
 use Mnet::Opts::Set;
-use Storable;
 
 
 
@@ -77,27 +52,27 @@ sub set {
 
 sub get {
 
-=head2 get
-
-    \%opts = Mnet::Opts::Cli::Cache::get(\%input);
-    or (\%opts, @extras) = Mnet::Opts::Cli::Cache::get(\%input);
-
-This function can be used to retrieve a hash reference of parsed cli options
-and a list of extra cli arguments. An optional input hash reference can be
-used to specify options that will override any cached cli opts.
-
-Note that the returned hash reference of cached cli options will be empty if
-the Mnet::Opts::Cli->new method was not called yet by the running script and
-no input hash reference was supplied. This can be used to tell if a script is
-using L<Mnet::Opts::Cli> for command line option parsing.
-
-Also note that this function can be called in list context to return a hash ref
-of cached cli options and extra arguments paresed from the commmand line, or in
-scalar context to return cached cli options only.
-
-Refer to the SYNOPSIS section of this document for usage examples and more info.
-
-=cut
+# \%opts = Mnet::Opts::Cli::Cache::get(\%input);
+#   or (\%opts, @extras) = Mnet::Opts::Cli::Cache::get(\%input);
+#
+# purpose: return pragmas, subset of Mnet opts, extra cli args, and input opts
+#          opts subset: batch/debug/quiet/record/replay/quiet/silent/tee/test
+#          Mnet::Opts::Set pragmas are also included in returned opts hash
+#          input opts, if specified, are overlaid on top of these other options
+#
+# note: there's a couple of ways this function can be called, detailed below:
+#
+#   \%opts = Mnet::Opts::Cli::Cache::get();
+#       no input defined, opts is undef if Mnet::Opts::Cli->new not yet called
+#       can also be called in list context, to return @ARGV values as @extras
+#
+#   \%opts = Mnet::Opts::Cli::Cache::get(shift // {});
+#       common in subroutines, \%input hash ref is arg to sub, or set empty
+#       returns input opts merged over Mnet opts and Mnet::Opts::Set pragmas
+#       subroutines can inherit/override/use these Mnet log and test opts
+#       can also be called in list context, to return parsed extra cli args
+#
+# note: this function is meant to be used by other Mnet modules only
 
     # read input options hash ref
     my $input = shift;
@@ -105,14 +80,24 @@ Refer to the SYNOPSIS section of this document for usage examples and more info.
     # return undef if Mnet::Opts::Cli was not used for cli option parsing
     return undef if not $input and not $Mnet::Opts::Cli::Cache::opts;
 
-    # clone cached cli options and extra cli args
-    #   retrieve either cached cli opts or pragma opts if cli opts not parsed
-    my $opts = Storable::dclone(
-        $Mnet::Opts::Cli::Cache::opts // Mnet::Opts::Set::pragmas()
-    );
-    my @extras = @Mnet::Opts::Cli::Cache::extras;
+    # init output opts from Mnet::Opts::Set pragmas, if any are loaded
+    my $opts = Mnet::Opts::Set::pragmas();
 
-    # overlay input options on top of parsed cli/prgama opts before returning
+    # init output extra cli args, from ARGV if Mnet::Opts::Cli is not loaded
+    my @extras = @Mnet::Opts::Cli::Cache::extras;
+    @extras = @ARGV if not $INC{"Mnet/Opts/Cli.pm"};
+
+    # next overlay output opts with Mnet opts read from Mnet::Opts::Cli->new
+    #   opts with dashes would be a pain, because of need to xlate underscores
+    if ($INC{"Mnet/Opts/Cli.pm"}) {
+        foreach my $opt (keys %$Mnet::Opts::Cli::defined) {
+            if ($opt =~ /^(batch|debug|quiet|record|replay|silent|tee|test)$/) {
+                $opts->{$opt} = $Mnet::Opts::Cli::Cache::opts->{$opt};
+            }
+        }
+    }
+
+    # finally overlay input options on top of any Mnet pragma and Mnet options
     $opts->{$_} = $input->{$_} foreach keys %$input;
 
     # finished new method, return opts hash, and extra args in list context
@@ -120,20 +105,6 @@ Refer to the SYNOPSIS section of this document for usage examples and more info.
 }
 
 
-
-=head1 SEE ALSO
-
-L<Mnet>
-
-L<Mnet::Log::Conditional>
-
-L<Mnet::Opts>
-
-L<Mnet::Opts::Cli>
-
-L<Mnet::Opts::Set>
-
-=cut
 
 # normal package return
 1;

@@ -503,6 +503,7 @@ The perl ARGV array is not modified by this module.
         foreach @extras;
 
     # change opt names that have a dash to an underscore
+    #   i.e $opts->{opt_name} instead of $opts->{'opt-name'}
     foreach my $opt (sort keys %$opts) {
         next if $opt !~ /-/;
         my $value = $opts->{$opt};
@@ -682,8 +683,6 @@ L<Getopt::Long>
 L<Mnet>
 
 L<Mnet::Opts>
-
-L<Mnet::Opts::Cli::Cache>
 
 L<Mnet::Opts::Set>
 

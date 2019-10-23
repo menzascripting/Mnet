@@ -10,15 +10,16 @@ Mnet::Tee - Redirect stdout and stderr to a file
     use Mnet::Tee;
     Mnet::Tee::file($file);
 
-    # or use with command line options
+    # ot use with Mnet command line options
     use Mnet::Tee;
     use Mnet::Opts::Cli;
     my $cli = Mnet::Opts::Cli->new;
 
 =head1 DESCRIPTION
 
-Mnet::Tee can be used to capture all stdout and stderr output from the calling
-script, saving the combined output to a file.
+Mnet::Tee can be used to capture all stdout and stderr output from the
+calling script, saving the combined output to a file. This module is used
+by the L<Mnet::Test> module, and also works with the L<Mnet::Batch> module.
 
 The variables stdout and stderr can be imported from this module to use for
 output that should not be captured by the Mnet::Tee module.

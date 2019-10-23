@@ -119,7 +119,7 @@ Refer to the documentation for specific output options below for more info.
         my $column = shift @{$opts->{columns}} // croak("missing column name");
         my $type = shift @{$opts->{columns}} // croak("missing column type");
         croak("invalid column name $column") if $column =~ /["\r\n]/;
-        $self->debug("new opts column $column ($type)");
+        $self->debug("new opts column = $column ($type)");
         $self->{_column_types}->{$column} = $type;
         push @{$self->{_column_order}}, $column;
         if ($type !~ /^(error|integer|string|time)$/) {
@@ -127,8 +127,12 @@ Refer to the documentation for specific output options below for more info.
         }
     }
 
+    # debug calls to display output option set for this object
+    $self->debug("new opts output = ".Mnet::Dump::line($self->{output}));
+
     # call _output method with no row arg to init output
     #   this allows parent or non-batch proc to output heading row, etc.
+    $self->debug("new calling to init _output");
     $self->_output;
 
     # finished new method, return Mnet::Report::Table object

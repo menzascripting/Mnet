@@ -294,8 +294,6 @@ L<Mnet>
 
 L<Mnet::Log>
 
-L<Mnet::Opts::Cli::Cache>
-
 =cut
 
 # normal end of package

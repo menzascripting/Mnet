@@ -15,10 +15,8 @@ Mnet::Expect::Cli - Expect sessions to command line interfaces
     );
 
     # connect via ssh for user to specified host, prompt for password
-    #   username set undef, since ssh shouldn't be prompting for username
     my $expect = Mnet::Expect::Cli->new({
         spawn       => [ @ssh, "user\@1.2.3.4" ],
-        username    => undef,
         password_in => 1,
     });
 
@@ -85,7 +83,7 @@ with host key checking disabled:
 
     # refer to SYNOPSIS example for ssh with host/key checks disabled
     my $expect = Mnet::Expect::Cli->new({
-        spawn => "ssh user@1.2.3.4", username => undef, password_in => 1
+        spawn => "ssh user@1.2.3.4", password_in => 1
     });
 
 Set failed_re to detect failed logins faster, as long as there's no conflict
@@ -147,9 +145,12 @@ Refer to the L<Mnet::Expect> module for more information.
     };
 
     # update future object $self hash with default opts
-    #   debug opts set here, hide internal opts w/name starting w/underscore
     foreach my $opt (sort keys %$defaults) {
         $self->{$opt} = $defaults->{$opt} if not exists $self->{$opt};
+    }
+
+    # debug opts, hide internal opts starting w/underscore, and passowrd
+    foreach my $opt (sort keys %$self) {
         if ($opt !~ /^_/) {
             my $value = Mnet::Dump::line($self->{$opt});
             if ($opt eq "password" and defined $self->{$opt}) {

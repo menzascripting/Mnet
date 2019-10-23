@@ -104,9 +104,12 @@ the L<Mnet::Log> module for more information.
     };
 
     # update future object $self hash with default opts
-    #   debug opts set here, hide internal opts w/name starting w/underscore
     foreach my $opt (sort keys %$defaults) {
         $self->{$opt} = $defaults->{$opt} if not exists $self->{$opt};
+    }
+
+    # debug opts set here, hide internal opts starting w/underscore
+    foreach my $opt (sort keys %$self) {
         if ($opt !~ /^_/) {
             my $value = Mnet::Dump::line($self->{$opt});
             $log->debug("new opt $opt = $value");

@@ -4,7 +4,7 @@
 # required modules
 use warnings;
 use strict;
-use Test::More tests => 11;
+use Test::More tests => 12;
 
 # use current perl for tests
 my $perl = $^X;
@@ -48,7 +48,7 @@ Test::More::is(`$perl -e '
     my \$opts = Mnet::Opts::Cli::Cache::get();
     warn "defined" if not defined \$opts;
     warn "ref" if ref \$opts ne "HASH";
-    warn "keys" if not keys \%\$opts;
+    warn "keys" if keys \%\$opts;
 ' -- 2>&1`, '', 'get with undef input and no cli opts set');
 
 # check cache get returns empty input hash with no cli opts to parse
@@ -61,7 +61,7 @@ Test::More::is(`$perl -e '
     my \$opts = Mnet::Opts::Cli::Cache::get({});
     warn "defined" if not defined \$opts;
     warn "ref" if ref \$opts ne "HASH";
-    warn "keys" if not keys \%\$opts;
+    warn "keys" if keys \%\$opts;
 ' -- 2>&1`, '', 'get with empty input hash and no cli opts set');
 
 # check cache get returns input opts if cli opts not parsed
@@ -73,7 +73,19 @@ Test::More::is(`$perl -e '
     warn "test" if not \$opts->{test};
 ' -- 2>&1`, '', 'get input hash opt with no cli opts');
 
-# check cache get returns parsed cli opts
+# check cache get returns parsed Mnet cli opt
+Test::More::is(`$perl -e '
+    use warnings;
+    use strict;
+    use Mnet::Log;
+    use Mnet::Opts::Cli;
+    use Mnet::Opts::Cli::Cache;
+    Mnet::Opts::Cli->new;
+    my \$opts = Mnet::Opts::Cli::Cache::get({});
+    warn "not defined" if not defined \$opts->{quiet};
+' -- --quiet 2>&1`, '', 'get with empty input hash and Mnet cli opt set');
+
+# check cache get doesn't return parsed non-Mnet cli opt
 Test::More::is(`$perl -e '
     use warnings;
     use strict;
@@ -82,8 +94,8 @@ Test::More::is(`$perl -e '
     Mnet::Opts::Cli::define({ getopt => "sample" });
     Mnet::Opts::Cli->new;
     my \$opts = Mnet::Opts::Cli::Cache::get({});
-    warn "defined" if \$opts->{sample} ne "1";
-' -- --sample 2>&1`, '', 'get with empty input hash and cli opt set');
+    warn "defined" if defined \$opts->{sample};
+' -- --sample 2>&1`, '', 'get with empty input hash and non-Mnet cli opt set');
 
 # check cache get overlays input opts over parsed cli opts
 Test::More::is(`$perl -e '
@@ -97,7 +109,7 @@ Test::More::is(`$perl -e '
     warn "defined" if \$opts->{sample} ne "2";
 ' -- --sample 2>&1`, '', 'get with input hash override of cli opt');
 
-# check Mnet::Opts::Cli::Cache::get returns parsed cli opts and extra args
+# check Mnet::Opts::Cli::Cache::get returns extra args
 Test::More::is(`$perl -e '
     use warnings;
     use strict;
@@ -106,9 +118,8 @@ Test::More::is(`$perl -e '
     Mnet::Opts::Cli::define({ getopt => "sample" });
     my (\$cli_opts, \@cli_extras) = Mnet::Opts::Cli->new;
     my (\$cache_opts, \@cache_extras) = Mnet::Opts::Cli::Cache::get({});
-    warn "opts" if \$cache_opts->{sample} ne "1";
     warn "extras" if \$cache_extras[0] ne "extras";
-' -- --sample extras 2>&1`, '', 'get with input hash, cli opt, and extra args');
+' -- --sample extras 2>&1`, '', 'get with extra args');
 
 # check that changes to a cached options don't propogate
 Test::More::is(`$perl -e '

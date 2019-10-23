@@ -11,7 +11,7 @@ Mnet::Expect::Cli::Ios - Expect sessions to cisco ios devices
 
     # Mnet::Expect::Cli has example with ssh host/key checks disabled
     my $expect = Mnet::Expect::Cli::Ios->new({
-        spawn => "ssh user@1.2.3.4", username => undef, password_in => 1
+        spawn => "ssh user@1.2.3.4", password_in => 1
     });
 
     # ensure we are in ios enable mode
@@ -73,7 +73,7 @@ with host key checking disabled:
 
     # refer to SYNOPSIS example and Mnet::Expect::Cli for more info
     my $expect = Mnet::Expect::Cli::Ios->new({
-        spawn => "ssh user@1.2.3.4", usename => undef, password_in => 1
+        spawn => "ssh user@1.2.3.4", password_in => 1
     });
 
 Set failed_re to detect failed logins faster, as long as there's no conflict
@@ -118,9 +118,12 @@ information.
     };
 
     # update future object $self hash with default opts
-    #   debug set opts here, hide internal opts w/name starting w/underscore
     foreach my $opt (sort keys %$defaults) {
         $self->{$opt} = $defaults->{$opt} if not exists $self->{$opt};
+    }
+
+    # debug set opts here, hide internal opts w/name starting w/underscore
+    foreach my $opt (sort keys %$self) {
         if ($opt !~ /^_/) {
             my $value = Mnet::Dump::line($self->{$opt});
             $log->debug("new opt $opt = $value");
