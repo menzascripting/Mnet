@@ -20,7 +20,7 @@ Test::More::is(`$perl -e '
     print Mnet::Dump::line("test") . "\n";
     print Mnet::Dump::line([ 1, 2 ]) . "\n";
     print Mnet::Dump::line({ 1 => 2 }) . "\n";
-' -- 2>&1 | sed 's/{1}/{"1"}/'`, 'undef
+' -- 2>&1 | sed 's/{1 => 2}/{"1" => 2}/'`, 'undef
 1
 "test"
 [1,2]
