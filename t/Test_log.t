@@ -58,7 +58,7 @@ Test::More::is(`( echo; $perl -e '
     \$log->warn("warn3");
     Mnet::Test::done({ replay => \$file, test => 1 });
 ' -- $file || echo ERROR ) 2>&1 | sed "s/replay .*/replay/"`, '
- -  - Mnet::Log script -e started
+ -  - Mnet::Log -e started
 inf - main info1
 inf - main info3
 WRN - main warn1

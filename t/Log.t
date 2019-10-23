@@ -23,7 +23,7 @@ my $perl = $^X;
     $date = $1 if $out =~ /(\S\S\S \S\S\S  ?\d\d? \d\d:\d\d:\d\d \d\d\d\d)$/;
     Test::More::is(
         $out,
-        "$time  -  - Mnet::Log script -e started, pid $pid, $date",
+        "$time  -  - Mnet::Log -e started, pid $pid, $date",
         "timestamped started entry"
     );
 }
@@ -57,7 +57,7 @@ Test::More::is(`$perl -e '
     INFO("info");
     WARN("warn");
     FATAL("fatal");
-' -- 2>&1`, ' -  - Mnet::Log script -e started
+' -- 2>&1`, ' -  - Mnet::Log -e started
 inf - main info
 WRN - main warn
 DIE - main fatal
@@ -74,7 +74,7 @@ Test::More::is(`$perl -e '
     Mnet::Log->new->info("info");
     Mnet::Log->new->warn("warn");
     Mnet::Log->new->fatal("fatal");
-' -- 2>&1`, ' -  - Mnet::Log script -e started
+' -- 2>&1`, ' -  - Mnet::Log -e started
 inf - main info
 WRN - main warn
 DIE - main fatal
@@ -89,7 +89,7 @@ Test::More::is(`$perl -e '
     use Mnet::Log::Test;
     Mnet::Log->new->debug("debug");
     exit 1;
-' -- 2>&1`, ' -  - Mnet::Log script -e started
+' -- 2>&1`, ' -  - Mnet::Log -e started
  -  - Mnet::Log finished with exit error status
 ', 'exit error status');
 

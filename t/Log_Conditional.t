@@ -40,7 +40,7 @@ Test::More::is(`echo; $perl -e '
     WARN("warn");
     FATAL("fatal");
 ' -- 2>&1 | grep -v "^dbg - Mnet::Version"`, '
- -  - Mnet::Log script -e started
+ -  - Mnet::Log -e started
 dbg - main debug
 inf - main info
  -  - main notice
@@ -80,7 +80,7 @@ Test::More::is(`echo; $perl -e '
     Mnet::Log::Conditional->new->warn("warn");
     Mnet::Log::Conditional->new->fatal("fatal");
 ' -- 2>&1 | grep -v "^dbg - Mnet::Version"`, '
- -  - Mnet::Log script -e started
+ -  - Mnet::Log -e started
 dbg - main debug
 inf - main info
  -  - main notice

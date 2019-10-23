@@ -28,7 +28,7 @@ Test::More::is(`echo; $perl -e '
     \$expect->expect->expect(1, "-re", ".-test");
     \$expect->close;
 ' -- 2>&1 | grep -e 'Mnet::Log' -e 'Mnet::Expect log txt' -e 'confirmed'`, '
- -  - Mnet::Log script -e started
+ -  - Mnet::Log -e started
 dbg - Mnet::Expect log txt: x-test
 dbg - Mnet::Expect close finished, hard_close confirmed
  -  - Mnet::Log finished with no errors
@@ -43,7 +43,7 @@ Test::More::is(`echo; $perl -e '
     use Mnet::Log::Test;
     my \$expect = Mnet::Expect->new({ spawn => "uydfhkksl" });
 ' -- 2>&1 | sed 's/spawn error.*/spawn error/'`, '
- -  - Mnet::Log script -e started
+ -  - Mnet::Log -e started
 DIE - Mnet::Expect spawn error
  -  - Mnet::Log finished with errors
 ', 'spawn error');

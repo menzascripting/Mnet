@@ -46,7 +46,7 @@ $test = {"err" => undef,"int" => 5,"str" => "1\r\'2\n\""};
 
 # default log output with log_id
 Test::More::is(`echo; $perl_report 2>&1`, '
- -  - Mnet::Log script -e started
+ -  - Mnet::Log -e started
 inf id Mnet::Report::Table row {
 inf id Mnet::Report::Table row    int => 5
 inf id Mnet::Report::Table row    err => undef

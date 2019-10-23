@@ -49,7 +49,7 @@ Test::More::is(`echo; $perl -e '
     Mnet::Log->new({ silent => 1})->warn("TEST warn");
     Mnet::Log->new({ silent => 1})->fatal("TEST fatal");
 ' -- 2>&1 | grep -e '- Mnet::Log' -e 'Mnet ver' -e TEST | sed 's/=.*/= dev/'`, '
- -  - Mnet::Log script -e started
+ -  - Mnet::Log -e started
 dbg - Mnet::Version Mnet version = dev
  -  - Mnet::Log finished with exit error status
 ', 'silent object option');

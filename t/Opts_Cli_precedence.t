@@ -18,7 +18,7 @@ Test::More::is(`$perl -e '
     use Mnet::Opts::Cli;
     my \$cli = Mnet::Opts::Cli->new;
     warn "quiet" if defined \$cli->quiet;
-' -- 2>&1`, ' -  - Mnet::Log script -e started
+' -- 2>&1`, ' -  - Mnet::Log -e started
  -  - Mnet::Log finished with no errors
 ', 'default option value');
 
@@ -45,7 +45,7 @@ Test::More::is(`export Mnet="--noquiet"; echo; $perl -e '
     my \$cli = Mnet::Opts::Cli->new;
     warn "quiet" if \$cli->quiet;
 ' -- 2>&1`, '
- -  - Mnet::Log script -e started
+ -  - Mnet::Log -e started
 inf - Mnet::Opts::Cli new parsed opt env quiet = 0
  -  - Mnet::Log finished with no errors
 ', 'Mnet enviroment variable');

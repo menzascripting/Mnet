@@ -320,7 +320,7 @@ sub output {
         $script_name =~ s/^.*\///;
         my $started = "$script_name started";
         $started .= ", pid $$, ".localtime if not $INC{"Mnet/Log/Test.pm"};
-        NOTICE("script $started");
+        NOTICE($started);
         if ($self->{debug}) {
             output(undef, "dbg", 7, "Mnet::Version", Mnet::Version::info());
         }

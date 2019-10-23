@@ -17,7 +17,7 @@ Test::More::is(`$perl -e '
     use Mnet::Log::Test;
     Mnet::Log->new->debug("debug method");
     DEBUG("debug function");
-' -- 2>&1`, ' -  - Mnet::Log script -e started
+' -- 2>&1`, ' -  - Mnet::Log -e started
  -  - Mnet::Log finished with no errors
 ', 'debug default disabled');
 

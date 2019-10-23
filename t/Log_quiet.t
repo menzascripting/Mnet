@@ -46,7 +46,7 @@ Test::More::is(`echo; $perl -e 'use warnings; use strict; use Mnet::Log::Test;
     Mnet::Log->new({ quiet => 1})->warn("TEST warn");
     Mnet::Log->new({ quiet => 1})->fatal("TEST fatal");
 ' -- 2>&1 | grep -e '- Mnet::Log' -e 'Mnet ver' -e TEST | sed 's/=.*/= dev/'`, '
- -  - Mnet::Log script -e started
+ -  - Mnet::Log -e started
 dbg - Mnet::Version Mnet version = dev
 WRN - main TEST warn
 DIE - main TEST fatal

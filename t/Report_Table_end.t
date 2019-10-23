@@ -57,7 +57,7 @@ Mnet::Report::Table row = {
 # row_on_error method, log, no die
 $perl_row_on_error = perl_row_on_error("log");
 Test::More::is(`echo; $perl_row_on_error 2>&1 | grep .`, '
- -  - Mnet::Log script -e started
+ -  - Mnet::Log -e started
 inf - Mnet::Opts::Cli new parsed opt cli test = 1
 inf - Mnet::Report::Table row {
 inf - Mnet::Report::Table row    data  => "not row_on_error"
@@ -69,7 +69,7 @@ inf - Mnet::Report::Table row }
 # row_on_error method, log, die
 $perl_row_on_error = perl_row_on_error("log die");
 Test::More::is(`echo; $perl_row_on_error 2>&1 | grep . | grep -v '^err'`, '
- -  - Mnet::Log script -e started
+ -  - Mnet::Log -e started
 inf - Mnet::Opts::Cli new parsed opt cli test = 1
 ERR - main perl die, died
 inf - Mnet::Report::Table row {
