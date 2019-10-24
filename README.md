@@ -70,7 +70,7 @@ Mnet - Testable network automation and reporting
 
     # create an expect ssh session to --device
     #   password_in set to prompt for password if not set via cli option
-    #   ssh host/key checks can be skipped, see Mnet::Expect::Cli
+    #   ssh host/key checks can be skipped, refer to Mnet::Expect::Cli
     my $ssh = Mnet::Expect::Cli::Ios->new({
         spawn       => [ "ssh", "$cli->{username}\@$cli->{device}" ],
         password    => $cli->password,
