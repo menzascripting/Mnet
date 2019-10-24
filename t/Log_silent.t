@@ -51,7 +51,7 @@ Test::More::is(`echo; $perl -e '
 ' -- 2>&1 | grep -e '- Mnet::Log' -e 'Mnet ver' -e TEST | sed 's/=.*/= dev/'`, '
  -  - Mnet::Log -e started
 dbg - Mnet::Version Mnet version = dev
- -  - Mnet::Log finished with exit error status
+ -  - Mnet::Log finished with errors
 ', 'silent object option');
 
 # check functions with --silent cli option

@@ -72,13 +72,33 @@ Test::More::is(`export CLI=\$(mktemp); echo '
 prompt = (^|\r|\n)prompt: \r?$
 ', 'new login with no username, no password, prompt:');
 
+#? temporary code below, to help track down error in some cpan tests
+#   only used in test call below, replace call with perl_new_login when done
+my $perl_err_login = "chmod 700 \$CLI; echo; $perl -e '" . '
+    use warnings;
+    use strict;
+    use Mnet::Expect::Cli;
+    use Mnet::Opts::Cli;
+    use Mnet::Opts::Set::Quiet;
+    use Mnet::Log;
+    my ($cli, @args) = Mnet::Opts::Cli->new;
+    my $opts = { spawn => $ENV{CLI}, timeout => 2, failed_re => "fail" };
+    $opts->{username} = "user" if "@ARGV" =~ /user/;
+    $opts->{password} = "pass" if "@ARGV" =~ /pass/;
+    $opts->{prompt_re} = undef if "@ARGV" =~ /no_prompt_re/;
+    my $expect = Mnet::Expect::Cli->new($opts) or die "expect undef";
+    syswrite STDOUT, "prompt = ".$expect->prompt_re."\n" if $expect->prompt_re;
+    $expect->close;
+    my $expected = "(^|\\\r|\\\n)prompt>\\\r?\$";
+    warn "mismatch" if $expect->prompt_re ne $expected;
+' . "' -- --debug-error /dev/stdout";
+
 # new login prompt match with extra prompt text
 Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"prompt:\"'"'"'\\n'"'"'\"prompt>\"; read INPUT
     echo -n \"prompt>\"; read INPUT
     echo -n \"prompt>\"; read INPUT
-    echo -n \"prompt>\"; read INPUT
-' >\$CLI; $perl_new_login 2>&1; rm \$CLI`, '
+' >\$CLI; $perl_err_login 2>&1; rm \$CLI`, '
 prompt = (^|\r|\n)prompt>\r?$
 ', 'new login with extra prompt, no trailing spaces prompt>');
 

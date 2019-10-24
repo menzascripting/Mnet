@@ -107,6 +107,10 @@ BEGIN {
     #   should be set for perl warn and die, and warn and fatal Mnet::Log calls
     my $error = undef;
 
+    # init global variable used to accumulate --debug-error output
+    #   starts off as null, undef disables, refer to disable_debug_error sub
+    our $debug_error = "";
+
     # declare sub used by SIG handlers to log error and stack trace info
     sub _sig_handler {
         my ($label, $caller, $error, $sev) = (shift, shift, shift, 7);
@@ -187,6 +191,18 @@ INIT {
         ',
     }) if $INC{"Mnet/Opts/Cli.pm"};
 
+    # init --debug-error option
+    Mnet::Opts::Cli::define({
+        getopt      => 'debug-error=s',
+        help_hide   => 1,
+        help_tip    => 'set for debug file on errors, or stdout',
+        help_text   => '
+            set to the path and name of debug file to write after any errors
+            any asterisk in filename will be replaced with timestamp and pid
+            refer to perldoc Mnet::Log for more information
+        ',
+    }) if $INC{"Mnet/Opts/Cli.pm"};
+
     # init --quiet option
     Mnet::Opts::Cli::define({
         getopt      => 'quiet!',
@@ -263,13 +279,24 @@ sub batch_fork {
 # $error_reset: used to reset Mnet::Log::error before child executes
 # note: this is meant to be called from Mnet::Batch::fork only
 
-    # reset error, start time, and first log entry for forked batch child
+    # reset forked child error, start time, debug error, and first log entry
     my $error_reset = shift;
     $Mnet::Log::error = $error_reset;
     $Mnet::Log::start_time = Time::HiRes::time();
+    $Mnet::Log::debug_error = "";
     $Mnet::Log::first = 0;
 }
 
+
+
+sub disable_debug_error {
+
+# Mnet::Log::disable_debug_error()
+# purpose: called from Mnet::Opts::Cli if --debug_error not on command line
+
+    # set global debug_error to undef to disable, to save memory
+    $Mnet::Log::debug_error = undef;
+}
 
 
 sub error {
@@ -321,28 +348,7 @@ sub output {
         my $started = "$script_name started";
         $started .= ", pid $$, ".localtime if not $INC{"Mnet/Log/Test.pm"};
         NOTICE($started);
-        if ($self->{debug}) {
-            output(undef, "dbg", 7, "Mnet::Version", Mnet::Version::info());
-        }
-    }
-
-    # return for debug entries if --debug is not set
-    return 1 if $severity > 6 and not $self->{debug};
-
-    # return if Mnet::Tee not used and --silent is set, unless --quiet is set
-    #   if Mnet::Tee is loaded we want to allow it to capture all output
-    if (not $INC{"Mnet/Tee.pm"}) {
-        if ($self->{silent}) {
-            if (not defined $self->{quiet} or not $self->{quiet}) {
-                return 1;
-            }
-        }
-    }
-
-    # return for non-warning entries if Mnet::Test not used and --quiet is set
-    #   if Mnet::Tee is loaded we want to allow it to capture all output
-    if (not $INC{"Mnet/Tee.pm"}) {
-        return 1 if $severity > 4 and $self->{quiet};
+        output(undef, "dbg", 7, "Mnet::Version", Mnet::Version::info());
     }
 
     # update global error flag with first line of first error entry
@@ -363,23 +369,52 @@ sub output {
     foreach my $line (split(/\n/, $text)) {
         $line = "${timestamp}$prefix $log_id $caller $line";
 
-        # sev 7=debug and sev 5=notice get special handling
-        #   these are appended to Mnet::Tee file, if that module is loaded
-        #   $Mnet::Log::stdout bypasses Mnet::Tee::test_outputs, if loaded
-        if ($severity == 7 or $severity == 5) {
+        # accumulate all output log entries to --debug-error buffer
+        $Mnet::Log::debug_error .= "$line\n" if defined $Mnet::Log::debug_error;
+
+        # stdout sev 7 debug
+        #   not included in Mnet::Tee::test_outputs
+        #   if --quiet or --silent set then output to --tee file only
+        if ($severity == 7 and $self->{debug}) {
             Mnet::Tee::test_pause() if $INC{"Mnet/Tee.pm"};
-            syswrite STDOUT, "$line\n";
+            if ($self->{silent} or $self->{quiet}) {
+                Mnet::Tee::tee_no_term("$line\n") if $INC{"Mnet/Tee.pm"};
+            } else {
+                syswrite STDOUT, "$line\n";
+            }
             Mnet::Tee::test_unpause() if $INC{"Mnet/Tee.pm"};
 
-        # sev 6=info is output via stdout
-        #   captured by Mnet::Tee::test_output, if loaded
-        } elsif ($severity > 4) {
-            syswrite STDOUT, "$line\n";
+        # stdout sev 6 info
+        #   included in Mnet::Tee::test_outputs
+        #   if --quiet or --silent set then output to --tee file only
+        } elsif ($severity == 6) {
+            if ($self->{silent} or $self->{quiet}) {
+                Mnet::Tee::tee_no_term("$line\n") if $INC{"Mnet/Tee.pm"};
+            } else {
+                syswrite STDOUT, "$line\n";
+            }
 
-        # sev 4=warn, sev 3=error, and sev 2=fatal output via stderr
-        #   captured by Mnet::Tee::test_output, if loaded
-        } else {
-            syswrite STDERR, "$line\n";
+        # stdout sev 5 notice
+        #   not included in Mnet::Tee::test_outputs
+        #   if --quiet or --silent set then output to --tee file only
+        } elsif ($severity == 5) {
+            Mnet::Tee::test_pause() if $INC{"Mnet/Tee.pm"};
+            if ($self->{silent} or $self->{quiet}) {
+                Mnet::Tee::tee_no_term("$line\n") if $INC{"Mnet/Tee.pm"};
+            } else {
+                syswrite STDOUT, "$line\n";
+            }
+            Mnet::Tee::test_unpause() if $INC{"Mnet/Tee.pm"};
+
+        # stderr sev 4 warn, sev 3 error, and sev 2 fatal
+        #   included in Mnet::Tee::test_outputs
+        #   if --silent set then output to --tee file only
+        } elsif ($severity < 5) {
+            if ($self->{silent} and not $self->{quiet}) {
+                Mnet::Tee::tee_no_term("$line\n") if $INC{"Mnet/Tee.pm"};
+            } else {
+                syswrite STDERR, "$line\n";
+            }
         }
 
     # continue looping through lines of text
@@ -571,20 +606,52 @@ to fatal are handled in an eval the same as calls to die.
 #   output log prefix " - " bypasses Mnet::Test recording of these entries
 END {
 
-    # output last line of log text if first line was output
-    #   note if there were any errors during execution or exit status set true
-    #   note pid and elapsed time if Mnet::Log::Test was not loaded
+    # note --debug_error filename, substitute unique timestamp/pid for asterisk
+    #   unique timestampt/pid allows for --debug_error used from batch parent
+    my $debug_error_file = Mnet::Opts::Cli::Cache::debug_error();
+    if (defined $debug_error_file) {
+        my ($sec, $min, $hr, $mday, $mon, $yr) = localtime();
+        $yr += 1900; $mday += 1;
+        my $date_stamp = sprintf("%02s-%02s-%02s", $yr, $mon, $mday);
+        my $time_stamp = sprintf("%02s:%02s:%02s", $hr, $min, $sec);
+        $debug_error_file =~ s/\*/${date_stamp}_${time_stamp}_pid-$$/;
+    }
+
+    # prepare summary/finished info for last log entry
+    my $finished = "with no errors";
+    $finished = "with exit error status" if $?;
+    $finished = "with errors" if defined $Mnet::Log::error;
+    my $elapsed = Time::HiRes::time - $Mnet::Log::start_time;
+    $elapsed = sprintf("%.3f seconds elapsed", $elapsed);
+    $finished .= ", pid $$, $elapsed" if not $INC{"Mnet/Log/Test.pm"};
+
+    # output notice of errors
+    #   only if Mnet::Log::error is set, will be text of first error
+    #   only if first line was output, meaning logging was enabled/used
+    #   only if Mnet::Log::Test was not used to filter varying log outputs
     #   Mnet::Opts::Cli->new loads Mnet::Log::Test if --test/record/replay set
-    if ($Mnet::Log::first) {
-        my $finished = "with no errors";
-        $finished = "with exit error status" if $?;
-        $finished = "with errors" if defined $Mnet::Log::error;
-        my $elapsed = Time::HiRes::time - $Mnet::Log::start_time;
-        $elapsed = sprintf("%.3f seconds elapsed", $elapsed);
-        $finished .= ", pid $$, $elapsed" if not $INC{"Mnet/Log/Test.pm"};
-        NOTICE("detected at least one error, $Mnet::Log::error")
-            if defined $Mnet::Log::error and not $INC{"Mnet/Log/Test.pm"};
-        NOTICE("finished $finished");
+    NOTICE("detected at least one error, $Mnet::Log::error")
+        if defined $Mnet::Log::error
+        and $Mnet::Log::first
+        and not $INC{"Mnet/Log/Test.pm"};
+
+    # output notice if we will be writing --debug-error output
+    #   this puts notice on screen, in file, and before finished message
+    NOTICE("creating --debug-error $debug_error_file")
+        if $Mnet::Log::error and defined $debug_error_file;
+
+    # output last finished log notice
+    #   only if first line was output, meaning logging was enabled/used
+    NOTICE("finished $finished") if $Mnet::Log::first;
+
+    # output --debug-error file, if there were errors and that opt was set
+    if (defined $Mnet::Log::error and defined $debug_error_file) {
+        if (open(my $fh, ">", $debug_error_file)) {
+            syswrite $fh, $Mnet::Log::debug_error // "<undef>\n";
+            close $fh;
+        } else {
+            WARN("unable to open --debug_error $debug_error_file, $!");
+        }
     }
 
     # call Mnet::Test to process --record and --test cli opt, if loaded

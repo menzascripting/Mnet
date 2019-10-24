@@ -35,19 +35,17 @@ Test::More::is(`$perl -e '
 ' -- 2>&1`, '', 'Mnet::Opts::Set pragma');
 
 # check that Mnet env var overrides pragma setting
+#   sed/grep used to filter pid/timestamps, can't use Mnet::Test with env var
 Test::More::is(`export Mnet="--noquiet"; echo; $perl -e '
     use warnings;
     use strict;
     use Mnet::Log;
-    use Mnet::Log::Test;
     use Mnet::Opts::Cli;
     use Mnet::Opts::Set::Quiet;
     my \$cli = Mnet::Opts::Cli->new;
     warn "quiet" if \$cli->quiet;
-' -- 2>&1`, '
- -  - Mnet::Log -e started
+' -- 2>&1 | grep Mnet::Opts::Cli | sed 's/.*inf - Mnet/inf - Mnet/'`, '
 inf - Mnet::Opts::Cli new parsed opt env quiet = 0
- -  - Mnet::Log finished with no errors
 ', 'Mnet enviroment variable');
 
 
@@ -56,7 +54,6 @@ Test::More::is(`export Mnet="--noquiet"; $perl -e '
     use warnings;
     use strict;
     use Mnet::Log;
-    use Mnet::Log::Test;
     use Mnet::Opts::Cli;
     use Mnet::Opts::Set::Quiet;
     my \$cli = Mnet::Opts::Cli->new;

@@ -26,6 +26,18 @@ INIT {
 
 
 
+sub debug_error {
+
+# $value = $Mnet::Opts::Cli::Cache::debug_error()
+# purpose: called from Mnet::Log to get cached --debug-error cli opt value
+
+    # return --debug-error cli option value, if it exists
+    return undef if not exists $Mnet::Opts::Cli::Cache::opts->{debug_error};
+    return $Mnet::Opts::Cli::Cache::opts->{debug_error};
+}
+
+
+
 sub set {
 
 # Mnet::Opts::Cli::Cache::set(\%opts, @extras)
@@ -70,6 +82,7 @@ sub get {
 #       common in subroutines, \%input hash ref is arg to sub, or set empty
 #       returns input opts merged over Mnet opts and Mnet::Opts::Set pragmas
 #       subroutines can inherit/override/use these Mnet log and test opts
+#       comes in handy for objects inheriting Mnet::Log methods, test code, etc
 #       can also be called in list context, to return parsed extra cli args
 #
 # note: this function is meant to be used by other Mnet modules only

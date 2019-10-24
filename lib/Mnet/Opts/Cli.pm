@@ -34,6 +34,15 @@ Mnet::Opts::Cli - Define and parse command line options
 Mnet::Opts::Cli can be used by scripts to define and parse command line
 options, as shown in the example above.
 
+The Mnet environment variable can be used to set options. This can be to
+secure passwords so they don't appear in system process table, as below:
+
+    export Mnet="--password secret"
+    script.pl
+
+Note that the Mnet environment variable is not parsed if the --test option is
+set on the command line. Refer to L<Mnet::Test> for more information.
+
 =head1 METHODS
 
 Mnet::Opts::Cli implements the methods listed below.
@@ -515,7 +524,10 @@ The perl ARGV array is not modified by this module.
     # update cli opt cache for the final time, including extra cli args
     Mnet::Opts::Cli::Cache::set($opts, @extras);
 
-    # create new cli opts object using the current class
+    # disable --debug-error in Mnet::Log if not set on cli, to save memory
+    Mnet::Log::disable_debug_error()
+        if $INC{'Mnet/Log.pm'} and not $opts->{debug_error};
+
     my $self = bless $opts, $class;
 
     # finished new method, return cli opts object and extra args or just opts
@@ -586,7 +598,7 @@ sub _new_help {
             my $defined_opt = $Mnet::Opts::Cli::defined->{$opt};
 
             # skip option names that don't match input --help text
-            next if $opt !~ /^\Q$help\E/;
+            next if $opt !~ /^\Q$help\E$/;
 
             # output usage for current command
             my $usage = $defined_opt->{help_usage};
