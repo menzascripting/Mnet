@@ -21,7 +21,7 @@ Mnet - Testable network automation and reporting
     #   use --batch <file.batch> to process multiple --device lines
     #   add --report csv:<file.csv> to create an output csv report
     #   add --record <file.test> to create replayable test file
-    #   use --test --replay <file.test> to show script test diff
+    #   use --test --replay <file.test> to show script changes
 
     # load modules
     use warnings;
