@@ -34,6 +34,7 @@ t/Expect_Cli_record.t
 t/Log.t
 t/Log_Conditional.t
 t/Log_debug.t
+t/Log_debug_error.t
 t/Log_errors.t
 t/Log_quiet.t
 t/Log_silent.t
