@@ -65,6 +65,7 @@ DIE - Mnet::Report::Table invalid output option foo
 #
 
 # subroutine to catch Mnet::Report::Table->row errors
+#   some systems return 'error at ... line x' and some with a dot at end
 sub row_errors {
     my $data = shift;
     eval {
@@ -75,7 +76,7 @@ sub row_errors {
         $table->row($data);
     };
     my $error = $@ // return "";
-    $error =~ s/ at \S+ line \d+\.$//;
+    $error =~ s/ at \S+ line \d+\.?$//;
     return "\n$error";
 }
 
