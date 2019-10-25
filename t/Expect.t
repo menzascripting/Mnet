@@ -20,9 +20,9 @@ Test::More::is(`echo; $perl -e '
     use Mnet::Log::Test;
     my \$expect = Mnet::Expect->new({ spawn => "uydfhkksl" });
 ' -- 2>&1 | sed 's/spawn error.*/spawn error/'`, '
- -  - Mnet::Log -e started
+--- - Mnet::Log -e started
 DIE - Mnet::Expect spawn error
- -  - Mnet::Log finished with errors
+--- - Mnet::Log finished with errors
 ', 'spawn error');
 
 # check Mnet::Expect successful spawn and close
@@ -42,10 +42,10 @@ Test::More::is(`echo; $perl -e '
     \$expect->expect->expect(1, "-re", ".-test");
     \$expect->close;
 ' -- 2>&1 | grep -e 'Mnet::Log' -e 'log txt' -e 'confirmed'`, '
- -  - Mnet::Log -e started
+--- - Mnet::Log -e started
 dbg - Mnet::Expect log txt: x-test
 dbg - Mnet::Expect close finished, hard_close confirmed
- -  - Mnet::Log finished with no errors
+--- - Mnet::Log finished with no errors
 ', 'spawn and close');
 
 # declare script to use for log_expect tests, below
@@ -71,19 +71,19 @@ my $perl_expect_test = 'echo; perl -e \'
 # test log_expect debug
 Test::More::is(`$perl_expect_test --log-expect debug 2>&1 \\
     | grep -e 'Mnet::Log' -e 'log txt' -e 'confirmed'`, '
- -  - Mnet::Log -e started
+--- - Mnet::Log -e started
 dbg - Mnet::Expect log txt: x-test
 dbg - Mnet::Expect close finished, hard_close confirmed
- -  - Mnet::Log finished with no errors
+--- - Mnet::Log finished with no errors
 ', 'log_expect debug');
 
 # check log_expect info
 Test::More::is(`$perl_expect_test --log-expect info 2>&1 \\
     | grep -e 'Mnet::Log' -e '^inf'`, '
- -  - Mnet::Log -e started
+--- - Mnet::Log -e started
 inf - Mnet::Opts::Cli new parsed opt cli log-expect = "info"
 inf - Mnet::Expect log txt: x-test
- -  - Mnet::Log finished with no errors
+--- - Mnet::Log finished with no errors
 ', 'log_expect info');
 
 # check log_expect invalid

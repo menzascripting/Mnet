@@ -104,7 +104,7 @@ Test::More::is(`
 inf - Mnet::Expect log txt: prompt$'.' '.'
 inf - Mnet::Expect log txt: prompt$'.' '.'
 dbg - Mnet::Expect log txt: test
- -  - Mnet::Log finished with no errors
+--- - Mnet::Log finished with no errors
 ', 'check log_login info');
 
 #? temporary code below, to help track down error in some cpan tests
@@ -128,14 +128,14 @@ $perl_new_login = "chmod 700 \$CLI; echo; $perl -e '" . '
     warn "mismatch, $expected" if $expect->prompt_re ne $expected;
 ' . "' -- --debug-error /dev/stdout";
 
-# new login prompt match with spurrious prompt text in banner
+# new login prompt match with spurious prompt text in banner
 Test::More::is(`export CLI=\$(mktemp); echo '
     echo -n \"prompt:\"'"'"'\\n'"'"'\"prompt>\"; read INPUT
     echo -n \"prompt>\"; read INPUT
     echo -n \"prompt>\"; read INPUT
     echo -n \"prompt>\"; read INPUT
     echo -n \"prompt>\"; read INPUT
-' >\$CLI; $perl_new_login 2>&1; rm \$CLI`, '
+' >\$CLI; $perl_new_login 2>&1`, '
 prompt = (^|\r|\n)prompt>\r?$
 ', 'new login with extra prompt, no trailing spaces prompt>');
 
