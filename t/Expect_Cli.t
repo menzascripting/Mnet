@@ -124,8 +124,8 @@ $perl_new_login = "chmod 700 \$CLI; echo; $perl -e '" . '
     my $expect = Mnet::Expect::Cli->new($opts) or die "expect undef";
     syswrite STDOUT, "prompt = ".$expect->prompt_re."\n" if $expect->prompt_re;
     $expect->close;
-    my $expected = "(^|\\\r|\\\n)prompt>";
-    warn "mismatch" if $expect->prompt_re =~ /$expected/;
+    my $expected = "(^|\\\r|\\\n)prompt>\\\r?\\$";
+    warn "mismatch, $expected" if $expect->prompt_re ne $expected;
 ' . "' -- --debug-error /dev/stdout";
 
 # new login prompt match with spurrious prompt text in banner
