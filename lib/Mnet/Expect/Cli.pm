@@ -276,7 +276,7 @@ sub _login {
     foreach my $attempt (1.. $attempts) {
         $self->debug("_login detect prompt attempt $attempt");
         $prompt1 = _login_expect($self, "prompt_re") // return undef;
-        $prompt1 =~ s/^(\r|\n)//;
+        $prompt1 =~ s/(^(\r|\n)|(\r|\n)$)//;
         $self->{_log_filter} = undef;
         if ($prompt1 ne "" and $prompt1 eq $prompt2) {
             $prompt1 =~ s/(\\|\/|\(|\)|\$)/\\$1/g;
@@ -729,7 +729,7 @@ sub prompt_re {
 Get and/or set new prompt_re for the current object.
 
 By default prompts that end with $ % # : > are recognized, and the first prompt
-detected after login is used as prompt_re for the resto of the expect session.
+detected after login is used as prompt_re for the rest of the expect session.
 
 Note that prompt_re should start with a regex caret symbol and end with a regex
 dollar sign, to ensure it is accurately detected. Also the /Q and /E escape
