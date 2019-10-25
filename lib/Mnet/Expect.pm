@@ -54,8 +54,9 @@ This method can be used to create new Mnet::Expect objects.
 
 The following input opts may be specified:
 
+    log_expect  default session debug, refer to log_expect method
     log_id      refer to perldoc Mnet::Log new method
-    raw_pty     can be set 0 or 1, refer to perldoc Expect
+    raw_pty     undef, can be set 0 or 1, refer to perldoc Expect
     spawn       command and args array ref, or space separated string
     winsize     specify session rows and columns, default 99999x999
 
@@ -95,6 +96,7 @@ the L<Mnet::Log> module for more information.
         _expect     => undef,
         _log_filter => undef,
         log_id      => $opts->{log_id},
+        log_expect  => "debug",
         _no_spawn   => undef,
         quiet       => $opts->{quiet},
         raw_pty     => undef,
@@ -118,6 +120,9 @@ the L<Mnet::Log> module for more information.
 
     # bless new object
     bless $self, $class;
+
+    # call to log_expect to ensure that log_level is valid
+    $self->log_expect($self->{log_expect});
 
     # return undef if Expect spawn does not succeed
     $self->debug("new calling spawn");
@@ -175,7 +180,7 @@ sub spawn {
     # set Mnet::Expect->log method for logging
     #   disable expect stdout logging
     $self->expect->log_stdout(0);
-    $self->expect->log_file(sub { $self->log(shift) });
+    $self->expect->log_file(sub { $self->_log(shift) });
 
     # note spawn command and arg list
     #   this can be specified as a list reference or a space-separated string
@@ -305,12 +310,12 @@ L<Expect> module for more information.
 
 
 
-sub log {
+sub _log {
 
-# $self->log($chars)
-# purpose: output Mnet::Expect session activity to --debug log
+# $self->_log($chars)
+# purpose: output Mnet::Expect session activity, as per log_expect
 # $chars: logged text, non-printable characters are output as hexadecimal
-# note: Mnet::Expect->new sets Expect log_file to use this method
+# note: Mnet::Expect->spawn sets Expect log_file to use this method
 
     # read the current Mnet::Expect object and character string to log
     my ($self, $chars) = (shift, shift);
@@ -318,6 +323,13 @@ sub log {
     # init text and hex log output lines
     #   separate hex lines are used to show non-prinatbel characters
     my ($line_txt, $line_hex) = (undef, undef);
+
+    # note log level for expect session traffic, using log_expect
+    my $log_expect = $self->{log_expect};
+
+    # return if log_expect was set undef to disable logging
+    #   this might come in handy to ensure secrets don't end up in logs
+    return if not defined $log_expect;
 
     # loop through input hex and text characters
     foreach my $char (split(//, $chars)) {
@@ -332,11 +344,12 @@ sub log {
                         $self->{_log_filter} = undef;
                     }
                 }
-                $self->debug("log txt: $line_txt");
+                $self->$log_expect("log txt: $line_txt");
                 $line_txt = undef;
             }
 
-        # append printable ascii characters to line_txt
+        # append printable ascii characters to line_txt, output log hex
+        #   log hex always goes to debug
         } else {
             $line_txt .= $char;
             if (defined $line_hex) {
@@ -348,7 +361,8 @@ sub log {
     # continue looping through input characters
     }
 
-    # output any remaining log hex of txt lines after finishing loop
+    # output any remaining log hex and txt lines after finishing loop
+    #   log hex always goes to debug, log txt controlled by log_expct value
     #   apply and clear _log_filter to remove passwords from line_txt
     $self->debug("log hex:$line_hex") if defined $line_hex;
     if (defined $line_txt) {
@@ -357,11 +371,47 @@ sub log {
                 $self->{_log_filter} = undef;
             }
         }
-        $self->debug("log txt: $line_txt");
+        $self->$log_expect("log txt: $line_txt");
     }
 
-    # finished log method
+    # finished _log method
     return;
+}
+
+
+
+sub log_expect {
+
+=head1 log_expect
+
+    $prior = $expect->log_expect($level)
+
+Use this method to set a new log_expect level for expect session traffic. The
+prior log_expect value will be returned.
+
+The new log_expect level can be set to debug, info, or undefined. An undefined
+log_expect disables the logging of expect session traffic, which might be
+useful to keep sensitive data out of log outputs.
+
+The default log level for expect session traffic is debug.
+
+An invalid input log_expect level results in an error.
+
+=cut
+
+    # read the current Mnet::Expect object and new log level
+    my ($self, $level) = (shift, shift);
+
+    # abort with an error if input log_expect level is not valid
+    croak("log_expect invalid, must be debug, info, or undef")
+        if defined $level and $level !~ /^(debug|info)$/;
+
+    # note prior log_expect value and set the new value
+    my $prior_log_expect = $self->{log_expect};
+    $self->{log_expect} = $level;
+
+    # finished log_expect method, return prior_log_expct value
+    return $prior_log_expect;
 }
 
 
