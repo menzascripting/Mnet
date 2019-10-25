@@ -69,10 +69,12 @@ Mnet - Testable network automation and reporting
     $log->info("processing device");
 
     # create an expect ssh session to --device
-    #   password_in set to prompt for password if not set via cli option
+    #   log login authentication prompts as info, instead of default debug
+    #   password_in set to prompt for password if --password opt not set
     #   ssh host/key checks can be skipped, refer to Mnet::Expect::Cli
     my $ssh = Mnet::Expect::Cli::Ios->new({
         spawn       => [ "ssh", "$cli->{username}\@$cli->{device}" ],
+        log_login   => "info",
         password    => $cli->password,
         password_in => 1,
     });
