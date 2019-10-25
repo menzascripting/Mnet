@@ -65,7 +65,8 @@ in the L<Mnet::Expect> module new method:
 
     delay           millseconds delay for command prompt detection
     eol_unix        default true for output with unix /n eol chars only
-    failed_re       set to recognize failed logins, disabled by default
+    failed_re       set to speed login failures, disabled by default
+    log_login       default undef uses Mnet::Expect log_expect logging
     paging_key      default space key to send for pagination prompt
     paging_re       default handles common prompts, refer to paging_re
     password        set to password for spawned command, if needed
@@ -129,7 +130,8 @@ Refer to the L<Mnet::Expect> module for more information.
         _command_cache_counter => 0,
         delay       => 250,
         eol_unix    => 1,
-        failed_re   => undef,  # see failed_re perdoc, t/Expect_Cli.t comment
+        failed_re   => undef,
+        log_login   => undef,
         paging_key  => ' ',
         paging_re   => '(--more--|---\(more( \d\d?%)?\)---)',
         password    => undef,
@@ -209,6 +211,12 @@ sub _login {
     my $self = shift // die "missing self arg";
     $self->debug("_login starting");
 
+    # if log_level defined then set log_expect for login, note prior log_expect
+    my $prior = undef;
+    if (defined $self->{log_login}) {
+        $prior = $self->log_expect($self->{log_login});
+    }
+
     # if username is set then wait and respond to username_re prompt
     if (defined $self->{username}) {
         _login_expect($self, "username_re");
@@ -218,6 +226,7 @@ sub _login {
     # if password is set then wait and respond to password_re prompt
     #   prompt user for password if password not set and password_in is set
     #   _log_filter used to keep password out of Mnet::Expect->log
+    #   reset log_expect level back to it's prior value before returning
     if (defined $self->{password} or $self->{password_in}) {
         _login_expect($self, "password_re");
         my $password = $self->{password};
@@ -235,6 +244,7 @@ sub _login {
                 $self->debug("_login password_in prompt finished");
             } else {
                 $self->fatal("password or password_in required and not set");
+                $self->log_expect($prior) if defined $self->{log_login};
                 return undef;
             }
         }
@@ -245,12 +255,14 @@ sub _login {
 
     # return true if prompt_re was set undef
     #   clear any password from expect session and clear _log_filter
+    #   reset log_expect level back to it's prior value before returning
     if (not defined $self->{prompt_re}) {
         $self->debug("_login detect prompt skipped, prompt_re set undef");
         $self->debug("_login finished, returning true");
         Time::HiRes::usleep($self->{delay}*1000);
         $self->expect->clear_accum;
         $self->{_log_filter} = undef;
+        $self->log_expect($prior) if defined $self->{log_login};
         return 1;
     }
 
@@ -259,6 +271,7 @@ sub _login {
     #   clear _log_filter, which may have been set when password was sent
     #   clear expect buffer before sending cr, to flush out banner text, etc
     #   set prompt_re to detected command prompt when finished
+    #   reset log_expect level back to it's prior value before returning
     my ($prompt1, $prompt2, $attempts) = ("", "", 3);
     foreach my $attempt (1.. $attempts) {
         $self->debug("_login detect prompt attempt $attempt");
@@ -270,6 +283,7 @@ sub _login {
             $self->{prompt_re} = '(^|\r|\n)'.$prompt1.'\r?$';
             $self->debug("_login detect prompt_re = /$self->{prompt_re}/");
             $self->debug("_login finished, returning true");
+            $self->log_expect($prior) if defined $self->{log_login};
             return 1;
         } else {
             $self->debug("_login detect prompt sending cr");
@@ -279,6 +293,9 @@ sub _login {
             $prompt2 = $prompt1;
         }
     }
+
+    # reset log_expect level back to it's prior value before returning
+    $self->log_expect($prior) if defined $self->{log_login};
 
     # finished _login method, return true false for failure
     $self->debug("_login finished, returning false");
