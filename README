@@ -50,10 +50,8 @@ SYNOPSIS
             output  => $cli->report,
         });
 
-        # handle concurrent --batch processing, parent exits when finished
-        #   process one device or ten thousand devices with the same script
-
         # read command line options, fork children if in --batch mode
+        #   process one device or ten thousand devices with the same script
         #   exit --batch parent process when finished forking children
         $cli = Mnet::Batch::fork($cli);
         exit if not $cli;
