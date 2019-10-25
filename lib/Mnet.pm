@@ -79,6 +79,7 @@ Mnet - Testable network automation and reporting
     #   ssh host/key checks can be skipped, refer to Mnet::Expect::Cli
     my $ssh = Mnet::Expect::Cli::Ios->new({
         spawn       => [ "ssh", "$cli->{username}\@$cli->{device}" ],
+        log_id      => $cli->{device},
         log_login   => "info",
         password    => $cli->password,
         password_in => 1,
