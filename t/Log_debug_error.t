@@ -18,14 +18,10 @@ Test::More::is(`$perl -e '
     use Mnet::Opts::Cli;
     my \$cli = Mnet::Opts::Cli->new;
     WARN("error");
-' -- --debug-error /dev/stdout 2>&1 | head -n 7`, ' -  - Mnet::Log -e started
-inf - Mnet::Opts::Cli new parsed opt cli debug-error = "/dev/stdout"
-WRN - main error
- -  - Mnet::Log creating --debug-error /dev/stdout
- -  - Mnet::Log finished with errors
+' -- --debug-error /dev/stdout 2>&1 | grep -A 3 DEBUG | grep -v DEBUG`, '
  -  - Mnet::Log -e started
 dbg - Mnet::Version -e = ?
-', 'debug default disabled');
+'."\n", 'debug default disabled');
 
 # finished
 exit;

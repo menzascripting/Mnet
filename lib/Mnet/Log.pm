@@ -198,7 +198,9 @@ INIT {
         help_tip    => 'set for debug file on errors, or stdout',
         help_text   => '
             set to the path and name of debug file to write after any errors
+            this way you get debug logs for errors, and normal logs otherwise
             any asterisk in filename will be replaced with timestamp and pid
+            send output to terminal using --debug-error /dev/stdout or stderr
             refer to perldoc Mnet::Log for more information
         ',
     }) if $INC{"Mnet/Opts/Cli.pm"};
@@ -320,13 +322,14 @@ A value of undefined is returned if there have not yet been any errors.
 
 sub output {
 
-# output($self, $prefix, $severity, $caller, $text)
+# $true = output($self, $prefix, $severity, $caller, $text)
 # purpose: used by other methods in this module to output Mnet::Log entries
 # $self: object instance passed from public methods in this module, or undef
 # $prefix: set to keyword dbg, inf, WRN, ERR, or " - " to bypass Mnet::Tee
 # $severity: 7=debug, 6=info, 5=notice (no Mnet::Test), 4=warn, 3=error, 2=fatal
 # $caller: original caller of method or function making log entry
-# $text: zero or more lines of log text
+# $text: zero or more lines of log text, formatted with timestamps, etc
+# $true: boolean true is always returned, can use like: output() and ...
 
     # read args for object and/or text, level, and caller
     my ($self, $prefix, $severity, $caller) = (shift, shift, shift, shift);
@@ -347,16 +350,22 @@ sub output {
         $script_name =~ s/^.*\///;
         my $started = "$script_name started";
         $started .= ", pid $$, ".localtime if not $INC{"Mnet/Log/Test.pm"};
+        $Mnet::Log::debug_error = undef if not $INC{"Mnet/Opts/Cli.pm"};
         NOTICE($started);
         output(undef, "dbg", 7, "Mnet::Version", Mnet::Version::info());
     }
+
+    # return early for debug entries if no --debug set and debug_error disabled
+    return 1 if $severity > 6
+       and not $self->{debug}
+       and not defined $Mnet::Log::debug_error;
 
     # update global error flag with first line of first error entry
     $Mnet::Log::error = "$caller ".(split(/\n/, $text))[0]
         if $severity < 5 and not defined $Mnet::Log::error;
 
     # set hh:mm:ss timestamp for entries as long as --test is not set
-    #   timestamps are filtered out of output with --test/record/replay cli opt
+    #   timestamps are filtered from output with --test/record/replay cli opts
     my ($timestamp, $sec, $min, $hr, $mday, $mon, $yr) = ("", localtime());
     $timestamp = sprintf("%02d:%02d:%02d ", $hr, $min, $sec)
         if not $INC{"Mnet/Log/Test.pm"} and not $self->{test}
@@ -647,7 +656,10 @@ END {
     # output --debug-error file, if there were errors and that opt was set
     if (defined $Mnet::Log::error and defined $debug_error_file) {
         if (open(my $fh, ">", $debug_error_file)) {
+            my ($sep1, $sep2) = ("-" x 14, "-" x 36);
+            syswrite $fh, "\n$sep1 DEBUG ERROR OUTPUT STARTING $sep2\n\n";
             syswrite $fh, $Mnet::Log::debug_error // "<undef>\n";
+            syswrite $fh, "\n$sep1 DEBUG ERROR OUTPUT FINISHED $sep2\n\n";
             close $fh;
         } else {
             WARN("unable to open --debug_error $debug_error_file, $!");
