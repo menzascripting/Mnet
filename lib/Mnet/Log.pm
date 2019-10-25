@@ -512,7 +512,7 @@ to fatal are handled in an eval the same as calls to die.
     # call normal die in an eval, otherwise call output function
     #   $^S is undef while compiling/parsing, true in eval, false otherwise
     my ($self, $text) = (shift, shift);
-    CORE::die("$text\n") if ($^S);
+    CORE::die("$text\n") if $^S;
     $self->output("DIE", 2, scalar(caller), $text);
     exit 1;
 }

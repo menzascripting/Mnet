@@ -149,7 +149,7 @@ Output a warn entry using the L<Mnet::Log> module, if loaed.
     # call Mnet::Log::output if loaded or warn
     my ($self, $text) = (shift, shift);
     if ($INC{"Mnet/Log.pm"}) {
-        Mnet::Log::output(undef, "WRN", 4, scalar(caller), $text);
+        Mnet::Log::output($self, "WRN", 4, scalar(caller), $text);
     } else {
         $text =~ s/\n*$//;
         my $log_id = $self->{log_id} // "-";
@@ -170,10 +170,12 @@ Output a fatal entry using the L<Mnet::Log> module, if loaded.
 
 =cut
 
-    # call Mnet::Logoutput if loaded or die
+    # call Mnet::Log output if loaded or die
+    #   $^S is undef while compiling/parsing, true in eval, false otherwise
     my ($self, $text) = (shift, shift);
     if ($INC{"Mnet/Log.pm"}) {
-        Mnet::Log::output(undef, "DIE", 2, scalar(caller), $text);
+        CORE::die("$text\n") if $^S;
+        Mnet::Log::output($self, "DIE", 2, scalar(caller), $text);
     } else {
         my $log_id = $self->{log_id} // "-";
         CORE::die("DIE $log_id " . scalar(caller) . " $text\n");
