@@ -6,17 +6,13 @@ package Mnet::T;
 use warnings;
 use strict;
 use Carp;
-use Exporter qw ( import );
 use Test::More;
 
-# export function names
-our @EXPORT_OK = qw( mnet_test_perl );
 
 
+sub test_perl {
 
-sub mnet_test_perl {
-
-# $result = mnet_test_perl(\%specs)
+# $result = Mnet::T::test_perl(\%specs)
 # purpose: test w/pre/perl/post/filter/expect/debug, for mnet .t scripts
 # \%specs: input test specification hash reference, see below
 # $result: true if test passed
@@ -29,13 +25,14 @@ sub mnet_test_perl {
 #       post    => $sh_code',    # shell code to execute after perl code
 #       filter  => $sh_command,  # shell code perl output is piped through
 #       expect  => $text,        # match with filtered output for pass/fail
-#       debug   => $debug_args,  # perl args to re-run test after a failure
+#       debug   => $debug_args,  # perl args to re-run test after failure
 #   }
 #
 # note that leading spaces are removed lines of text stored in exect key
+# note that debug re-run exports MNET_TEST_PERL_DEBUG=1, even if null
 #
-#   use Mnet::T qw( mnet_test_perl );
-#   mnet_test_perl({
+#   use Mnet::T qw( test_perl );
+#   test_perl({
 #       name    => 'test',
 #       perl    => <<'    perl-eof',
 #           use warnings;
@@ -62,8 +59,9 @@ sub mnet_test_perl {
     # read input specs
     my $specs = shift;
 
-    # note test name
+    # note test name and caller info
     my $name = $specs->{name};
+    my @caller = caller();
 
     # skip if global mnet_test_perl var is set and test doesn't match
     #   makes it easy to troubleshoot one test in a .t script full of tests
@@ -78,12 +76,13 @@ sub mnet_test_perl {
     }
 
     # prepare command for test
-    my $command = _mnet_test_perl_command($specs);
+    my $command = _test_perl_command($specs);
 
     # append filter to test command, if one was specified
+    #   remove leading and trailing blank lines before shell piping
     if ($specs->{filter}) {
-        ( my $filter = $specs->{filter} ) =~ s/'/'"'"'/g;
-        $command .= "| $filter";
+        $specs->{filter} =~ s/(^\n+|\n+$)//g;
+        $command .= "| $specs->{filter}";
     }
 
     # trim expect text, allows for indents
@@ -100,26 +99,31 @@ sub mnet_test_perl {
     my $result = Test::More::is( "\n$output", "\n$specs->{expect}", $name);
 
     # re-run test with debug args if test failed and debug key was set
-    if (not $result and $specs->{debug}) {
-        my $output = "\npre/perl/post $specs->{debug} for failed '$name'\n\n";
-        my $command = _mnet_test_perl_command($specs, "debug");
+    if (not $result and defined $specs->{debug}) {
+        my $output = "\npre/perl/post $specs->{debug} for failed '$name'\n";
+        $output .= "   called from $caller[1] line $caller[2]\n\n";
+        my $command = _test_perl_command($specs, "debug");
         $output .= "COMMAND STARTING\n$command\nCOMMAND FINISHED\n";
-        $output .= `( $command ) 2>&1`;
-        print "## $_\n" foreach split(/\n/, $output);
-        print "##\n";
+        $output .= "UNFILTERED OUTPUT STARTING";
+        $output .= `( export MNET_TEST_PERL_DEBUG=1; $command ) 2>&1`;
+        $output .= "UNFILTERED OUTPUT FINISHED\n";
+        $output .= "FILTER STARTING\n$specs->{filter}\nFILTER FINISHED\n"
+            if $specs->{filter};
+        syswrite STDERR, "## $_\n" foreach split(/\n/, $output);
+        syswrite STDERR, "##\n";
     }
 
-    # finished mnet_test_perl function, return result
+    # finished test_perl function, return result
     return $result;
 }
 
 
 
-sub _mnet_test_perl_command {
+sub _test_perl_command {
 
-# $command = _mnet_test_perl_command(\%specs, $debug)
+# $command = _test_perl_command(\%specs, $debug)
 # purpose: prepare pre, perl, and post test command string
-# \%specs: hash ref of test specifications, refer to mnet_test_perl function
+# \%specs: hash ref of test specifications, refer to test_perl function
 # $debug: optional debug arguments, set when test needs to be re-run after fail
 # $command: output command string ready to run with Test::More::is
 
