@@ -181,7 +181,5 @@ SEE ALSO
 
     Mnet::Stanza
 
-    Mnet::Tee
-
     Mnet::Test
 

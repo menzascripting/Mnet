@@ -179,6 +179,4 @@ this program. If not, see [http://www.gnu.org/licenses/](http://www.gnu.org/lice
 
 [Mnet::Stanza](https://metacpan.org/pod/Mnet::Stanza)
 
-[Mnet::Tee](https://metacpan.org/pod/Mnet::Tee)
-
 [Mnet::Test](https://metacpan.org/pod/Mnet::Test)
