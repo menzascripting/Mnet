@@ -19,6 +19,7 @@
 #       perl Makefile.PL && make distcheck, skip Mnet-*.tar.gz and README.md
 #       make test, commit any fixes made so far, then we're ready for release
 #       vim Changes, update w/date and new <RELEASE> number, 5.09, 5.10, etc
+#       note: for cpan development, <RELEASE> =~ /^\d+\.\d+(_\d+|-TRIAL\d*)$/
 #       vim lib/Mnet.pm, update $VERSION variable to the new <REELEASE> number
 #       git rm Mnet-*.tar.gz, to remove old distribution when new is committed
 #       make realclean && perl Makefile.PL && make dist && make realclean
