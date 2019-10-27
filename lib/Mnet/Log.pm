@@ -700,6 +700,8 @@ Refer to the L<Mnet::Test> module for more information.
 
 L<Mnet>
 
+L<Mnet::Log::Conditional>
+
 L<Mnet::Log::Test>
 
 L<Mnet::Opts::Cli>
@@ -709,8 +711,6 @@ L<Mnet::Opts::Set::Debug>
 L<Mnet::Opts::Set::Quiet>
 
 L<Mnet::Opts::Set::Silent>
-
-L<Mnet::Tee>
 
 L<Mnet::Test>
 
