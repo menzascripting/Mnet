@@ -44,8 +44,8 @@ Mnet::T::test_perl({
         ' >$EXPECT
     pre-eof
     perl    => $perl,
-    post    => 'rm $EXPECT',
     args    => '--username user',
+    post    => 'rm $EXPECT',
     expect  => 'prompt = (^|\r|\n)prompt% \r?$'."\n",
     debug   => '--debug --noquiet',
 });
@@ -61,8 +61,8 @@ Mnet::T::test_perl({
         ' >$EXPECT
     pre-eof
     perl    => $perl,
-    post    => 'rm $EXPECT',
     args    => '--password pass',
+    post    => 'rm $EXPECT',
     expect  => 'prompt = (^|\r|\n)prompt# \r?$'."\n",
     debug   => '--debug --noquiet',
 });
