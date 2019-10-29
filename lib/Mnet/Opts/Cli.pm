@@ -459,6 +459,7 @@ The perl ARGV array is not modified by this module.
     #   log_entries keys are opt names, set to source keyword followed by dump
     #   default opts identified with 'def' log entry prefix are logged to debug
     #   notice entries used for opts that would interfere with Mnet::Test diffs
+    #       so that opts without record set are not saved in --record file logs
     foreach my $opt (sort keys %$log_entries) {
         my $log_entry = $log_entries->{$opt};
         $log_entry =~ s/(\S+)/opt $1 ${opt} =/;

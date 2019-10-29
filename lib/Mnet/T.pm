@@ -66,7 +66,7 @@ sub test_perl {
     # skip if global mnet_test_perl var is set and test doesn't match
     #   makes it easy to troubleshoot one test in a .t script full of tests
     if ($main::mnet_test_perl and $name !~ /\Q$main::mnet_test_perl\E/) {
-        SKIP: { skip("$name (main::mnet_test_perl dosn't match)", 1); };
+        SKIP: { skip("$name (main::mnet_test_perl)", 1); };
         return 1;
     }
 
