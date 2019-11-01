@@ -71,7 +71,7 @@ in the L<Mnet::Expect> module new method:
     paging_re       default handles common prompts, refer to paging_re
     password        set to password for spawned command, if needed
     password_in     stderr prompt for stdin entry of password if not set
-    password_re     undef to skip password/passcode prompt detection
+    password_re     undef to skip password/code/phrase prompt detection
     prompt_re       undef to disable prompt detect, refer to prompt_re
     timeout         seconds for Expect restart_timeout_upon_receive
     username        set to username for spawned command, if needed
@@ -137,7 +137,7 @@ Refer to the L<Mnet::Expect> module for more information.
         password    => undef,
         _password_  => undef,
         password_in => undef,
-        password_re => '(?i)pass(word|code):?\s*(\r|\n)?$',
+        password_re => '(?i)pass(code|phrase|word):?\s*(\r|\n)?$',
         prompt_re   => '(^|\r|\n)\S.*(\$|\%|#|:|>) ?(\r|\n|$)',
         record      => undef,
         replay      => undef,
