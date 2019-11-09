@@ -172,7 +172,7 @@ Mnet::T::test_perl({
 });
 
 # new login with spurious prompt, no trailing spaces prompt>
-#? try enabling this test after everything else works
+#? try enabling prompt-detect test after everything else works
 #Mnet::T::test_perl({
 #    name    => 'new login with spurious prompt, no trailing spaces prompt>',
 #    pre     => <<'    pre-eof',
