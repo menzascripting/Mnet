@@ -206,7 +206,6 @@ Mnet::T::test_perl({
         dbg - Mnet::Expect::Cli::Ios close finished
         --- - Mnet::Log finished with no errors
     expect-eof
-    debug   => '',
 });
 
 # create temp directory for record and replay tests, below

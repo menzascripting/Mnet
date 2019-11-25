@@ -52,7 +52,6 @@ Mnet::T::test_perl({
         dbg - Mnet::Expect close finished, hard_close confirmed
         --- - Mnet::Log finished with no errors
     expect-eof
-    debug   => '',
 });
 
 # log_expect debug
@@ -67,7 +66,6 @@ Mnet::T::test_perl({
         dbg - Mnet::Expect close finished, hard_close confirmed
         --- - Mnet::Log finished with no errors
     expect-eof
-    debug   => '',
 });
 
 # log_expect info
@@ -81,7 +79,6 @@ Mnet::T::test_perl({
         inf - Mnet::Expect log txt: x-test
         --- - Mnet::Log finished with no errors
     expect-eof
-    debug   => '',
 });
 
 
@@ -95,7 +92,6 @@ Mnet::T::test_perl({
     expect  => <<'    expect-eof',
         ERR - Carp perl die, log_expect invalid
     expect-eof
-    debug   => '',
 });
 
 # finished

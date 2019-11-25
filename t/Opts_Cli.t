@@ -19,7 +19,6 @@ Mnet::T::test_perl({
     args    => '--version',
     filter  => 'grep "Mnet version" | wc -l | sed "s/^ *//"',
     expect  => '1',
-    debug   => '',
 });
 
 # display --help
@@ -113,7 +112,6 @@ Mnet::T::test_perl({
         warn "test-opt" if defined Mnet::Opts::Cli->new->test_opt;
     perl-eof
     args    => '--test-opt test --test-reset test-opt',
-    expect  => '',
 });
 
 # defined --test-reset
@@ -128,7 +126,6 @@ Mnet::T::test_perl({
         warn "test-opt" if Mnet::Opts::Cli->new->test_opt ne "def";
     perl-eof
     args    => '--test-opt test --test-reset test-opt',
-    expect  => '',
 });
 
 # cli option logging
