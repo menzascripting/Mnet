@@ -99,18 +99,22 @@ sub test_perl {
     my $result = Test::More::is( "\n$output", "\n$specs->{expect}", $name);
 
     # re-run test with debug args if test failed and debug key was set
-    if (not $result and defined $specs->{debug}) {
-        my $output = "\npre/perl/post $specs->{debug} for failed '$name'\n";
-        $output .= "   called from $caller[1] line $caller[2]\n\n";
-        my $command = _test_perl_command($specs, "debug");
-        $output .= "COMMAND STARTING\n$command\nCOMMAND FINISHED\n";
-        $output .= "UNFILTERED OUTPUT STARTING";
-        $output .= `( export MNET_TEST_PERL_DEBUG=1; $command ) 2>&1`;
-        $output .= "UNFILTERED OUTPUT FINISHED\n";
-        $output .= "FILTER STARTING\n$specs->{filter}\nFILTER FINISHED\n"
-            if $specs->{filter};
-        syswrite STDERR, "## $_\n" foreach split(/\n/, $output);
-        syswrite STDERR, "##\n";
+    if (not $result) {
+        if ($specs->{debug} or $specs->{filter}) {
+            my $output = "\npre/perl/post $specs->{debug} for failed '$name'\n";
+            $output .= "   called from $caller[1] line $caller[2]\n\n";
+            my $command = _test_perl_command($specs, "debug");
+            $output .= "COMMAND STARTING\n$command\nCOMMAND FINISHED\n";
+            $output .= "UNFILTERED OUTPUT STARTING";
+            $output .= `( export MNET_TEST_PERL_DEBUG=1; $command ) 2>&1`;
+            $output .= "UNFILTERED OUTPUT FINISHED\n";
+            $output .= "FILTER STARTING\n$specs->{filter}\nFILTER FINISHED\n"
+                if $specs->{filter};
+            syswrite STDERR, "## $_\n" foreach split(/\n/, $output);
+            syswrite STDERR, "##\n";
+        } else {
+            syswrite STDERR, "##    called from $caller[1] line $caller[2]\n\n";
+        }
     }
 
     # finished test_perl function, return result
