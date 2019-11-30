@@ -101,7 +101,7 @@ sub test_perl {
     # re-run test with debug args if test failed and debug key was set
     if (not $result) {
         if ($specs->{debug} or $specs->{filter}) {
-            my $output = "\npre/perl/post $specs->{debug} for failed '$name'\n";
+            my $output = "\npre/perl/post debug for failed '$name'\n";
             $output .= "   called from $caller[1] line $caller[2]\n\n";
             my $command = _test_perl_command($specs, "debug");
             $output .= "COMMAND STARTING\n$command\nCOMMAND FINISHED\n";
@@ -150,7 +150,7 @@ sub _test_perl_command {
     ( my $perl = $specs->{perl} ) =~ s/'/'"'"'/g;
     $command .= "echo '$perl' | $^X - ";
     $command .= $specs->{args} if defined $specs->{args};
-    $command .= " " . $specs->{debug} if defined $debug;
+    $command .= " " . $specs->{debug} if $debug and defined $specs->{debug};
     $command .= ";";
 
     # append post shell code, if specified
