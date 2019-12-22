@@ -7,9 +7,6 @@ use strict;
 use Mnet::T;
 use Test::More tests => 6;
 
-# use current perl for tests
-my $perl = $^X; #?
-
 # function calls without Mnet::Log
 Mnet::T::test_perl({
     name    => 'function calls without Mnet::Log',
