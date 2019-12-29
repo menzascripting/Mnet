@@ -697,8 +697,6 @@ L<Mnet>
 
 L<Mnet::Opts>
 
-L<Mnet::Opts::Set>
-
 L<Mnet::Test>
 
 =cut

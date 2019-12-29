@@ -2,7 +2,7 @@ package Mnet::Log;
 
 =head1 NAME
 
-Mnet::Log - Logging compatible with Log4perl api
+Mnet::Log - Logging, compatible with Log4perl
 
 =head1 SYNOPSIS
 
@@ -691,8 +691,7 @@ END {
 =head1 TESTING
 
 When used with the L<Mnet::Test> --record option all stdout and stderr log
-entry output from this module is captured with the exception of dbg and log
-entries.
+entry output from this module is captured with the exception of dbg entries.
 
 Refer to the L<Mnet::Test> module for more information.
 
