@@ -81,7 +81,7 @@ sub test_perl {
     # append filter to test command, if one was specified
     #   remove leading and trailing blank lines before shell piping
     if ($specs->{filter}) {
-        $specs->{filter} =~ s/(^\n+|\n+$)//g;
+        $specs->{filter} =~ s/(^\s+|\s+$)//g;
         $command .= "| $specs->{filter}";
     }
 
@@ -139,7 +139,7 @@ sub _test_perl_command {
 
     # append pre shell code, if specified
     if ($specs->{pre}) {
-        $specs->{pre} =~ s/\n+$//;
+        $specs->{pre} =~ s/(^\s+|\s+$)//g;
         $command .= "echo 'PRE STARTING';" if $debug;
         $command .= "$specs->{pre};";
         $command .= "echo 'PRE FINISHED'; echo;" if $debug;
@@ -155,7 +155,7 @@ sub _test_perl_command {
 
     # append post shell code, if specified
     if ($specs->{post}) {
-        $specs->{post} =~ s/\n+$//;
+        $specs->{post} =~ s/(^\s+|\s+$)//g;
         $command .= "echo; echo 'POST STARTING';" if $debug;
         $command .= "$specs->{post};";
         $command .= "echo 'POST FINISHED';" if $debug;
