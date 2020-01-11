@@ -34,7 +34,7 @@ Mnet::Test can be used to allow script inputs and output to be recorded to a
 file, which can be replayed later to show any changes.
 
 Other L<Mnet> modules are designed to detect and make use of Mnet::Test, if it
-is being used by a script Refer to the perldoc TESTING sections of the other
+is being used by a script. Refer to the perldoc TESTING sections of the other
 modules for explanations of how each module supports Mnet::Test usage. Also
 refer to the --test, --record, and --replay options for more information.
 
