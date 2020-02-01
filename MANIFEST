@@ -47,8 +47,8 @@ t/Opts_Cli_define.t
 t/Opts_Cli_precedence.t
 t/Report_Table.t
 t/Report_Table_batch.t
-t/Report_Table_end.t
 t/Report_Table_errors.t
+t/Report_Table_row_on_errors.t
 t/Stanza.t
 t/Tee.t
 t/Test.t
