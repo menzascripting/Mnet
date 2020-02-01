@@ -31,6 +31,7 @@ t/Expect.t
 t/Expect_Cli.t
 t/Expect_Cli_Ios.t
 t/Expect_Cli_command.t
+t/Expect_Cli_command_prompts.t
 t/Expect_Cli_record.t
 t/Log.t
 t/Log_Conditional.t
