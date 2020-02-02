@@ -7,14 +7,15 @@ Mnet - Testable network automation and reporting
     # sample script to report Loopback0 ip on cisco devices
     #
     #   demonstrates typical use of all major Mnet modules
-    #   refer to various Mnet modules' perldoc for complete api info
+    #   refer to various Mnet modules' perldoc for more info
     #
-    #   use --help to list all options, or --help <option>
-    #   use --device <address> to connect to device with logging
-    #   use --batch <file.batch> to process multiple --device lines
-    #   add --report csv:<file.csv> to create an output csv report
-    #   add --record <file.test> to create replayable test file
-    #   use --test --replay <file.test> to show script changes
+    #   --help to list all options, or --help <option>
+    #   --device <address> to connect to device with logging
+    #   --username and --password should be set if necessary
+    #   --batch <file.batch> to process multiple --device lines
+    #   --report csv:<file.csv> to create an output csv report
+    #   --record <file.test> to create replayable test file
+    #   --test --replay <file.test> for regression test output
 
     # load modules
     use warnings;
@@ -28,17 +29,17 @@ Mnet - Testable network automation and reporting
     use Mnet::Test;
 
     # define --device, --username, --password, and --report cli options
-    #   record, default, redact, and help option attributes are shown
-    #   use the Mnet environment variable to securely set --password
+    #   record, redact, default, and help option attributes are shown
+    #   export Mnet="--password '<secret>'" env var to secure password
     Mnet::Opts::Cli::define({ getopt => "device=s", record => 1 });
-    Mnet::Opts::Cli::define({ getopt => "username=s", default => $ENV{USER} });
+    Mnet::Opts::Cli::define({ getopt => "username=s" });
     Mnet::Opts::Cli::define({ getopt => "password=s", redact  => 1 });
-    Mnet::Opts::Cli::define({ getopt => "report=s",
+    Mnet::Opts::Cli::define({ getopt => "report=s", default => undef,
         help_tip    => "specify report output, like 'csv:<file>'",
-        help_text   => "refer to Mnet::Report::Table for more info",
+        help_text   => "perldoc Mnet::Report::Table for more info",
     });
 
-    # parse command line and Mnet environment variable options
+    # create object to access command line and Mnet env variable options
     my $cli = Mnet::Opts::Cli->new;
 
     # define output --report table, will include first of any errors
@@ -52,7 +53,7 @@ Mnet - Testable network automation and reporting
         output  => $cli->report,
     });
 
-    # read command line options, fork children if in --batch mode
+    # recreate cli option obejct, forking children if in --batch mode
     #   process one device or ten thousand devices with the same script
     #   exit --batch parent process when finished forking children
     $cli = Mnet::Batch::fork($cli);
@@ -67,7 +68,7 @@ Mnet - Testable network automation and reporting
     $log->info("processing device");
 
     # create an expect ssh session to --device
-    #   log login authentication prompts as info, instead of default debug
+    #   log ssh login/auth prompts as info, instead of default debug
     #   password_in set to prompt for password if --password opt not set
     #   ssh host/key checks can be skipped, refer to Mnet::Expect::Cli
     my $ssh = Mnet::Expect::Cli::Ios->new({
@@ -78,11 +79,12 @@ Mnet - Testable network automation and reporting
         password_in => 1,
     });
 
-    # retrieve config from ssh command, warn otherwise
+    # retrieve ios config from ssh command, warn otherwise
     my $config = $ssh->command("show running-config");
     WARN("unable to read config") if not $config;
 
     # parse interface loopack0 stanza from config
+    #   returns int loop line0 and lines indented under int loop0
     my $loop = Mnet::Stanza::parse($config, qr/^interface loopback0$/i);
 
     # parse primary ip address from loopback0 config stanza
@@ -103,8 +105,8 @@ network automation and/or reporting scripts as simply as possible.
 The main features are:
 
 - Record and replay connected command line sessions, speeding development
-and allowing for regression testing of complex automation scripts.
-- Reliable automation of cisco IOS and other command line sessions, including
+and allow for regression testing of complex automation scripts.
+- Reliable automation of cisco ios and other command line sessions, including
 reliable authentication and command prompt handling.
 - Automation scripts can run in batch mode to concurrently process a list of
 devices, using a simple command line argument and a device list file.
@@ -112,7 +114,7 @@ devices, using a simple command line argument and a device list file.
 outputs can be redirected to per-device files
 - Flexible config settings via command line, environment variable, and/or batch
 device list files.
-- Report data from scripts can be output as plain .csv files, json, or sql.
+- Report data from scripts can be output as csv, json, or sql.
 
 Most of the [Mnet](https://metacpan.org/pod/Mnet) sub-modules can be used independently of each other,
 unless otherwise noted.
@@ -128,7 +130,7 @@ The latest release can be installed from CPAN
 
     cpan install Mnet
 
-Or downloaded and installed from [https://github.com/menzascripting/Mnet](https://github.com/menzascripting/Mnet)
+Or download and install from [https://github.com/menzascripting/Mnet](https://github.com/menzascripting/Mnet)
 
     tar -xzf Mnet-X.y.tar.gz
     cd Mnet-X.y
@@ -147,7 +149,7 @@ Mike can be reached via email at <mmenza@cpan.org>.
 
 # COPYRIGHT AND LICENSE
 
-Copyright 2006, 2013-2019 Michael J. Menza Jr.
+Copyright 2006, 2013-2020 Michael J. Menza Jr.
 
 [Mnet](https://metacpan.org/pod/Mnet) is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -172,8 +174,6 @@ this program. If not, see [http://www.gnu.org/licenses/](http://www.gnu.org/lice
 [Mnet::Log](https://metacpan.org/pod/Mnet::Log)
 
 [Mnet::Opts::Cli](https://metacpan.org/pod/Mnet::Opts::Cli)
-
-[Mnet::Opts::Set](https://metacpan.org/pod/Mnet::Opts::Set)
 
 [Mnet::Report::Table](https://metacpan.org/pod/Mnet::Report::Table)
 

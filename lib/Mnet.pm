@@ -18,10 +18,11 @@ Mnet - Testable network automation and reporting
     #
     #   --help to list all options, or --help <option>
     #   --device <address> to connect to device with logging
+    #   --username and --password should be set if necessary
     #   --batch <file.batch> to process multiple --device lines
     #   --report csv:<file.csv> to create an output csv report
     #   --record <file.test> to create replayable test file
-    #   --test --replay <file.test> to show script changes
+    #   --test --replay <file.test> for regression test output
 
     # load modules
     use warnings;
@@ -35,17 +36,17 @@ Mnet - Testable network automation and reporting
     use Mnet::Test;
 
     # define --device, --username, --password, and --report cli options
-    #   record, default, redact, and help option attributes are shown
-    #   export Mnet='--password <secret>' env var to securely set password
+    #   record, redact, default, and help option attributes are shown
+    #   export Mnet="--password '<secret>'" env var to secure password
     Mnet::Opts::Cli::define({ getopt => "device=s", record => 1 });
-    Mnet::Opts::Cli::define({ getopt => "username=s", default => $ENV{USER} });
+    Mnet::Opts::Cli::define({ getopt => "username=s" });
     Mnet::Opts::Cli::define({ getopt => "password=s", redact  => 1 });
-    Mnet::Opts::Cli::define({ getopt => "report=s",
+    Mnet::Opts::Cli::define({ getopt => "report=s", default => undef,
         help_tip    => "specify report output, like 'csv:<file>'",
         help_text   => "perldoc Mnet::Report::Table for more info",
     });
 
-    # parse command line and Mnet environment variable options
+    # create object to access command line and Mnet env variable options
     my $cli = Mnet::Opts::Cli->new;
 
     # define output --report table, will include first of any errors
@@ -59,7 +60,7 @@ Mnet - Testable network automation and reporting
         output  => $cli->report,
     });
 
-    # read command line options, fork children if in --batch mode
+    # recreate cli option obejct, forking children if in --batch mode
     #   process one device or ten thousand devices with the same script
     #   exit --batch parent process when finished forking children
     $cli = Mnet::Batch::fork($cli);
@@ -74,7 +75,7 @@ Mnet - Testable network automation and reporting
     $log->info("processing device");
 
     # create an expect ssh session to --device
-    #   log login authentication prompts as info, instead of default debug
+    #   log ssh login/auth prompts as info, instead of default debug
     #   password_in set to prompt for password if --password opt not set
     #   ssh host/key checks can be skipped, refer to Mnet::Expect::Cli
     my $ssh = Mnet::Expect::Cli::Ios->new({
@@ -115,7 +116,7 @@ The main features are:
 =item *
 
 Record and replay connected command line sessions, speeding development
-and allowing for regression testing of complex automation scripts.
+and allow for regression testing of complex automation scripts.
 
 =item *
 
@@ -157,7 +158,7 @@ The latest release can be installed from CPAN
 
     cpan install Mnet
 
-Or downloaded and installed from L<https://github.com/menzascripting/Mnet>
+Or download and install from L<https://github.com/menzascripting/Mnet>
 
     tar -xzf Mnet-X.y.tar.gz
     cd Mnet-X.y
@@ -176,7 +177,7 @@ Mike can be reached via email at <mmenza@cpan.org>.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2006, 2013-2019 Michael J. Menza Jr.
+Copyright 2006, 2013-2020 Michael J. Menza Jr.
 
 L<Mnet> is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

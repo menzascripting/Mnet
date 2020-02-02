@@ -138,8 +138,8 @@ The following keys in the specs input hash reference argument are supported:
     help_hide   set to hide option in --help list of available options
     help_tip    short tip text for --help list of available options
     help_text   longer help text to show in --help for specific options
-    record      set so option gets saved in Mnet::Test record/replay files
-    redact      set to prevent option value in showing in Mnet::Log output
+    record      set so option is saved in Mnet::Test record/replay files
+    redact      set to prevent option value showing in Mnet::Log output
 
 Refer to L<Getopt::Long> for more information.
 

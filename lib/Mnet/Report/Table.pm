@@ -71,13 +71,13 @@ in the following example:
 
     my $table = Mnet::Report::Table->new({
         columns => [                # ordered column names and types
-            device  => "string",    #   eol chars stripped for csv output
+            device  => "string",    #   strips eol chars in csv output
             count   => "integer",   #   +/- integer numbers
-            error   => "error",     #   first error, refer to row_on_error
+            error   => "error",     #   first error, see to row_on_error
             time    => "time",      #   row time as yyyy/mm/dd hh:mm:ss
         ],
-        log_id  => $optional,       # refer to perldoc Mnet::Log new method
-        output  => "csv:$file",     # refer to this module's OUTPUT section
+        log_id  => $optional,       # see perldoc Mnet::Log new method
+        output  => "csv:$file",     # see this module's OUTPUT section
     });
 
 Errors are issued if invalid options are specified.
