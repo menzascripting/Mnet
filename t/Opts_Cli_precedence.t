@@ -42,11 +42,11 @@ Mnet::T::test_perl({
     expect  => '',
 });
 
-# Mnet enviroment variable
-#   check that Mnet env var overrides pragma setting
+# options enviroment variable
+#   check that optional options env var overrides pragma setting
 #   sed/grep used to filter pid/timestamps, can't use Mnet::Test with env var
 Mnet::T::test_perl({
-    name    => 'Mnet enviroment variable',
+    name    => 'options enviroment variable',
     pre     => 'export Mnet="--noquiet"',
     perl    => <<'    perl-eof',
         use warnings;
@@ -54,7 +54,7 @@ Mnet::T::test_perl({
         use Mnet::Log;
         use Mnet::Opts::Cli;
         use Mnet::Opts::Set::Quiet;
-        my $cli = Mnet::Opts::Cli->new;
+        my $cli = Mnet::Opts::Cli->new("Mnet");
         warn "quiet" if $cli->quiet;
     perl-eof
     filter  => 'grep Mnet::Opts::Cli | sed "s/.*inf - Mnet/inf - Mnet/"',

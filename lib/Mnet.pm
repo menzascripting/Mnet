@@ -37,7 +37,6 @@ Mnet - Testable network automation and reporting
 
     # define --device, --username, --password, and --report cli options
     #   record, redact, default, and help option attributes are shown
-    #   export Mnet="--password '<secret>'" env var to secure password
     Mnet::Opts::Cli::define({ getopt => "device=s", record => 1 });
     Mnet::Opts::Cli::define({ getopt => "username=s" });
     Mnet::Opts::Cli::define({ getopt => "password=s", redact  => 1 });
@@ -47,7 +46,8 @@ Mnet - Testable network automation and reporting
     });
 
     # create object to access command line and Mnet env variable options
-    my $cli = Mnet::Opts::Cli->new;
+    #   export Mnet="--password '<secret>'" env var to secure password
+    my $cli = Mnet::Opts::Cli->new("Mnet");
 
     # define output --report table, will include first of any errors
     #   use --report cli opt to output data as csv, json, sql, etc
