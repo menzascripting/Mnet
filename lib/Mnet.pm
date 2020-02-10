@@ -45,7 +45,7 @@ Mnet - Testable network automation and reporting
         help_text   => "perldoc Mnet::Report::Table for more info",
     });
 
-    # create object to access command line and Mnet env variable options
+    # create object to access command line options and Mnet env variable
     #   export Mnet="--password '<secret>'" env var to secure password
     my $cli = Mnet::Opts::Cli->new("Mnet");
 
