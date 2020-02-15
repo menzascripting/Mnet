@@ -130,7 +130,7 @@ Mnet::T::test_perl({
         inf - Mnet::Opts::Cli new parsed opt cli tee = file
         stdout
         stderr
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
     debug   => '--debug',
 });

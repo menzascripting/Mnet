@@ -146,7 +146,7 @@ Mnet::T::test_perl({
     expect  => <<'    expect-eof',
         --- - Mnet::Log - started
         inf - Mnet::Opts::Cli new parsed opt cli test-opt = "test"
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
 });
 

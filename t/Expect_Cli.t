@@ -166,7 +166,7 @@ Mnet::T::test_perl({
         inf - Mnet::Expect log txt: prompt$'.' '.'
         inf - Mnet::Expect log txt: prompt$'.' '.'
         dbg - Mnet::Expect log txt: test
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     ',
     debug   => '--debug --noquiet',
 });

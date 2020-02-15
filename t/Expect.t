@@ -50,7 +50,7 @@ Mnet::T::test_perl({
         --- - Mnet::Log - started
         dbg - Mnet::Expect log txt: x-test
         dbg - Mnet::Expect close finished, hard_close confirmed
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
 });
 
@@ -64,7 +64,7 @@ Mnet::T::test_perl({
         --- - Mnet::Log - started
         dbg - Mnet::Expect log txt: x-test
         dbg - Mnet::Expect close finished, hard_close confirmed
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
 });
 
@@ -77,7 +77,7 @@ Mnet::T::test_perl({
     expect  => <<'    expect-eof',
         --- - Mnet::Log - started
         inf - Mnet::Expect log txt: x-test
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
 });
 

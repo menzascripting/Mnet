@@ -68,7 +68,7 @@ Mnet::T::test_perl({
         --- - Mnet::Log - started
         WRN - main TEST warn
         DIE - main TEST fatal
-        --- - Mnet::Log finished with errors
+        --- - Mnet::Log finished, errors
     expect-eof
 });
 

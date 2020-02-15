@@ -62,7 +62,7 @@ Mnet::T::test_perl({
         inf id Mnet::Report::Table row    err => undef
         inf id Mnet::Report::Table row    str => "1\r'2\n\""
         inf id Mnet::Report::Table row }
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
     debug   => '--debug',
 });

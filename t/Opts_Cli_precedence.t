@@ -21,7 +21,7 @@ Mnet::T::test_perl({
     perl-eof
     expect  => <<'    expect-eof',
         --- - Mnet::Log - started
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
 });
 

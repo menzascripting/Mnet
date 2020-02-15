@@ -54,7 +54,7 @@ Mnet::T::test_perl({
     expect  => <<'    expect-eof',
         dbg - Mnet::Expect::Cli::Ios enable starting
         dbg - Mnet::Expect::Cli::Ios enable finished, returning true
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
     debug   => '--debug',
 });
@@ -75,7 +75,7 @@ Mnet::T::test_perl({
     expect  => <<'    expect-eof',
         dbg - Mnet::Expect::Cli::Ios enable starting
         dbg - Mnet::Expect::Cli::Ios enable finished, returning true
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
     debug   => '--debug',
 });
@@ -98,7 +98,7 @@ Mnet::T::test_perl({
         dbg - Mnet::Expect::Cli::Ios enable starting
         dbg - Mnet::Expect::Cli::Ios enable sending enable password
         dbg - Mnet::Expect::Cli::Ios enable finished, returning true
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
     debug   => '--debug',
 });
@@ -123,7 +123,7 @@ Mnet::T::test_perl({
         dbg - Mnet::Expect::Cli::Ios enable sending enable_user
         dbg - Mnet::Expect::Cli::Ios enable sending enable password
         dbg - Mnet::Expect::Cli::Ios enable finished, returning true
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
     debug   => '--debug',
 });
@@ -151,7 +151,7 @@ Mnet::T::test_perl({
         dbg - Mnet::Expect::Cli::Ios enable sending enable password
         dbg - Mnet::Expect::Cli::Ios enable sending enable password
         dbg - Mnet::Expect::Cli::Ios enable finished, returning false
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
     debug   => '--debug',
 });
@@ -180,7 +180,7 @@ Mnet::T::test_perl({
 #    args    => '--noquiet --debug --enable --config',
 #    filter  => 'grep -e "Ios enable" -e "Log fin"',
 #    expect  => <<'    expect-eof',
-#        --- - Mnet::Log finished with no errors
+#        --- - Mnet::Log finished, no errors
 #    expect-eof
 #    debug   => '--debug',
 #});
@@ -204,7 +204,7 @@ Mnet::T::test_perl({
         dbg - Mnet::Expect::Cli _command_expect matched prompt_re
         dbg - Mnet::Expect::Cli _command_expect matched prompts null for timeout
         dbg - Mnet::Expect::Cli::Ios close finished
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
 });
 
@@ -232,7 +232,7 @@ Mnet::T::test_perl({
     filter  => 'grep -e ^inf -e "Mnet::Log finished"',
     expect  => <<'    expect-eof',
         inf - main output = output
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
     debug   => '--debug',
 });
@@ -246,7 +246,7 @@ Mnet::T::test_perl({
     filter  => 'grep -e ^inf -e "Mnet::Log finished"',
     expect  => <<'    expect-eof',
         inf - main output = output
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
     debug   => '--debug',
 });

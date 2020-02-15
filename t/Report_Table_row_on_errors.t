@@ -40,7 +40,7 @@ Mnet::T::test_perl({
         inf - Mnet::Report::Table row    data  => "not row_on_error"
         inf - Mnet::Report::Table row    error => undef
         inf - Mnet::Report::Table row }
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
     debug   => '--debug',
 });
@@ -60,7 +60,7 @@ Mnet::T::test_perl({
         inf - Mnet::Report::Table row    data  => "row_on_error"
         inf - Mnet::Report::Table row    error => "main perl die, died"
         inf - Mnet::Report::Table row }
-        --- - Mnet::Log finished with errors
+        --- - Mnet::Log finished, errors
     expect-eof
     debug   => '--debug',
 });

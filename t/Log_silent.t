@@ -60,7 +60,7 @@ Mnet::T::test_perl({
     filter  => 'grep -v Mnet::Version',
     expect  => <<'    expect-eof',
         --- - Mnet::Log - started
-        --- - Mnet::Log finished with errors
+        --- - Mnet::Log finished, errors
     expect-eof
 });
 

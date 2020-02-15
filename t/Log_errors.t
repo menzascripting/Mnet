@@ -39,7 +39,7 @@ Mnet::T::test_perl({
         ERR - main perl warn, Use of uninitialized value in addition (+) at ...
         err - main perl warn,  at ...
         err - main perl warn, $? = 0
-        --- - Mnet::Log finished with errors
+        --- - Mnet::Log finished, errors
     expect-eof
     debug   => '--debug',
 });
@@ -54,7 +54,7 @@ Mnet::T::test_perl({
         ERR - main perl warn, warn command at ...
         err - main perl warn,  at ...
         err - main perl warn, $? = 0
-        --- - Mnet::Log finished with errors
+        --- - Mnet::Log finished, errors
     expect-eof
     debug   => '--debug',
 });
@@ -69,7 +69,7 @@ Mnet::T::test_perl({
         ERR - main perl die, die command at ...
         err - main perl die,  at ...
         err - main perl die, $? = 0
-        --- - Mnet::Log finished with errors
+        --- - Mnet::Log finished, errors
     expect-eof
     debug   => '--debug',
 });
@@ -85,7 +85,7 @@ Mnet::T::test_perl({
         err - main perl warn,  at ...
         err - main perl warn, $? = 0
         ERR - main perl warn, Use of uninitialized value in addition (+) at ...
-        --- - Mnet::Log finished with errors
+        --- - Mnet::Log finished, errors
     expect-eof
     debug   => '--debug',
 });
@@ -96,7 +96,7 @@ Mnet::T::test_perl({
     perl    => "$perl; eval{ local \$SIG{__WARN__} = sub{}; warn 'eval warn' }",
     expect  => <<'    expect-eof',
         --- - Mnet::Log - started
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
     debug   => '--debug',
 });
@@ -109,7 +109,7 @@ Mnet::T::test_perl({
     expect  => <<'    expect-eof',
         --- - Mnet::Log - started
         inf - main eval die at ...
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
     debug   => '--debug',
 });
@@ -121,7 +121,7 @@ Mnet::T::test_perl({
     expect  => <<'    expect-eof',
         --- - Mnet::Log - started
         inf - main eval fatal
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
     debug   => '--debug',
 });
@@ -133,7 +133,7 @@ Mnet::T::test_perl({
     expect  => <<'    expect-eof',
         --- - Mnet::Log - started
         inf - main eval fatal
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
     debug   => '--debug',
 });
@@ -145,7 +145,7 @@ Mnet::T::test_perl({
     expect  => <<'    expect-eof',
         --- - Mnet::Log - started
         WRN - main eval warn
-        --- - Mnet::Log finished with errors
+        --- - Mnet::Log finished, errors
     expect-eof
     debug   => '--debug',
 });

@@ -52,7 +52,7 @@ Mnet::T::test_perl({
         --- - main notice
         WRN - main warn
         DIE - main fatal
-        --- - Mnet::Log finished with errors
+        --- - Mnet::Log finished, errors
     expect-eof
 });
 
@@ -101,7 +101,7 @@ Mnet::T::test_perl({
         --- - main notice
         WRN - main warn
         DIE - main fatal
-        --- - Mnet::Log finished with errors
+        --- - Mnet::Log finished, errors
     expect-eof
 });
 

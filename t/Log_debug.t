@@ -22,7 +22,7 @@ Mnet::T::test_perl({
     perl-eof
     expect  => <<'    expect-eof',
         --- - Mnet::Log - started
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
     debug   => '--debug --noquiet',
 });
@@ -43,7 +43,7 @@ Mnet::T::test_perl({
     expect  => <<'    expect-eof',
         --- - Mnet::Log - started
         dbg - main debug method
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
     debug   => '--debug --noquiet',
 });
@@ -68,7 +68,7 @@ Mnet::T::test_perl({
         inf - Mnet::Opts::Cli new parsed opt use debug = 1
         dbg - main debug method
         dbg - main debug function
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
     debug   => '--debug --noquiet',
 });
@@ -93,7 +93,7 @@ Mnet::T::test_perl({
         inf - Mnet::Opts::Cli new parsed opt cli debug = 1
         dbg - main debug method
         dbg - main debug function
-        --- - Mnet::Log finished with no errors
+        --- - Mnet::Log finished, no errors
     expect-eof
     debug   => '--noquiet',
 });

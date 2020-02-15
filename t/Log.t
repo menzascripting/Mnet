@@ -20,12 +20,12 @@ Mnet::T::test_perl({
     filter  => <<'    filter-eof',
         sed 's/^[0-9][0-9]:[0-9][0-9]:[0-9][0-9]/??:??:??/' | \
         sed 's/pid [0-9][0-9]*/pid ?/' | \
-        sed 's/[0-9][0-9]*\.[0-9][0-9]* seconds elapsed/? seconds/' | \
+        sed 's/[0-9][0-9]*\.[0-9][0-9]* secs elapsed/? seconds/' | \
         sed 's/... ... .. ..:..:.. [0-9][0-9][0-9][0-9]$/??? ??? ?? ??:??:??/'
     filter-eof
     expect  => <<'    expect-eof',
         ??:??:?? --- - Mnet::Log - started, pid ?, ??? ??? ?? ??:??:??
-        ??:??:?? --- - Mnet::Log finished with no errors, pid ?, ? seconds
+        ??:??:?? --- - Mnet::Log finished, no errors, pid ?, ? seconds
     expect-eof
     debug   => '--debug',
 });
@@ -56,7 +56,7 @@ Mnet::T::test_perl({
         inf - main info
         WRN - main warn
         DIE - main fatal
-        --- - Mnet::Log finished with errors
+        --- - Mnet::Log finished, errors
     expect-eof
 });
 
@@ -86,7 +86,7 @@ Mnet::T::test_perl({
         inf - main info
         WRN - main warn
         DIE - main fatal
-        --- - Mnet::Log finished with errors
+        --- - Mnet::Log finished, errors
     expect-eof
 });
 
@@ -104,7 +104,7 @@ Mnet::T::test_perl({
     perl-eof
     expect  => <<'    expect-eof',
         --- - Mnet::Log - started
-        --- - Mnet::Log finished with exit error status
+        --- - Mnet::Log finished, exit error status
     expect-eof
     debug   => '--debug',
 });

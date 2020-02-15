@@ -84,7 +84,7 @@ Mnet::T::test_perl({
         WRN - main warn1
         -WRN - main warn3
         +WRN - main warn2
-        --- - Mnet::Log finished with errors
+        --- - Mnet::Log finished, errors
     expect-eof
 });
 
