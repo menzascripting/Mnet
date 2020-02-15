@@ -592,7 +592,7 @@ sub _new_help {
         $output .= "$other_options\n" if $other_options;
 
         # output Mnet options
-        $output .= "Mnet options:\n\n";
+        $output .= "Other options:\n\n";
         foreach my $opt (sort keys %{$Mnet::Opts::Cli::defined}) {
             my $defined_opt = $Mnet::Opts::Cli::defined->{$opt};
             next if $help ne "help" and $defined_opt->{help_hide};
