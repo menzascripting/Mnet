@@ -173,7 +173,8 @@ to L<ExtUtils::MakeMaker> for more information
 =head1 AUTHOR
 
 The L<Mnet> perl distribution has been created and is maintained by Mike Menza.
-Mike can be reached via email at <mmenza@cpan.org>.
+Feedback and bug reports are welcome, feel free to contact Mike via email
+at <mmenza@cpan.org> with any comments or questions.
 
 =head1 COPYRIGHT AND LICENSE
 
