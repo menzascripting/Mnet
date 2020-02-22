@@ -145,7 +145,8 @@ to [ExtUtils::MakeMaker](https://metacpan.org/pod/ExtUtils::MakeMaker) for more 
 # AUTHOR
 
 The [Mnet](https://metacpan.org/pod/Mnet) perl distribution has been created and is maintained by Mike Menza.
-Mike can be reached via email at <mmenza@cpan.org>.
+Feedback and bug reports are welcome, feel free to contact Mike via email
+at <mmenza@cpan.org> with any comments or questions.
 
 # COPYRIGHT AND LICENSE
 
