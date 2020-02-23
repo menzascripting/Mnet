@@ -24,6 +24,7 @@ my $perl = <<'perl-eof';
         ],
     });
     $table->row_on_error({ data => "row_on_error" });
+    $table->row({ data => "row before error" });
     die "died\n" if $args[0] and $args[0] eq "die";
     $table->row({ data => "not row_on_error" });
 perl-eof
@@ -36,6 +37,10 @@ Mnet::T::test_perl({
     expect  => <<'    expect-eof',
         --- - Mnet::Log - started
         inf - Mnet::Opts::Cli new parsed opt cli test = 1
+        inf - Mnet::Report::Table row {
+        inf - Mnet::Report::Table row    data  => "row before error"
+        inf - Mnet::Report::Table row    error => undef
+        inf - Mnet::Report::Table row }
         inf - Mnet::Report::Table row {
         inf - Mnet::Report::Table row    data  => "not row_on_error"
         inf - Mnet::Report::Table row    error => undef
@@ -55,6 +60,10 @@ Mnet::T::test_perl({
         --- - Mnet::Log - started
         inf - Mnet::Opts::Cli new parsed opt cli test = 1
         inf - Mnet::Opts::Cli new parsed cli arg (extra) = "die"
+        inf - Mnet::Report::Table row {
+        inf - Mnet::Report::Table row    data  => "row before error"
+        inf - Mnet::Report::Table row    error => undef
+        inf - Mnet::Report::Table row }
         ERR - main perl die, died
         inf - Mnet::Report::Table row {
         inf - Mnet::Report::Table row    data  => "row_on_error"

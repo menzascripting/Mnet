@@ -73,14 +73,19 @@ in the following example:
         columns => [                # ordered column names and types
             device  => "string",    #   strips eol chars in csv output
             count   => "integer",   #   +/- integer numbers
-            error   => "error",     #   first error, see to row_on_error
+            error   => "error",     #   first error, see row_on_error()
             time    => "time",      #   row time as yyyy/mm/dd hh:mm:ss
         ],
         log_id  => $optional,       # see perldoc Mnet::Log new method
         output  => "csv:$file",     # see this module's OUTPUT section
+        append  => $boolean,        # set to append output to file
     });
 
 Errors are issued if invalid options are specified.
+
+The error column type is automatically set for an output row if there were any
+prior script errors. The row_on_error method can be used to ensure that there
+is never an error that goes unreported.
 
 Refer to the documentation for specific output options below for more info.
 
@@ -95,15 +100,16 @@ Refer to the documentation for specific output options below for more info.
     #   the following keys start with underscore and are used internally:
     #       _column_order => array ref listing column names in sort order
     #       _column_types => hash ref keyed by column names with value as type
-    #       _row_on_error => row sets "row output" for row_on_error method
+    #       _row_on_error => row() increments error count for row_on_error()
     #   in addition refer to perldoc for input opts and Mnet::Log0->new opts
     my $self = $opts;
     bless $self, $class;
     $self->debug("new starting");
 
     # abort if we were called before batch fork if Mnet::Batch was loaded
-    #   avoids problems with first row methdod call from new sub to init output
+    #   avoids problems with first row method call from new sub to init output
     #   for example: _output_csv batch parent must create file and heading row
+    #       we don't want every batch child creating duplicate heading rows
     croak("new Mnet::Report::Table must be created before Mnet::Batch::fork")
         if $INC{"Mnet/Batch.pm"} and Mnet::Batch::fork_called();
 
@@ -149,8 +155,8 @@ sub row_on_error {
     $table->row_on_error(\%data)
 
 This method can be used to ensure that an Mnet::Report::Table object with an
-error column outputs an error row when the script exits if no normal row was
-output for that object, as in the example below:
+error column outputs an error row when the script exits if no prior output row
+refected that there was an error, as in the example below:
 
     # declare report object as a global
     use Mnet::Report::Table;
@@ -164,24 +170,28 @@ output for that object, as in the example below:
         ],
     });
 
-    # we'll output one row per input line
-    $line = Mnet::Batch::fork({ batch => "/dev/stdin" });
+    # call Mnet::Batch::fork here, if using Mnet::Batch module
 
-    # outputs error row at exit if no normal row methods were output
-    $table->row_on_error({ input => $input });
+    # output error row at exit if there was an unreported error
+    $table->row_on_error({ input => "error" });
+
+    # output first row, no error, always present in output
+    $table->row({ input => "first" });
 
     # lots of code could go here, with possibility of errors...
-    my $ttl = int(rand*100);
-    die if $ttl > 50;
+    die if int(rand) > .5;
 
-    # output normal row, assuming no errors
-    $table->row({ input => $input, ttl = $ttl });
+    # output second row, no error, present if die did not occur
+    $table->row({ input => "second" });
+
+    # row_on_error output at exit for unpreported errors
+    exit;
 
 This ensures that a script does not die after the row_on_error call without
-any indication in the report output.
+any indication of an error in the report output.
 
-Multiple row_on_error calls can be used to output multiple rows at script exit
-if there were any errors.
+Multiple row_on_error calls can be used to output multiple rows if there we
+errors that would otherwise go unreported.
 
 =cut
 
@@ -196,6 +206,8 @@ if there were any errors.
 
 
 sub row {
+
+#? defer row output until END block? this allows all rows to have error set
 
 =head2 row
 
@@ -228,11 +240,15 @@ current table object or invalid column data is specified.
         my $value = $data->{$column};
 
         # set error column type to current Mnet::Log::Error value
+        #   set _row_on_error to indicate that we output an error
         #   use Mnet::Log::error if that module is loaded
         if ($type eq "error") {
             $row->{$column} = $Mnet::Report::Table::error;
             $row->{$column} = Mnet::Log::error() if $INC{'Mnet/Log.pm'};
-            chomp($row->{$column}) if defined $row->{$column};
+            if (defined $row->{$column}) {
+                $self->{_row_on_error}++;
+                chomp($row->{$column});
+            }
             croak("invalid error column $column") if exists $data->{$column};
 
         # set integer column type, croak on bad integer
@@ -279,9 +295,6 @@ current table object or invalid column data is specified.
     $self->debug("row calling _outout method");
     $self->_output($row);
 
-    # set _row_on_error to indicate that we output a row
-    $self->{_row_on_error} = "row output";
-
     # finished row method
     $self->debug("row finished");
     return;
@@ -301,26 +314,30 @@ info method.
 Note that the L<Mnet::Test> module --test command line option silently
 overrides all other report output options, outputting report data using
 the L<Mnet::Log> module if loaded or sending report output to stdout in
-L<Data::Dumper> format.
+L<Data::Dumper> format, for consistant test results.
 
 Output options below can use /dev/stdout as the output file, which works nicely
 with the L<Mnet::Log> --silent option used with the L<Mnet::Batch> --batch
-option, allowing report output from all concurrently exeecuting batch children
+option, allowing report output from all concurrently executing batch children
 to be easily piped or redirected in aggregate as necessary.
 
 Note that /dev/stdout report output is not captured by the Mnet::Tee module,
 and might be missed if the L<Mnet::Log> module is not being used. In this case
 you should output report data to stdout yourself.
 
+Also note that by default the output file will overwrite any existing file with
+the same name. The append option may set true when creating a new table object
+to override this behavior.
+
 =cut
 
 sub _output {
 
-# $self->_output($row)
+# $self->_output(\$row)
 # purpose: call the correct output subroutine
 # \%row: row data, or undef for init call from new method w/Mnet::Batch loaded
 
-    # read inputs
+    # read input object and row data hash reference
     my $self = shift // die "missing self arg";
     my $row = shift;
     $self->debug("_output starting");
@@ -383,21 +400,22 @@ sub _output_csv {
 
     csv:$file
 
-The csv output option can be used to create csv files.
+The csv output option can be used to create a csv file.
 
-Note that eol characters are replaced with spaces in csv output.
+All csv outputs are doule quoted. Double quotes in the outut data are escaped
+with an extra double quote.
 
-Scripts that create multiple Mnet::Report::Table objects with output options
-set to csv need to ensure that the csv filenames are different, otherwise the
-single csv file created will possibly have different columns mixed together and
-be missing rows.
+All end of line carraige return and linefeed characters are replaced with
+spaces in the csv output. Multiline csv output data is not supported.
 
-All csv output fields are double quoted, and double quotes in column output
-data are escaped with an extra double quote.
+The output csv file will be created with a heading row when the new method is
+called unless the append option is set.
+
+Refer to the OUTPUT OPTIONS section of this module for more info.
 
 =cut
 
-    # read input object
+    # read input object and row data hash reference
     my $self = shift // die "missing self arg";
     my $row = shift;
     $self->debug("_output_csv starting");
@@ -422,9 +440,12 @@ data are escaped with an extra double quote.
     # determine if headings row is needed
     #   headings are needed if current script is not a batch script
     #   headings are needed for parent process of batch executions
+    #   headings are not needed if the append option is set for table
     my $headings_needed = 0;
     if (not $INC{"Mnet/Batch.pm"} or not $MNet::Batch::fork_called) {
-        $headings_needed = 1 if not defined $row;
+        if (not $self->{append}) {
+            $headings_needed = 1 if not defined $row;
+        }
     }
 
     # attempt to open csv file for output
@@ -485,15 +506,11 @@ This dump output can be read back into a perl script as follows:
         print Dumper($var);
     }
 
-Note that dump output is appended to the specified file, so the perl unlink
-command can be used to remove these files prior to each Mnet::Report::Table
-new call, if desired. This means it can be ok for multiple Mnet::Report::Table
-objects to write data to the same file, Use 'dump:$var:/dev/stdout' for output
-to the user's terminal.
+Refer to the OUTPUT OPTIONS section of this module for more info.
 
 =cut
 
-    # read input object
+    # read input object and row data hash reference
     my $self = shift // die "missing self arg";
     my $row = shift // return;
     $self->debug("_output_dump starting");
@@ -503,8 +520,11 @@ to the user's terminal.
         if $self->{output} !~ /^dump:([a-zA-Z]\w*):(.+)/;
     my ($var, $file) = ($1, $2);
 
-    # attempt to open dump file for appending
-    open(my $fh, ">>", $file) or $self->fatal("unable to open $file, $!");
+    # open output file, honoring append option if set
+    my $mode = ">";
+    $mode = ">>" if $self->{append};
+    open(my $fh, $mode, $file)
+        or $self->fatal("unable to open ${mode}$file, $!");
 
     # output data row
     #   this will be undefined if called from new method
@@ -541,15 +561,11 @@ This json output can be read back into a perl script as follows:
         print Dumper($var);
     }
 
-Note that json output is appended to the specified file, so the perl unlink
-command can be used to remove these files prior to each Mnet::Report::Table
-new call, if desired. This means it can be ok for multiple Mnet::Report::Table
-objects to write data to the same file. Use 'dump:/dev/stdout' for terminal
-output.
+Refer to the OUTPUT OPTIONS section of this module for more info.
 
 =cut
 
-    # read input object
+    # read input object and row data hash reference
     my $self = shift // die "missing self arg";
     my $row = shift // return;
     $self->debug("_output_json starting");
@@ -563,8 +579,11 @@ output.
         if $self->{output} !~ /^json:([a-zA-Z]\w*):(.+)/;
     my ($var, $file) = ($1, $2);
 
-    # attempt to open dump file for appending
-    open(my $fh, ">>", $file) or $self->fatal("unable to open $file, $!");
+    # open output file, honoring append option if set
+    my $mode = ">";
+    $mode = ">>" if $self->{append};
+    open(my $fh, $mode, $file)
+        or $self->fatal("unable to open ${mode}$file, $!");
 
     # output data row
     #   json is sorted so that test output doesn't vary
@@ -586,7 +605,7 @@ sub _output_log {
 # $self->_output_log
 # purpose: output report row as info log entries
 
-    # read input object
+    # read input object and row data hash reference
     my $self = shift // die "missing self arg";
     my $row = shift;
     $self->debug("_output_log starting");
@@ -623,7 +642,7 @@ sub _output_sql {
     sql:$table:$file
     or sql:"$table":$file
 
-The dump output option writes one row perl line as sql insert statements in
+The dump output option writes one row per line as sql insert statements in
 the following format:
 
     INSERT INTO <table> (<column>, ...) VALUES (<value>, ...);
@@ -632,15 +651,11 @@ Column names are double quotes, and values are single quoted. Single quotes in
 values are escaped with an extra single quote character, LF and CR characters
 are escaped as '+CHAR(10)+' and '+CHAR(13)+' respectively.
 
-Note that sql output is appended to the specified file, so the perl unlink
-command can be used to remove this file prior to the Mnet::Report::Table new
-call, if desired. This means it can be ok for multiple Mnet::Report::Table
-objects to write data to the same file. Use 'dump:/dev/stdout' for terminal
-output.
+Refer to the OUTPUT OPTIONS section of this module for more info.
 
 =cut
 
-    # read input object
+    # read input object and row data hash reference
     my $self = shift // die "missing self arg";
     my $row = shift // return;
     $self->debug("_output_sql starting");
@@ -650,8 +665,11 @@ output.
         if $self->{output} !~ /^sql:"?([^"]+)"?:(.+)/;
     my ($table, $file) = ($1, $2);
 
-    # attempt to open sql file for appending
-    open(my $fh, ">>", $file) or $self->fatal("unable to open $file, $!");
+    # open output file, honoring append option if set
+    my $mode = ">";
+    $mode = ">>" if $self->{append};
+    open(my $fh, $mode, $file)
+        or $self->fatal("unable to open ${mode}$file, $!");
 
     # output data row
     #   this will be undefined if called from new method
@@ -683,17 +701,11 @@ output.
 
 sub _output_test {
 
-=head2 output test
+# $self->_output_test(\%row)
+# purpose: output test row data to stdout in Data::Dumper for when --test set
+# \%row: row data, or undef for init call from new method w/Mnet::Batch loaded
 
-Normal Mnet::Report::Table output is overriden when the L<Mnet::Test> module is
-loaded and the --test cli option is present. Normal file output is suppressed
-and instead test report output is sent to stdout.
-
-The test output option may also be set maually.
-
-=cut
-
-    # read input object
+    # read input object and row data hash reference
     my $self = shift // die "missing self arg";
     my $row = shift;
     $self->debug("_output_test starting");
