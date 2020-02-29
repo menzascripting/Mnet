@@ -208,6 +208,7 @@ errors that would otherwise go unreported.
 sub row {
 
 #? defer row output until END block? this allows all rows to have error set
+#   maybe add new 'nodefer' option, which can be set to keep current behaviour
 
 =head2 row
 
@@ -647,9 +648,9 @@ the following format:
 
     INSERT INTO <table> (<column>, ...) VALUES (<value>, ...);
 
-Column names are double quotes, and values are single quoted. Single quotes in
-values are escaped with an extra single quote character, LF and CR characters
-are escaped as '+CHAR(10)+' and '+CHAR(13)+' respectively.
+Table and column names are double quoted, and values are single quoted. Single
+quotes in values are escaped with an extra single quote character, LF and CR
+characters are escaped as '+CHAR(10)+' and '+CHAR(13)+' respectively.
 
 Refer to the OUTPUT OPTIONS section of this module for more info.
 
