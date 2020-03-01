@@ -137,7 +137,7 @@ Refer to the documentation for specific output options below for more info.
     $self->debug("new output = ".Mnet::Dump::line($self->{output}));
 
     # call _output method with no row arg to init output
-    #   this allows parent or non-batch proc to output heading row, etc.
+    #   this allows batch parent or non-batch proc to output heading row, etc.
     $self->debug("new init _output call");
     $self->_output;
 
