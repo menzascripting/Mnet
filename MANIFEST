@@ -49,7 +49,7 @@ t/Opts_Cli_precedence.t
 t/Report_Table.t
 t/Report_Table_batch.t
 t/Report_Table_errors.t
-t/Report_Table_row_on_errors.t
+t/Report_Table_row_on_error.t
 t/Stanza.t
 t/Tee.t
 t/Test.t
