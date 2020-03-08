@@ -19,7 +19,7 @@ my $perl = <<'perl-eof';
     use Mnet::Test;
     my ($cli, @extras) = Mnet::Opts::Cli->new;
     my $columns = [ int => "integer", err => "error", str => "string" ];
-    push @$columns, ( time => "time" ) if $cli->test;
+    push @$columns, ( time => "time", epoch => "epoch" ) if $cli->test;
     our $table = Mnet::Report::Table->new({
         columns => $columns,
         log_id  => "id",
@@ -100,10 +100,11 @@ Mnet::T::test_perl({
     filter  => 'grep "^inf id" | sed "s/....\\/..\\/.. ..:..:../DT/"',
     expect  => <<'    expect-eof',
         inf id Mnet::Report::Table row {
-        inf id Mnet::Report::Table row    int  => 5
-        inf id Mnet::Report::Table row    err  => undef
-        inf id Mnet::Report::Table row    str  => "1\r'2\n\""
-        inf id Mnet::Report::Table row    time => "DT"
+        inf id Mnet::Report::Table row    int   => 5
+        inf id Mnet::Report::Table row    err   => undef
+        inf id Mnet::Report::Table row    str   => "1\r'2\n\""
+        inf id Mnet::Report::Table row    time  => "DT"
+        inf id Mnet::Report::Table row    epoch => 1
         inf id Mnet::Report::Table row }
     expect-eof
     debug   => '--debug',
