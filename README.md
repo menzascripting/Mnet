@@ -43,7 +43,7 @@ Mnet - Testable network automation and reporting
     my $cli = Mnet::Opts::Cli->new("Mnet");
 
     # define output --report table, will include first of any errors
-    #   use --report cli opt to output data as csv, json, sql, etc
+    #   use --report cli opt to output data as csv, json, or sql, etc
     my $report = Mnet::Report::Table->new({
         columns => [
             device  => "string",
@@ -55,19 +55,19 @@ Mnet - Testable network automation and reporting
 
     # recreate cli option obejct, forking children if in --batch mode
     #   process one device or ten thousand devices with the same script
-    #   exit --batch parent process when finished forking children
+    #   exit --batch parent process here when finished forking children
     $cli = Mnet::Batch::fork($cli);
     exit if not $cli;
 
-    # ensure that errors are reported if script aborts before finishing
+    # ensure device error is reported if script dies before finishing
     $report->row_on_error({ device => $cli->device });
 
-    # use log function and set up log object for device
+    # use log function, set up log object for current --device
     FATAL("missing --device") if not $cli->device;
     my $log = Mnet::Log->new({ log_id => $cli->device });
     $log->info("processing device");
 
-    # create an expect ssh session to --device
+    # create an expect ssh session to current --device
     #   log ssh login/auth prompts as info, instead of default debug
     #   password_in set to prompt for password if --password opt not set
     #   ssh host/key checks can be skipped, refer to Mnet::Expect::Cli
@@ -79,15 +79,15 @@ Mnet - Testable network automation and reporting
         password_in => 1,
     });
 
-    # retrieve ios config from ssh command, warn otherwise
+    # retrieve ios config using ssh command, warn otherwise
     my $config = $ssh->command("show running-config");
     WARN("unable to read config") if not $config;
 
-    # parse interface loopack0 stanza from config
-    #   returns int loop line0 and lines indented under int loop0
-    my $loop = Mnet::Stanza::parse($config, qr/^interface loopback0$/i);
+    # parse interface loopack0 stanza from device config
+    #   returns int loop0 line and lines indented under int loop0
+    my $loop = Mnet::Stanza::parse($config, qr/^interface Loopback0$/);
 
-    # parse primary ip address from loopback0 config stanza
+    # parse primary ip address from loopback config stanza
     my $ip = undef;
     $ip = $1 if $loop and $loop =~ /^ ip address (\S+) \S+$/m;
 
