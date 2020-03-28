@@ -53,7 +53,7 @@ Mnet - Testable network automation and reporting
         output  => $cli->report,
     });
 
-    # recreate cli option obejct, forking children if in --batch mode
+    # recreate cli option object, forking children if in --batch mode
     #   process one device or ten thousand devices with the same script
     #   exit --batch parent process here when finished forking children
     $cli = Mnet::Batch::fork($cli);
@@ -107,7 +107,7 @@ The main features are:
 - Record and replay connected command line sessions, speeding development
 and allow for regression testing of complex automation scripts.
 - Reliable automation of cisco ios and other command line sessions, including
-reliable authentication and command prompt handling.
+authentication and command prompt handling.
 - Automation scripts can run in batch mode to concurrently process a list of
 devices, using a simple command line argument and a device list file.
 - Facilitate easy log, debug, alert and error output from automation scripts,
