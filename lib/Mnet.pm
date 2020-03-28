@@ -60,7 +60,7 @@ Mnet - Testable network automation and reporting
         output  => $cli->report,
     });
 
-    # recreate cli option obejct, forking children if in --batch mode
+    # recreate cli option object, forking children if in --batch mode
     #   process one device or ten thousand devices with the same script
     #   exit --batch parent process here when finished forking children
     $cli = Mnet::Batch::fork($cli);
@@ -121,7 +121,7 @@ and allow for regression testing of complex automation scripts.
 =item *
 
 Reliable automation of cisco ios and other command line sessions, including
-reliable authentication and command prompt handling.
+authentication and command prompt handling.
 
 =item *
 
