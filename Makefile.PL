@@ -24,7 +24,7 @@
 #       git rm Mnet-*.tar.gz, to remove old distribution when new is committed
 #       make realclean && perl Makefile.PL && make dist && make realclean
 #       perform any additional testing before upload to cpan, no going back
-#       upload new Mnet-<RELEASE>.tar.gz to cpan using capn PAUSE account
+#       upload new Mnet-<RELEASE>.tar.gz to cpan using cpan PAUSE account
 #       firefox https://pause.perl.org/pause/authenquery?ACTION=add_uri
 #       wait for email confirmation that file upload to cpan is complete
 #       git add Changes Mnet-*.tar.gz && git commit -m 'latest release'
