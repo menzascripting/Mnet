@@ -87,6 +87,14 @@ INIT {
     #   Mnet::Test::time used for test unixtime, refer to Mnet::Test::time sub
     our ($data, $time) = (undef, 0);
 
+    # init stdout file handle to bypass Mnet::Tee for debug output
+    our $stdout = undef;
+    if ($INC{"Mnet/Tee.pm"}) {
+        $stdout = $Mnet::Tee::stdout;
+    } else {
+        open($stdout, ">&STDOUT");
+    }
+
     # defined --record option
     Mnet::Opts::Cli::define({
         getopt      => 'record:s',
@@ -249,15 +257,15 @@ sub _diff {
     if (not $opts->{batch}) {
         my $was_paused = Mnet::Tee::test_paused();
         Mnet::Tee::test_pause();
-        syswrite STDOUT, "\n" . "-" x 79 . "\n";
-        syswrite STDOUT, "diff --test --replay $opts->{replay}";
-        syswrite STDOUT, "\n" . "-" x 79 . "\n\n";
+        syswrite $Mnet::Test::stdout, "\n" . "-" x 79 . "\n";
+        syswrite $Mnet::Test::stdout, "diff --test --replay $opts->{replay}";
+        syswrite $Mnet::Test::stdout, "\n" . "-" x 79 . "\n\n";
         if ($diff) {
-            syswrite STDOUT, $diff;
+            syswrite $Mnet::Test::stdout, $diff;
         } else {
-            syswrite STDOUT, "Test output is identical.\n";
+            syswrite $Mnet::Test::stdout, "Test output is identical.\n";
         }
-        syswrite STDOUT, "\n";
+        syswrite $Mnet::Test::stdout, "\n";
         Mnet::Tee::test_unpause() if not $was_paused;
     }
 
@@ -288,7 +296,7 @@ call. You do not need to call this function unless you are not using
 L<Mnet::Opts::Cli> to parse command line options or if you want to examine
 your own test diff data.
 
-If the test output has changed a fiff will be presented using the L<Text::Diff>
+If the test output has changed a diff will be presented using the L<Text::Diff>
 module.
 
 Refer to the DESCRIPTION section of this document for more information.
