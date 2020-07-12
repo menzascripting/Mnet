@@ -249,7 +249,7 @@ sub _diff {
     if ($outputs ne $test_data->{outputs}) {
         eval("require Text::Diff; 1");
         $diff = "Test output is different, need Text::Diff to show more.\n";
-        $diff = Text::Diff::diff(\$outputs, \$test_data->{outputs})
+        $diff = Text::Diff::diff(\$test_data->{outputs}, \$outputs)
             if $INC{"Text/Diff.pm"};
     }
 

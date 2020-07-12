@@ -116,11 +116,11 @@ Mnet::T::test_perl({
         diff --test --replay
         @@ -1,4 +1,4 @@
         inf - main info1
-        -inf - main info3
-        +inf - main info2
+        -inf - main info2
+        +inf - main info3
         WRN - main warn1
-        -WRN - main warn3
-        +WRN - main warn2
+        -WRN - main warn2
+        +WRN - main warn3
         --- - Mnet::Log finished, errors
     expect-eof
 });
