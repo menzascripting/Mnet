@@ -140,7 +140,7 @@ Or download and install from [https://github.com/menzascripting/Mnet](https://gi
 
 Check your PERL5LIB environment variable if INSTALL\_BASE was used, or if you
 copied the lib/Mnet directory somewhere instead of using Makefile.PL. Refer
-to [ExtUtils::MakeMaker](https://metacpan.org/pod/ExtUtils::MakeMaker) for more information
+to [ExtUtils::MakeMaker](https://metacpan.org/pod/ExtUtils%3A%3AMakeMaker) for more information
 
 # AUTHOR
 
@@ -166,18 +166,18 @@ this program. If not, see [http://www.gnu.org/licenses/](http://www.gnu.org/lice
 
 # SEE ALSO
 
-[Mnet::Batch](https://metacpan.org/pod/Mnet::Batch)
+[Mnet::Batch](https://metacpan.org/pod/Mnet%3A%3ABatch)
 
-[Mnet::Expect::Cli](https://metacpan.org/pod/Mnet::Expect::Cli)
+[Mnet::Expect::Cli](https://metacpan.org/pod/Mnet%3A%3AExpect%3A%3ACli)
 
-[Mnet::Expect::Cli::Ios](https://metacpan.org/pod/Mnet::Expect::Cli::Ios)
+[Mnet::Expect::Cli::Ios](https://metacpan.org/pod/Mnet%3A%3AExpect%3A%3ACli%3A%3AIos)
 
-[Mnet::Log](https://metacpan.org/pod/Mnet::Log)
+[Mnet::Log](https://metacpan.org/pod/Mnet%3A%3ALog)
 
-[Mnet::Opts::Cli](https://metacpan.org/pod/Mnet::Opts::Cli)
+[Mnet::Opts::Cli](https://metacpan.org/pod/Mnet%3A%3AOpts%3A%3ACli)
 
-[Mnet::Report::Table](https://metacpan.org/pod/Mnet::Report::Table)
+[Mnet::Report::Table](https://metacpan.org/pod/Mnet%3A%3AReport%3A%3ATable)
 
-[Mnet::Stanza](https://metacpan.org/pod/Mnet::Stanza)
+[Mnet::Stanza](https://metacpan.org/pod/Mnet%3A%3AStanza)
 
-[Mnet::Test](https://metacpan.org/pod/Mnet::Test)
+[Mnet::Test](https://metacpan.org/pod/Mnet%3A%3ATest)
