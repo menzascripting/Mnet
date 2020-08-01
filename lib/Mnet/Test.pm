@@ -87,7 +87,7 @@ INIT {
     #   Mnet::Test::time used for test unixtime, refer to Mnet::Test::time sub
     our ($data, $time) = (undef, 0);
 
-    # init stdout file handle to bypass Mnet::Tee for debug output
+    # init stdout file handle to bypass Mnet::Tee for diff output
     our $stdout = undef;
     if ($INC{"Mnet/Tee.pm"}) {
         $stdout = $Mnet::Tee::stdout;
@@ -254,6 +254,7 @@ sub _diff {
     }
 
     # output detected differences, unless running in --batch mode
+    #   Mnet::Test::test_pause used to keep test diff output out of test data
     if (not $opts->{batch}) {
         my $was_paused = Mnet::Tee::test_paused();
         Mnet::Tee::test_pause();
