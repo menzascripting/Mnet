@@ -85,8 +85,8 @@ sub trim {
 
     $output = Mnet::Stanza::trim($input)
 
-The trim function can be used to normalize stanza spacing and may be useful
-before calling the diff function or outputting a stanza to the user.
+The Mnet::Stanza::trim function can be used to normalize stanza spacing and may
+be useful before calling the diff function or outputting a stanza to the user.
 
 This function does the following:
 
@@ -142,8 +142,9 @@ sub parse {
     @output = Mnet::Stanza::parse($input, qr/$match_re/)
     $output = Mnet::Stanza::parse($input, qr/$match_re/)
 
-The parse function can be used to output one or more matching stanza sections
-from the input text, either as a list of matching stanzas or a single string.
+The Mnet::Stanza::parse function can be used to output one or more matching
+stanza sections from the input text, either as a list of matching stanzas or
+a single string.
 
 Here's some sample input text:
 
@@ -164,7 +165,7 @@ Using an input match_re of qr/^interface/ the following two stanzas are output:
 
 Note that blank lines don't terminate stanzas.
 
-Refer also to the trim function in this module.
+Refer also to the Mnet::Stanza::trim function in this module.
 
 =cut
 
@@ -210,8 +211,8 @@ sub diff {
 
     $diff = Mnet::Stanza::diff($old, $new)
 
-The diff function checks to see if the input old and new stanza strings are
-the same.
+The Mnet::Stanza::diff function checks to see if the input old and new stanza
+strings are the same.
 
 The returned diff value will be set as follows:
 
@@ -221,8 +222,8 @@ The returned diff value will be set as follows:
     line        indicates mismatch line number and line text
     other       indicates mismatch such as extra eol chars at end
 
-Note that blank lines and all other spaces are significant. The trim function
-in this module can be used to remove extra spaces before calling this function.
+Note that blank lines and all other spaces are significant. To remove extra
+spaces use the Mnet::Stanza::trim function before calling this function.
 
 =cut
 
