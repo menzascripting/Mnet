@@ -62,6 +62,10 @@ our @EXPORT_OK = qw( $stderr $stdout );
 # begin block to initialize capture of stdout and stderr
 BEGIN {
 
+    # autoflush standard output
+    #   so that multi-process syswrite lines are not split
+    $| = 1;
+
     # original stderr and stdout for bypassing output captured by Mnet::Tee
     open(our $stderr, ">&STDERR") or die "error duping stderr, $!";
     open(our $stdout, ">&STDOUT") or die "error duping stdout, $!";

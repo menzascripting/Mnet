@@ -87,6 +87,10 @@ INIT {
     #   Mnet::Test::time used for test unixtime, refer to Mnet::Test::time sub
     our ($data, $time) = (undef, 0);
 
+    # autoflush standard output
+    #   so that multi-process syswrite lines are not split
+    $| = 1;
+
     # init stdout file handle to bypass Mnet::Tee for diff output
     our $stdout = undef;
     if ($INC{"Mnet/Tee.pm"}) {
