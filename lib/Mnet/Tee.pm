@@ -63,8 +63,8 @@ our @EXPORT_OK = qw( $stderr $stdout );
 BEGIN {
 
     # original stderr and stdout for bypassing output captured by Mnet::Tee
-    open(our $stderr, ">&STDERR");
-    open(our $stdout, ">&STDOUT");
+    open(our $stderr, ">&STDERR") or die "error duping stderr, $!";
+    open(our $stdout, ">&STDOUT") or die "error duping stdout, $!";
 
     # init global scalar variable to accumulate stdout+stderr test outputs
     my ($test_outputs, $test_paused) = ("", undef);
