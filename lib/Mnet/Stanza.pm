@@ -30,7 +30,7 @@ Mnet::Stanza - Manipulate stanza outline text
     }
 
     # print config applying acl to shutdown interfaces, if needed
-    my @ints = Mnet::Stanza::parse($sh_run, /^interface/);
+    my @ints = Mnet::Stanza::parse($sh_run, qr/^interface/);
     foreach my $int (@ints) {
         next if $int !~ /^\s*shutdown/m;
         next if $int =~ /^\s*ip access-group DMZ in/m;
@@ -75,7 +75,6 @@ Mnet::Stanza implements the functions listed below.
 use warnings;
 use strict;
 use Carp;
-use Mnet::Log::Conditional qw( DEBUG );
 
 
 
@@ -105,7 +104,6 @@ by the developer. Also note that this function does not touch tabs.
 
     # read input stanza text
     my $input = shift;
-    DEBUG("trim starting, input ".length($input // "")." chars");
 
     # init trimmed output text from input, null if undefined
     my $output = $input // "";
@@ -120,7 +118,7 @@ by the developer. Also note that this function does not touch tabs.
     my $indent_init = 999999999999;
     my $indent = $indent_init;
     foreach my $line (split(/\n/, $output)) {
-        if ($line =~ /^(\s+)\S/ and length($1) < $indent) {
+        if ($line =~ /^(\s*)\S/ and length($1) < $indent) {
             $indent = length($1);
         }
     }
@@ -129,7 +127,6 @@ by the developer. Also note that this function does not touch tabs.
     $output =~ s/^ {$indent}//mg if $indent and $indent < $indent_init;
 
     # finished trim function, return trimmed output text
-    DEBUG("trim finished, output ".length($output)." chars");
     return $output;
 }
 
@@ -172,7 +169,6 @@ Refer also to the Mnet::Stanza::trim function in this module.
     # read input stanza text and match regular expression
     my $input = shift;
     my $match_re = shift // croak("missing match_re arg");
-    DEBUG("parse starting, input ".length($input // "")." chars");
 
     # init list of matched output stanzas
     #   each output stanza will include lines indented under matched line
@@ -199,7 +195,6 @@ Refer also to the Mnet::Stanza::trim function in this module.
     chomp(@output);
 
     # finished parse function, return output stanzas as list or string
-    DEBUG("parse finished, output ".length("@output")." chars");
     return wantarray ? @output : join("\n", @output);
 }
 
@@ -230,7 +225,6 @@ spaces use the Mnet::Stanza::trim function before calling this function.
     # read input old and new stanzas
     my ($old, $new) = (shift, shift);
     my ($length_old, $length_new) = (length($old // ""), length($new // ""));
-    DEBUG("diff starting, input old $length_old chars, new $length_new chars");
 
     # init output diff value
     my $diff = undef;
@@ -275,7 +269,6 @@ spaces use the Mnet::Stanza::trim function before calling this function.
     }
 
     # finished diff function, return diff text
-    DEBUG("diff finished, output ".length($diff // "")." chars");
     return $diff;
 }
 
