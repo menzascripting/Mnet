@@ -20,7 +20,7 @@ Mnet - Testable network automation and reporting
     #   --device <address> to connect to device with logging
     #   --username and --password should be set if necessary
     #   --batch <file.batch> to process multiple --device lines
-    #   --report csv:<file.csv> to create an output csv report
+    #   --report csv:<file.csv> to create an output csv file
     #   --record <file.test> to create replayable test file
     #   --test --replay <file.test> for regression test output
 
@@ -41,12 +41,12 @@ Mnet - Testable network automation and reporting
     Mnet::Opts::Cli::define({ getopt => "username=s" });
     Mnet::Opts::Cli::define({ getopt => "password=s", redact  => 1 });
     Mnet::Opts::Cli::define({ getopt => "report=s", default => undef,
-        help_tip    => "specify report output, like 'csv:<file>'",
+        help_tip    => "specify report output, csv, json, sql, etc",
         help_text   => "perldoc Mnet::Report::Table for more info",
     });
 
     # create object to access command line options and Mnet env variable
-    #   export Mnet="--password '<secret>'" env var to secure password
+    #   export Mnet="--password '<secret>'" env var from secure file
     my $cli = Mnet::Opts::Cli->new("Mnet");
 
     # define output --report table, will include first of any errors
