@@ -14,7 +14,6 @@ Mnet - Testable network automation and reporting
     # sample script to report Loopback0 ip on cisco devices
     #
     #   demonstrates typical use of all major Mnet modules
-    #   refer to various Mnet modules' perldoc for more info
     #
     #   --help to list all options, or --help <option>
     #   --device <address> to connect to device with logging
@@ -23,6 +22,8 @@ Mnet - Testable network automation and reporting
     #   --report csv:<file.csv> to create an output csv file
     #   --record <file.test> to create replayable test file
     #   --test --replay <file.test> for regression test output
+    #
+    #   refer to various Mnet modules' perldoc for more info
 
     # load modules
     use warnings;
@@ -66,10 +67,10 @@ Mnet - Testable network automation and reporting
     $cli = Mnet::Batch::fork($cli);
     exit if not $cli;
 
-    # ensure device error is reported if script dies before finishing
+    # output report row for device error if script dies before finishing
     $report->row_on_error({ device => $cli->device });
 
-    # use log function, set up log object for current --device
+    # call logging function, also create log object for current --device
     FATAL("missing --device") if not $cli->device;
     my $log = Mnet::Log->new({ log_id => $cli->device });
     $log->info("processing device");
