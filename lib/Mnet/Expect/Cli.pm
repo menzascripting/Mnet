@@ -110,8 +110,7 @@ Refer to the L<Mnet::Expect> module for more information.
 
     # note default options for this class
     #   includes recognized cli opts and opts for this object
-    #       failed_re default based on educated guess, specifics noted below:
-    #           /(closed|error|denied|fail|incorrect|invalid|refused|sorry)/i
+    #       failed_re default undef to be safe, refer to perldoc for more info
     #           junos telnet =~ /^Login incorrent/m
     #       password_re default based on educated guess, specifics noted below:
     #           junos telnet =~ /^Password:$/m
@@ -119,7 +118,7 @@ Refer to the L<Mnet::Expect> module for more information.
     #           junos telnet =~ /^\S+> $/mi
     #       username_re default based on educated guess, specifics noted below:
     #           junos telnet =~ /^login: $/m
-    #   the following keys starting with underscore are used internally:
+    #   following keys starting with underscore are used internally:
     #       _command_cache_content => hash ref, refer to _command_cache_clear
     #       _command_cache_counter => integer, refer to _command_cache_clear
     #       _password_ => causes password value to be hidden in opts debug

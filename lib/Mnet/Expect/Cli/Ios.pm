@@ -68,8 +68,8 @@ the L<Mnet::Expect::Cli> and L<Mnet::Expect> modules:
 
 An error is issued if there are login problems.
 
-For example, the following call will start an ssh expect session to a device
-with host key checking disabled:
+For example, the following call will start an ssh expect session to a device,
+with a prompt for password input if necessary:
 
     # refer to SYNOPSIS example and Mnet::Expect::Cli for more info
     my $expect = Mnet::Expect::Cli::Ios->new({
@@ -101,9 +101,10 @@ information.
     # note default options for this class
     #   refer also to Mnet::Expect::Cli defaults, these are overlaid on top
     #   includes recognized cli opts and opts for this object
-    #       failed_re here from Mnet::Expect::Cli default and ios error /^\s*%/
-    #       failed_re also used in the enable method in this module
-    #   the following keys starting with underscore are used internally:
+    #       failed_re default undef to be safe, refer to perldoc for more info
+    #           add ios err /^\s*%/ to failed_re values in Mnet::Expect::Cli
+    #           failed_re also used in the enable method in this module
+    #   following keys starting with underscore are used internally:
     #       _enable_ => causes enable password value to be hidden in opts debug
     #   update perldoc for this sub with changes
     my $defaults = {
@@ -111,7 +112,7 @@ information.
         _enable_    => undef,
         enable_in   => undef,
         enable_user => undef,
-        failed_re   => undef,  # see t/Expect_Cli.t failed_re comment
+        failed_re   => undef,
         paging_key  => ' ',
         paging_re   => '--(M|m)ore--',
         prompt_re   => '(^|\r|\n)\S+(>|#) (\r|\n|$)',
