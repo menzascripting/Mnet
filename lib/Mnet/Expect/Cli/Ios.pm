@@ -25,9 +25,9 @@ Mnet::Expect::Cli::Ios - Expect sessions to cisco ios devices
 
 =head1 DESCRIPTION
 
-Mnet::Expect::Cli::Ios can be used to spawn L<Expect> processes which can
-be used to programmatically control command line sessions to cisco ios devices,
-with support for L<Mnet> options, logging, caching, and testing.
+Mnet::Expect::Cli::Ios can be used to spawn L<Expect> processes which can be
+used to programmatically control ssh or telnet command line sessions to cisco
+ios devices, with support for L<Mnet> options, logging, caching, and testing.
 
 Refer to the perl L<Expect> module for more information. Also refer to the
 L<Mnet::Expect> and L<Mnet::Expect::Cli> modules.
