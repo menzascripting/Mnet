@@ -87,12 +87,12 @@ sub trim {
 The Mnet::Stanza::trim function can be used to normalize stanza spacing and may
 be useful before calling the diff function or outputting a stanza to the user.
 
-This function does the following:
+This function processes the input string as following:
 
-    - replaces multiple spaces inside text with single spaces
-    - removes spaces at the end of any line of input
-    - removes blank lines and any linefeeds at end of input
-    - removes extra leading spaces while preserving indentation
+    - remove extra spaces inside non-description/remark text
+    - remove trailing spaces at the end of all lines of text
+    - remove blank lines before, after, and within text
+    - remove extra leading spaces while preserving indentation
 
 A null value will be output if the input is undefined.
 
@@ -103,14 +103,22 @@ by the developer. Also note that this function does not touch tabs.
 =cut
 
     # read input stanza text
-    my $input = shift;
+    my $input = shift // "";
 
-    # init trimmed output text from input, null if undefined
-    my $output = $input // "";
+    # init output
+    my $output = "";
 
-    # trim double spaces inside a line, trailing spaces, and blank lines
-    $output =~ s/(\S)  +/$1 /g;
+    # replace multiple spaces inside text with single spaces
+    #   preserve description/remark double spaces
+    foreach my $line (split(/\n/, $input)) {
+        $line =~ s/(\S)  +/$1 /g if $line !~ /^\s*(description|remark)\s/;
+        $output .= "$line\n";
+    }
+
+    # remove trailing spaces at the end of all lines of text
     $output =~ s/\s+$//m;
+
+    # remove blank lines before, after, and within text
     $output =~ s/\n\n+/\n/g;
     $output =~ s/(^\n+|\n+$)//g;
 
@@ -123,7 +131,7 @@ by the developer. Also note that this function does not touch tabs.
         }
     }
 
-    # trim extra indent spaces from left of every line in output
+    # remove extra leading spaces while preserving indentation
     $output =~ s/^ {$indent}//mg if $indent and $indent < $indent_init;
 
     # finished trim function, return trimmed output text
