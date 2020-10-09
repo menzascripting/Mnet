@@ -17,19 +17,13 @@ Mnet::Stanza - Manipulate stanza outline text
     # parse existing version of secure acl from current config
     my $acl_old = Mnet::Stanza::parse($sh_run, qr/^ip access-list DMZ/);
 
-    # note latest version of secure acl, trim extra spaces
-    my $acl_new = Mnet::Stanza::trim("
-        ip access-list DMZ
-         permit 192.168.0.0 0.0.255.255
-    ");
+    # remove and recreate acl if configured acl does not match below
+    Mnet::Stanza::ios("
+        =ip access-list DMZ
+         =permit 192.168.0.0 0.0.255.255
+    ", $sh_run);
 
-    # print config to update acl if current acl is different than latest
-    if (Mnet::Stanza::diff($acl_old, $acl_new)) {
-        print "no ip access-list DMZ\n" if $acl_old;
-        print "$acl_new\n";
-    }
-
-    # print config applying acl to shutdown interfaces, if needed
+    # print config applying acl to shutdown interfaces if not present
     my @ints = Mnet::Stanza::parse($sh_run, qr/^interface/);
     foreach my $int (@ints) {
         next if $int !~ /^\s*shutdown/m;
@@ -285,9 +279,6 @@ spaces use the Mnet::Stanza::trim function before calling this function.
 sub ios {
 
 #? finish me, code for manipulating ios stanza configs
-#   add comment mentioning this function in Stanza.pm perldoc
-#   edit Stanza.pm perldoc to mention it is a slightly ios-centric module
-#       add ios function comment in stanza.pm synopsis, maybe example?
 #   update Mnet.pm tutorial, with add/apply stanza? remove extra stuff?
 #       it's powerful and unique, how can we show it off?
 #       show run, audit report, remove/show-run/reapply if necessary
