@@ -126,6 +126,11 @@ authentication and command prompt handling.
 
 =item *
 
+Templated config parsing and generation on cisco ios devices and other similar
+indented stanza text files.
+
+=item *
+
 Automation scripts can run in batch mode to concurrently process a list of
 devices, using a simple command line argument and a device list file.
 
