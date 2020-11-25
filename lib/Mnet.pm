@@ -61,7 +61,7 @@ Mnet - Testable network automation and reporting
         output  => $cli->report,
     });
 
-    # recreate cli option object, forking children if in --batch mode
+    # fork children if in --batch mode, cli opts set for current child
     #   process one device or ten thousand devices with the same script
     #   exit --batch parent process here when finished forking children
     $cli = Mnet::Batch::fork($cli);
