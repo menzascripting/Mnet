@@ -617,7 +617,7 @@ END {
     my $debug_error_file = Mnet::Opts::Cli::Cache::debug_error();
     if (defined $debug_error_file) {
         my ($sec, $min, $hr, $mday, $mon, $yr) = localtime();
-        $yr += 1900; $mday += 1;
+        $yr += 1900; $mon += 1;
         my $date_stamp = sprintf("%02s-%02s-%02s", $yr, $mon, $mday);
         my $time_stamp = sprintf("%02s:%02s:%02s", $hr, $min, $sec);
         $debug_error_file =~ s/\*/${date_stamp}_${time_stamp}_pid-$$/;
