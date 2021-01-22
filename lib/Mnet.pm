@@ -117,7 +117,8 @@ The main features are:
 =item *
 
 Record and replay connected command line sessions, speeding development
-and allow for regression testing of complex automation scripts.
+and allowing for integration and regression testing of complex automation
+scripts.
 
 =item *
 
