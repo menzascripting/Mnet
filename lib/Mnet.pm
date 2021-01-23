@@ -174,8 +174,8 @@ Or download and install from L<https://github.com/menzascripting/Mnet>
     make install
 
 Check your PERL5LIB environment variable if INSTALL_BASE was used, or if you
-copied the lib/Mnet directory somewhere instead of using Makefile.PL. Refer
-to L<ExtUtils::MakeMaker> for more information
+copied the lib/Mnet directory somewhere instead of using the included
+Makefile.PL script. Refer to L<ExtUtils::MakeMaker> for more information
 
 =head1 AUTHOR
 
