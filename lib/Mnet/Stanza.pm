@@ -278,12 +278,6 @@ spaces use the Mnet::Stanza::trim function before calling this function.
 
 sub ios {
 
-#? finish me, code for manipulating ios stanza configs
-#   update Mnet.pm tutorial, with add/apply stanza? remove extra stuff?
-#       it's powerful and unique, how can we show it off?
-#       show run, audit report, remove/show-run/reapply if necessary
-#   update Mnet.pm description, add item/something about ios config parsing
-
 =head2 ios
 
     $output = Mnet::Stanza::ios($template, $config)

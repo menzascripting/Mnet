@@ -93,6 +93,7 @@ Mnet - Testable network automation and reporting
 
     # parse interface loopack0 stanza from device config
     #   returns int loop0 line and lines indented under int loop0
+    #   see perldoc Mnet::Stanza for more ios config templating info
     my $loop = Mnet::Stanza::parse($config, qr/^interface Loopback0$/);
 
     # parse primary ip address from loopback config stanza
@@ -116,38 +117,41 @@ The main features are:
 
 =item *
 
-Record and replay connected command line sessions, speeding development
-and allowing for integration and regression testing of complex automation
-scripts.
+L<Mnet::Test> module can record and replay L<Mnet> script options, connected
+expect sessions, and compare outputs, speeding development and allowing for
+integration and regression testing of complex automation scripts.
 
 =item *
 
-Reliable automation of cisco ios and other command line sessions, including
+L<Mnet::Expect::Cli::Ios> and L<Mnet::Expect::Cli> modules for reliable
+automation of cisco ios and other command line sessions, including
 authentication and command prompt handling.
 
 =item *
 
-Templated config parsing and generation on cisco ios devices and other similar
-indented stanza text files.
+L<Mnet::Stanza> module for templated config parsing and generation on cisco ios
+devices and other similar indented stanza text files.
 
 =item *
 
-Automation scripts can run in batch mode to concurrently process a list of
-devices, using a simple command line argument and a device list file.
+L<Mnet::Batch> can run automation scripts in batch mode to concurrently process
+a list of devices, using a simple command line argument and a device list file.
 
 =item *
 
-Facilitate easy log, debug, alert and error output from automation scripts,
-outputs can be redirected to per-device files
+L<Mnet::Log> can facilitate easy log, debug, alert and error output from
+automation scripts, outputs can be redirected to per-device files.
 
 =item *
 
-Flexible config settings via command line, environment variable, and/or batch
+L<Mnet::Opts::Cli> module for config settings via command line, environment
+variable, and/or batch scripts, with help, tips, and password redaction.
 device list files.
 
 =item *
 
-Report data from scripts can be output as csv, json, or sql.
+L<Mnet::Report::Table> module for aggregating report data from scripts,
+supporting output in formats such as csv, json, and sql.
 
 =back
 
