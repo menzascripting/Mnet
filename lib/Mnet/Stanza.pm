@@ -2,7 +2,7 @@ package Mnet::Stanza;
 
 =head1 NAME
 
-Mnet::Stanza - Manipulate stanza outline text
+Mnet::Stanza - Manipulate stanza outline text such as ios configs
 
 =head1 SYNOPSIS
 
@@ -13,9 +13,6 @@ Mnet::Stanza - Manipulate stanza outline text
     my $sh_run = undef;
     $sh_run .= "$_\n" while <STDIN>;
     $sh_run = Mnet::Stanza::trim($sh_run);
-
-    # parse existing version of secure acl from current config
-    my $acl_old = Mnet::Stanza::parse($sh_run, qr/^ip access-list DMZ/);
 
     # remove and recreate acl if configured acl does not match below
     Mnet::Stanza::ios("
@@ -43,11 +40,11 @@ in outline format, such as the following:
      indented line
     stanza 2
      sub-stanza 1
-      indented 1
-      indented 2
+      indented line 1
+      indented line 2
       sub-sub-stanza 1
-       indented 1
-       indented 2
+       indented line 1
+       indented line 2
     end
 
 In the above example the following would be true:
@@ -57,7 +54,7 @@ In the above example the following would be true:
     sub-stanza 1 contains two indented lines and a sub-sub-stanza 1
     sub-sub-stanza 1 contains two indented lines
 
-This can be used to parse cisco ios configs, amongst other things.
+This can be used to parse cisco ios configs, amongst other similar formats.
 
 =head1 FUNCTIONS
 
@@ -79,14 +76,15 @@ sub trim {
     $output = Mnet::Stanza::trim($input)
 
 The Mnet::Stanza::trim function can be used to normalize stanza spacing and may
-be useful before calling the diff function or outputting a stanza to the user.
+be useful before calling the diff function or otherwise processing the stanza.
 
-This function processes the input string as following:
+This function modifies the input string as following:
 
-    - remove extra spaces inside non-description/remark text
     - remove trailing spaces at the end of all lines of text
     - remove blank lines before, after, and within text
     - remove extra leading spaces while preserving indentation
+    - remove extra spaces inside non-description/remark lines
+        dosn't modify ios description and remark command lines
 
 A null value will be output if the input is undefined.
 
@@ -162,7 +160,7 @@ Using an input match_re of qr/^interface/ the following two stanzas are output:
     interface Ethernet2
      ip address 1.2.3.4 255.255.255.0
 
-Note that blank lines don't terminate stanzas.
+Note that blank lines are not considered to terminate stanzas.
 
 Refer also to the Mnet::Stanza::trim function in this module.
 
@@ -213,14 +211,15 @@ strings are the same.
 
 The returned diff value will be set as follows:
 
-    <null>      indicates old and new inputs match
-    <undef>     indicates both inputs are undefined
-    undef       indicates either new or old is undefined
-    line        indicates mismatch line number and line text
-    other       indicates mismatch such as extra eol chars at end
+    <null>          indicates old and new inputs match
+    <undef>         indicates both inputs are undefined
+    undef:$a        indicates either new or old input arg is undefined
+    line $n: $t     indicates mismatch line number and line text
+    other           indicates other mismatch such as extra eol chars
 
-Note that blank lines and all other spaces are significant. To remove extra
-spaces use the Mnet::Stanza::trim function before calling this function.
+Note that blank lines and all other spaces are significant. Consider using the
+Mnet::Stanza::trim function to normalize both inputs before calling this
+function.
 
 =cut
 
@@ -253,18 +252,18 @@ spaces use the Mnet::Stanza::trim function before calling this function.
     #   set diff to other if we don't know why old is not equal to new
     } else {
         my @new = split(/\n/, $new);
-        my $count = 0;
+        my $num = 0;
         foreach my $line (split(/\n/, $old)) {
-            $count++;
+            $num++;
             if (defined $new[0] and $new[0] eq $line) {
                 shift @new;
             } else {
-                $diff = "line $count: $line";
+                $diff = "line $num: $line";
                 last;
             }
         }
-        $count++;
-        $diff = "line $count: $new[0]" if defined $new[0] and not defined $diff;
+        $num++;
+        $diff = "line $num: $new[0]" if defined $new[0] and not defined $diff;
         $diff = "other" if not defined $diff;
 
     # finished setting output diff
@@ -282,15 +281,17 @@ sub ios {
 
     $output = Mnet::Stanza::ios($template, $config)
 
-The Mnet::Stanza::ios fucntion uses a template to output commands that need to
-be added to an ios config to bring it into compliance.
+The Mnet::Stanza::ios fucntion uses a template to check a config for needed
+config changes, outputting a generated list of overlay config commands that can
+be applied to the device to bring it into compliance.
 
 The script dies with an error if the template argument is missing. The second
 config argument is optional and can be set to the current device config.
 
 The output from this function will be commands that need to be added and/or
 removed from the input config, generated by comparing the input template to
-the input config.
+the input config. It will be empty if the input config does not need to be
+updated.
 
 This function is designed to work on templates and configs made up of indented
 stanzas, as in the following ios config example, showing a global snmp command
@@ -313,18 +314,19 @@ Template lines should start with one of the following characters:
     +   add line
 
             config line should be added if not already present
-            to add lines under a stanza refer above to '>'
+            to add lines under a stanza refer to '>' below
 
     >   find stanza
 
             use to find or create a stanza in the input config
-            stanza is created if commands need to be added underneath
+            found stanzas can have '+', '=', and/or '-' lines underneath
+            found stanzas are output if child lines generate output
 
     =   match stanza
 
             output stanza if not already present and an exact match
             indented lines undeneath to match must also start with '='
-            to match a stanza under another stanza refer above to '>'
+            possible to '>' find a stanza and '=' match child sub-stanza
 
     -   remove line or stanza if present
 
@@ -346,6 +348,7 @@ ios feature configs:
     $sh_run .= "$_\n" while <STDIN>;
 
     # define ios feature update template string
+    #   can be programmatically generated from parsed config
     my $update_remplate = "
 
         ! check numbered acl, ensure no extra lines
@@ -363,6 +366,7 @@ ios feature configs:
     ";
 
     # define ios feature remove template string
+    #   used to remove any old config before applying update
     my $remove_template = "
 
         ! acl automatically removed from interface
@@ -371,15 +375,15 @@ ios feature configs:
 
     ";
 
-    # output overlay config, remove/update feature if needed
+    # output overlay config if update is needed
+    #   overlay will remove old config before updating with new config
     if (Mnet::Stanza::ios($update_template, $sh_run)) {
         print Mnet::Stanza::ios($remove_template, $sh_run);
         print Mnet::Stanza::ios($update_template);
     }
 
-Note that extra spaces are removed from the template and config inputs, in a
-manner similar to the Mnet::Stanza::trim function, except that extra spaces
-are preserved in remark and description commands.
+Note that extra spaces are removed from the template and config inputs using
+the Mnet::Stanza::trim function. Refer to that function for more info.
 
 =cut
 
