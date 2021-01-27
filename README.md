@@ -54,7 +54,7 @@ Mnet - Testable network automation and reporting
         output  => $cli->report,
     });
 
-    # recreate cli option object, forking children if in --batch mode
+    # fork children if in --batch mode, cli opts set for current child
     #   process one device or ten thousand devices with the same script
     #   exit --batch parent process here when finished forking children
     $cli = Mnet::Batch::fork($cli);
@@ -86,6 +86,7 @@ Mnet - Testable network automation and reporting
 
     # parse interface loopack0 stanza from device config
     #   returns int loop0 line and lines indented under int loop0
+    #   see perldoc Mnet::Stanza for more ios config templating info
     my $loop = Mnet::Stanza::parse($config, qr/^interface Loopback0$/);
 
     # parse primary ip address from loopback config stanza
@@ -105,17 +106,23 @@ network automation and/or reporting scripts as simply as possible.
 
 The main features are:
 
-- Record and replay connected command line sessions, speeding development
-and allow for regression testing of complex automation scripts.
-- Reliable automation of cisco ios and other command line sessions, including
+- [Mnet::Test](https://metacpan.org/pod/Mnet%3A%3ATest) module can record and replay [Mnet](https://metacpan.org/pod/Mnet) script options, connected
+expect sessions, and compare outputs, speeding development and allowing for
+integration and regression testing of complex automation scripts.
+- [Mnet::Expect::Cli::Ios](https://metacpan.org/pod/Mnet%3A%3AExpect%3A%3ACli%3A%3AIos) and [Mnet::Expect::Cli](https://metacpan.org/pod/Mnet%3A%3AExpect%3A%3ACli) modules for reliable
+automation of cisco ios and other command line sessions, including
 authentication and command prompt handling.
-- Automation scripts can run in batch mode to concurrently process a list of
-devices, using a simple command line argument and a device list file.
-- Facilitate easy log, debug, alert and error output from automation scripts,
-outputs can be redirected to per-device files
-- Flexible config settings via command line, environment variable, and/or batch
+- [Mnet::Stanza](https://metacpan.org/pod/Mnet%3A%3AStanza) module for templated config parsing and generation on cisco ios
+devices and other similar indented stanza text files.
+- [Mnet::Batch](https://metacpan.org/pod/Mnet%3A%3ABatch) can run automation scripts in batch mode to concurrently process
+a list of devices, using a simple command line argument and a device list file.
+- [Mnet::Log](https://metacpan.org/pod/Mnet%3A%3ALog) can facilitate easy log, debug, alert and error output from
+automation scripts, outputs can be redirected to per-device files.
+- [Mnet::Opts::Cli](https://metacpan.org/pod/Mnet%3A%3AOpts%3A%3ACli) module for config settings via command line, environment
+variable, and/or batch scripts, with help, tips, and password redaction.
 device list files.
-- Report data from scripts can be output as csv, json, or sql.
+- [Mnet::Report::Table](https://metacpan.org/pod/Mnet%3A%3AReport%3A%3ATable) module for aggregating report data from scripts,
+supporting output in formats such as csv, json, and sql.
 
 Most of the [Mnet](https://metacpan.org/pod/Mnet) sub-modules can be used independently of each other,
 unless otherwise noted.
@@ -140,8 +147,8 @@ Or download and install from [https://github.com/menzascripting/Mnet](https://gi
     make install
 
 Check your PERL5LIB environment variable if INSTALL\_BASE was used, or if you
-copied the lib/Mnet directory somewhere instead of using Makefile.PL. Refer
-to [ExtUtils::MakeMaker](https://metacpan.org/pod/ExtUtils%3A%3AMakeMaker) for more information
+copied the lib/Mnet directory somewhere instead of using the included
+Makefile.PL script. Refer to [ExtUtils::MakeMaker](https://metacpan.org/pod/ExtUtils%3A%3AMakeMaker) for more information
 
 # AUTHOR
 
