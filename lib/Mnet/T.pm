@@ -106,7 +106,7 @@ sub test_perl {
     $specs->{expect} =~ s/(^\n+|\n+$)//g;
 
     # get output from command, remove leading/trailing blank lines
-    ( my $output = `$command` ) =~ s/(^\n+|\n+$)//g;
+    ( my $output = `( $command ) 2>&1` ) =~ s/(^\n+|\n+$)//g;
 
     # compare command output to expected output
     #   added leading cr makes for cleaner Test::More::is output
