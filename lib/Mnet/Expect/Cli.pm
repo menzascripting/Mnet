@@ -137,13 +137,18 @@ Refer to the L<Mnet::Expect> module for more information.
         _password_  => undef,
         password_in => undef,
         password_re => '(?i)pass(code|phrase|word):?\s*(\r|\n)?$',
-        prompt_re   => '(^|\r|\n)\S.*(\$|\%|#|:|>) ?(\r|\n|$)',
+        prompt_re   => undef, # see below
         record      => undef,
         replay      => undef,
         timeout     => 30,
         username    => undef,
         username_re => '(?i)(login|user(name)?):?\s*(\r|\n)?$',
     };
+
+    # prompt_re default based on educated guess, specifics noted below:
+    #   junos telnet =~ /^\S+> $/mi
+    #   update sub prompt_re perlodc with new default, if changed below
+    $defaults->{prompt_re} = '(^|\r|\n)\S.*(\$|\%|#|:|>) ?(\r|\n|$)';
 
     # update future object $self hash with default opts
     foreach my $opt (sort keys %$defaults) {
@@ -730,9 +735,13 @@ Get and/or set new prompt_re for the current object.
 By default prompts that end with $ % # : > are recognized, and the first prompt
 detected after login is used as prompt_re for the rest of the expect session.
 
+The default prompt_re is set to the following string:
+
+    (^|\r|\n)\S.*(\$|\%|#|:|>) ?(\r|\n|$)
+
 Note that prompt_re should start with a regex caret symbol and end with a regex
-dollar sign, to ensure it works correctly. Also the /Q and /E escape sequences
-do not appear to work in an expect regex.
+dollar sign, so that it matches all characters in the command prompt line. Also
+the /Q and /E escape sequences do not appear to work in this expect regex.
 
 =cut
 
