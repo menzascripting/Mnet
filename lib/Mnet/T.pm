@@ -79,7 +79,7 @@ sub test_perl {
     #   dosn't matter if it's one grep command, or multiple, complex or simple
     #   debug w/code to output command and syswrite stderr stuff if not result
     if ($Config{myarchname} eq "sparc64-openbsd"
-        and $specs->{filter} =~ /^\s*grep/m) {
+        and $specs->{filter} and $specs->{filter} =~ /^\s*grep/m) {
         SKIP: { skip("$name (sparc64-openbsd)", 1); };
         return 1;
     }
