@@ -6,6 +6,7 @@ package Mnet::T;
 use warnings;
 use strict;
 use Carp;
+use Config;
 use Test::More;
 
 
@@ -67,6 +68,19 @@ sub test_perl {
     #   makes it easy to troubleshoot one test in a .t script full of tests
     if ($main::mnet_test_perl and $name !~ /\Q$main::mnet_test_perl\E/) {
         SKIP: { skip("$name (main::mnet_test_perl)", 1); };
+        return 1;
+    }
+
+    # skip if running on openbsd sparc64 with grep filters
+    #   test filters with grep get 'grep: -: No such file or directory' errors
+    #   sed doesn't give this error, no aliases, both in /usr/bin, in $PATH
+    #   grep gives this error if run with no stdin, example: `grep test -`
+    #   also explains why this fail test takes forever, watchdog must catch it
+    #   dosn't matter if it's one grep command, or multiple, complex or simple
+    #   debug w/code to output command and syswrite stderr stuff if not result
+    if ($Config{myarchname} eq "sparc64-openbsd"
+        and $specs->{filter} =~ /^\s*grep/m) {
+        SKIP: { skip("$name (sparc64-openbsd)", 1); };
         return 1;
     }
 
