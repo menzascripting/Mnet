@@ -57,6 +57,14 @@ sub test_perl {
 #
 # troubleshoot a single test with: INIT { our $mnet_test_perl = $name_re }
 
+#? problem on cpantesters with grep on one sparc64-openbsd system
+#   test filters with grep get error 'grep: -: No such file or directory'
+#   no sed errors, no defined aliases, both commands in /usr/bin, in $PATH
+#   grep gives this error if run with no stdin, example: `grep test -`
+#   dosn't matter if it's one grep command, or multiple, complex or simple
+#   debuged with new if-block for not $result, syswrite stderr with extra info
+#   $Config::Config{archname} code can skip, better to simple/accurate/fail
+
     # read input specs
     my $specs = shift;
 
@@ -68,19 +76,6 @@ sub test_perl {
     #   makes it easy to troubleshoot one test in a .t script full of tests
     if ($main::mnet_test_perl and $name !~ /\Q$main::mnet_test_perl\E/) {
         SKIP: { skip("$name (main::mnet_test_perl)", 1); };
-        return 1;
-    }
-
-    # skip if running on openbsd sparc64 with grep filters
-    #   test filters with grep get 'grep: -: No such file or directory' errors
-    #   sed doesn't give this error, no aliases, both in /usr/bin, in $PATH
-    #   grep gives this error if run with no stdin, example: `grep test -`
-    #   also explains why this fail test takes forever, watchdog must catch it
-    #   dosn't matter if it's one grep command, or multiple, complex or simple
-    #   debug w/code to output command and syswrite stderr stuff if not result
-    if ($Config{myarchname} eq "sparc64-openbsd"
-        and $specs->{filter} and $specs->{filter} =~ /^\s*grep/m) {
-        SKIP: { skip("$name (sparc64-openbsd)", 1); };
         return 1;
     }
 
