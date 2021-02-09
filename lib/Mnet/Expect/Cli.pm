@@ -46,6 +46,7 @@ use warnings;
 use strict;
 use parent qw( Mnet::Expect );
 use Carp;
+use Mnet;
 use Mnet::Dump;
 use Mnet::Opts::Cli::Cache;
 use Time::HiRes;

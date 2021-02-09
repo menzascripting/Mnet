@@ -43,6 +43,7 @@ use warnings;
 use strict;
 use parent qw( Mnet::Expect::Cli );
 use Carp;
+use Mnet;
 use Mnet::Opts::Cli::Cache;
 
 

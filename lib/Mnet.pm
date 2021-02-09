@@ -3,7 +3,7 @@ package Mnet;
 # version number used by Makefile.PL
 #   these should be set to "dev", expect when creating a new release
 #   refer to developer build notes in Makefile.PL for more info
-our $VERSION = "dev";
+our $VERSION = "5.22_TRIAL27";
 
 =head1 NAME
 
@@ -224,9 +224,13 @@ L<Mnet::Test>
 =cut
 
 # required modules
-#   cpan complians if use strict is missing
+#   note that cpan complians if use strict is missing
+#   perl 5.10 or higer required for all Mnet modules, they all use this module
+#       perl 5.10 may be requried for tie to capture stdout and stderr
+#       perl 5.8.9 warning: use of "shift" without parentheses is ambiguous
 use warnings;
 use strict;
+use 5.010;
 
 # normal end of package
 1;

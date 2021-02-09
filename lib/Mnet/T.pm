@@ -7,6 +7,7 @@ use warnings;
 use strict;
 use Carp;
 use Config;
+use Mnet;
 use Test::More;
 
 

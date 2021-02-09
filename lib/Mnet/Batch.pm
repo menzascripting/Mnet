@@ -76,6 +76,7 @@ Mnet::Batch implements the functions listed below.
 use warnings;
 use strict;
 use Carp;
+use Mnet;
 use Mnet::Log::Conditional qw( DEBUG INFO WARN FATAL NOTICE );
 use Mnet::Opts::Cli::Cache;
 use Mnet::Opts::Set;

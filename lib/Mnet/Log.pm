@@ -80,6 +80,7 @@ use strict;
 use 5.008;
 use Carp;
 use Exporter qw( import );
+use Mnet;
 use Mnet::Opts;
 use Mnet::Opts::Cli::Cache;
 use Mnet::Version;

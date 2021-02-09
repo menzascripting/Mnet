@@ -5,6 +5,7 @@ package Mnet::Dump;
 # required modules
 use warnings;
 use strict;
+use Mnet;
 use Data::Dumper;
 
 

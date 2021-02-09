@@ -66,6 +66,7 @@ Mnet::Stanza implements the functions listed below.
 use warnings;
 use strict;
 use Carp;
+use Mnet;
 
 
 
