@@ -61,7 +61,6 @@ if (-f "README.md") {
 # create make file
 #   metacpan will use cpan v2 spec meta_merge github links
 WriteMakefile(
-    VERSION_FROM        => 'lib/Mnet.pm',
     ABSTRACT_FROM       => 'lib/Mnet.pm',
     AUTHOR              => 'Mike Menza <mmenza@cpan.org>',
     LICENSE             => 'gpl_3',
