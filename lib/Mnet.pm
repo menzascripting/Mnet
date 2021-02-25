@@ -75,12 +75,17 @@ Mnet - Testable network automation and reporting
     my $log = Mnet::Log->new({ log_id => $cli->device });
     $log->info("processing device");
 
+    # uncomment the push commands below to skip ssh key/host checks
+    my @ssh = qw(ssh);
+    #push @ssh, qw(-o StrictHostKeyChecking=no);
+    #push @ssh, qw(-o UserKnownHostsFile=/dev/null);
+
     # create an expect ssh session to current --device
     #   log ssh login/auth prompts as info, instead of default debug
     #   password_in set to prompt for password if --password opt not set
-    #   ssh host/key checks can be skipped, refer to Mnet::Expect::Cli
+    #   for non-ios devices refer to perldoc Mnet::Expect::Cli
     my $ssh = Mnet::Expect::Cli::Ios->new({
-        spawn       => [ "ssh", "$cli->{username}\@$cli->{device}" ],
+        spawn       => [ @ssh, "$cli->{username}\@$cli->{device}" ],
         log_id      => $cli->{device},
         log_login   => "info",
         password    => $cli->password,
