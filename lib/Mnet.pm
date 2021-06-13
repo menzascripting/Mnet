@@ -75,7 +75,8 @@ Mnet - Testable network automation and reporting
     my $log = Mnet::Log->new({ log_id => $cli->device });
     $log->info("processing device");
 
-    # uncomment the push commands below to skip ssh key/host checks
+    # uncomment the push commands below to skip ssh host key checks
+    #   ideally host keys are already accepted, perhaps via manual ssh
     my @ssh = qw(ssh);
     #push @ssh, qw(-o StrictHostKeyChecking=no);
     #push @ssh, qw(-o UserKnownHostsFile=/dev/null);
