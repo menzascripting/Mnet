@@ -8,13 +8,13 @@ Mnet::Report::Table - Output rows of report data
 
     # create an example new table object, with csv file output
     my $table = Mnet::Report::Table->new({
-        output  => "csv:file.csv",
         columns => [
             device  => "string",
             time    => "time",
-            data    => "Integer",
-            error   => "error"
+            data    => "integer",
+            error   => "error",
         ],
+        output  => "csv:file.csv",
     });
 
     # output error row if script aborts with unreported errors
@@ -510,11 +510,12 @@ sub _output_csv {
 
 The csv output option can be used to output a csv file, /dev/stdout by default.
 
-All csv outputs are doule quoted. Double quotes in the outut data are escaped
-with an extra double quote.
+All csv outputs are doule quoted. Any double quote character in the outut data
+will be escaped with an extra double quote character
 
-All end of line carraige return and linefeed characters are replaced with
-spaces in the csv output. Multiline csv output data is not supported.
+All end of line carraige return and linefeed characters in the output data
+are replaced with spaces in the csv output. Multiline csv output data is not
+supported.
 
 The output csv file will be created with a heading row when the new method is
 called unless the append option was set when the new method was called.
