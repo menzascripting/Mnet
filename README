@@ -99,21 +99,22 @@ SYNOPSIS
 
 DESCRIPTION
     The Mnet modules are for perl programmers who want to create testable
-    network automation and/or reporting scripts as simply as possible.
+    network automation and/or reporting scripts as simply as possible, with
+    extra facility for cisco ios and other command line interfaces.
 
     The main features are:
 
-    *   Mnet::Test module can record and replay Mnet script options, connected
-        expect sessions, and compare outputs, speeding development and
-        allowing for integration and regression testing of complex automation
-        scripts.
+    *   Mnet::Test module can record and replay Mnet script optiona, connected
+        expect cli sessions, and log outputs, speeding development and allowing
+        for integration and regression testing of complex automation scripts.
 
-    *   Mnet::Expect::Cli::Ios and Mnet::Expect::Cli modules for reliable
-        automation of cisco ios and other command line sessions, including
+    *   Mnet::Expect::Cli::Ios and Mnet::Expect::Cli modules allow for reliable
+        automation of cisco ios and other command line sessions, and include
         authentication and command prompt handling.
 
-    *   Mnet::Stanza module for templated config parsing and generation on
-        cisco ios devices and other similar indented stanza text files.
+    *   Mnet::Stanza module for templated config parsing and the generation of
+        remediation config on cisco ios devices and other similarly indented
+        stanza text files.
 
     *   Mnet::Batch can run automation scripts in batch mode to concurrently
         process a list of devices, using a simple command line argument and a
@@ -122,12 +123,13 @@ DESCRIPTION
     *   Mnet::Log can facilitate easy log, debug, alert and error output from
         automation scripts, outputs can be redirected to per-device files.
 
-    *   Mnet::Opts::Cli module for config settings via command line,
-        environment variable, and/or batch scripts, with help, tips, and
-        password redaction. device list files.
+    *   Mnet::Opts::Cli module for reading option settings via command line,
+        environment variable, and/or batched device lists files, with help,
+        tips, and password redaction.
 
     *   Mnet::Report::Table module for aggregating report data from scripts,
-        supporting output in formats such as csv, json, and sql.
+        supporting output in formats such as csv, json, and sql, making it
+        very easy to add report columns as needed.
 
     Most of the Mnet sub-modules can be used independently of each other,
     unless otherwise noted.
@@ -150,17 +152,18 @@ INSTALLATION
         make test
         make install
 
-    Check your PERL5LIB environment variable if INSTALL_BASE was used, or if
-    you copied the lib/Mnet directory somewhere instead of using the included
-    Makefile.PL script. Refer to ExtUtils::MakeMaker for more information
+    Check your PERL5LIB environment variable if INSTALL_BASE was used to
+    install to a custom directory, or if you copied the lib/Mnet directory
+    somewhere instead of using the included Makefile.PL script. Refer to
+    ExtUtils::MakeMaker for more information
 
 AUTHOR
-    The Mnet perl distribution has been created and is maintained by Mike
-    Menza. Feedback and bug reports are welcome, feel free to contact Mike via
-    email at <mmenza@cpan.org> with any comments or questions.
+    The Mnet perl distribution has been created and is currently maintained by
+    Mike Menza. Feedback and bug reports are welcome! Feel free to contact Mike
+    via email at <mmenza@cpan.org> with comments, questions, or requests.
 
 COPYRIGHT AND LICENSE
-    Copyright 2006, 2013-2020 Michael J. Menza Jr.
+    Copyright 2006-2021 Michael J. Menza Jr.
 
     Mnet is free software: you can redistribute it and/or modify it under the
     terms of the GNU General Public License as published by the Free Software
