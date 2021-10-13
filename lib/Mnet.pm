@@ -136,12 +136,12 @@ authentication and command prompt handling.
 =item *
 
 L<Mnet::Stanza> module for templated config parsing and generation on cisco ios
-devices and other similar indented stanza text files.
+devices and other similar indented stanza text data.
 
 =item *
 
 L<Mnet::Batch> can run automation scripts in batch mode to concurrently process
-a list of devices, using a simple command line argument and a device list file.
+a list of devices, using command line arguments and a device list file.
 
 =item *
 
