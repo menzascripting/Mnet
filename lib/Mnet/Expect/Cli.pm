@@ -100,7 +100,8 @@ the command method to detect the end of command output.
 
 By default prompts ending with $ % # : > are detected, this can be changed by
 setting prompt_re to a different regex string when calling the new method, or
-disabled by setting to undef:
+disabled by setting to undef, note that prompt_re needs to match the entire
+prompt line, not just the ending:
 
     (^|\r|\n)\S.*(\$|\%|#|:|>) ?(\r|\n|$)
 
@@ -754,23 +755,23 @@ sub prompt_re {
 
 This method can be used to get and/or set the prompt_re regex string for an
 existing object, which is used by the command method to detect the end of
-output for a sent command. The prompt_re regex string should be specific enough
-to detect the cli prompt without matching any other command outputs.
+output for a sent command. The prompt_re regex string should be specific
+enough to detect the cli prompt without matching any other command outputs.
 
-By default the new method set prompt_re for the rest of the session to the
-first prompt detected after login, confirmed by sending a carraige return and
-getting the same specifc prompt again. This prompt detection can be adjusted or
-disabled, refer to the new method for more info.
+By default the new method sets a device specific prompt_re for the rest of
+the session from the first prompt detected after login, confirmed by sending
+a carraige return and getting the same specifc prompt back again. This prompt
+detection can be adjusted or disabled, refer to the new method for more info.
 
-Note that normally prompt_re should start with a regex caret symbol and end
-with a regex dollar sign, so that all characters in the command prompt line are
-matched, and avoid spurrious matches in command outputs. Be aware of any spaces
-that at the end of a prompt, as in the example below:
+Note that normally prompt_re should start with a regex caret symbol, and end
+with a regex dollar sign, so that all characters in the command prompt line
+are matched, and to avoid spurrious matches in command outputs. Be aware of
+any spaces that at the end of a prompt, as in the example below:
 
     $expect->prompt_re('^st-city-dev> $');
 
 Also note that the /Q and /E escape sequences do not appear to be recognized by
-expect, they should be avoided.
+expect, and they should not be used in prompt_re.
 
 =cut
 
