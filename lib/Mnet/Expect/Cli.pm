@@ -124,47 +124,37 @@ Refer to the L<Mnet::Expect> module for more information.
     # create hash that will become new object from input opts hash
     my $self = $opts;
 
-    # note default options for this class
+    # note default options for this class, refer also to Mnet::Expect defaults
     #   includes recognized cli opts and opts for this object
-    #       failed_re default undef to be safe, refer to perldoc for more info
-    #           junos telnet =~ /^Login incorrent/m
-    #       password_re default based on educated guess, specifics noted below:
-    #           junos telnet =~ /^Password:$/m
-    #       prompt_re default based on educated guess, specifics noted below:
-    #           junos telnet =~ /^\S+> $/mi
-    #       username_re default based on educated guess, specifics noted below:
-    #           junos telnet =~ /^login: $/m
-    #   following keys starting with underscore are used internally:
-    #       _command_cache_content => hash ref, refer to _command_cache_clear
-    #       _command_cache_counter => integer, refer to _command_cache_clear
-    #       _password_ => causes password value to be hidden in opts debug
     #   update perldoc for this sub with changes
-    #   refer also to Mnet::Expect defaults
     my $defaults = {
-        _command_cache_content => {},
-        _command_cache_counter => 0,
+        _command_cache_content => {}, # internal, see _command_cache_clear
+        _command_cache_counter => 0,  # internal, see _command_cache_clear
         delay       => 250,
         eol_unix    => 1,
+        # failed_re default undef to be safe, refer to perldoc for more info
+        #   junos telnet =~ /^Login incorrent/m
         failed_re   => undef,
         log_login   => undef,
         paging_key  => ' ',
         paging_re   => '(--more--|---\(more( \d\d?%)?\)---)',
         password    => undef,
-        _password_  => undef,
+        _password_  => undef,  # internal, hides password value in opts debug
         password_in => undef,
+        # password_re default based on educated guess, specifics noted below:
+        #   junos telnet =~ /^Password:$/m
         password_re => '(?i)pass(code|phrase|word):?\s*(\r|\n)?$',
-        prompt_re   => undef, # see below
+        # prompt_re default based on educated guess, specifics noted below:
+        #   junos telnet =~ /^\S+> $/mi
+        prompt_re   => '(^|\r|\n)\S.*(\$|\%|#|:|>) ?(\r|\n|$)',
         record      => undef,
         replay      => undef,
         timeout     => 30,
         username    => undef,
+        # username_re default based on educated guess, specifics noted below:
+        #   junos telnet =~ /^login: $/m
         username_re => '(?i)(login|user(name)?):?\s*(\r|\n)?$',
     };
-
-    # prompt_re default based on educated guess, specifics noted below:
-    #   junos telnet =~ /^\S+> $/mi
-    #   update perldoc for this sub with new default, if changed below
-    $defaults->{prompt_re} = '(^|\r|\n)\S.*(\$|\%|#|:|>) ?(\r|\n|$)';
 
     # update future object $self hash with default opts
     foreach my $opt (sort keys %$defaults) {
