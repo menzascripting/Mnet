@@ -1,4 +1,10 @@
 
+5.23
+
+    - improved Mnet::Expect::Cli::Ios prompt_re in config mode
+    - new Mnet::Report::Table tsv output
+
+
 5.22    2021-02-15
 
     - new Mnet::Stanza::ios templating function
