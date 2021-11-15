@@ -28,12 +28,13 @@ Mnet::Expect::Cli - Expect sessions to command line interfaces
 
 =head1 DESCRIPTION
 
-Mnet::Expect::Cli can be used to spawn L<Expect> processes, which can be
-used to programmatically control command line sessions to devices, with
-support for L<Mnet> options, logging, caching, and testing.
+Mnet::Expect::Cli can be used to spawn L<Expect> processes, which can be used
+to programmatically control command line sessions to devices, with support
+for L<Mnet> options, logging, caching, and testing.
 
-Refer to the perl L<Expect> module for more information. Also refer to the
-L<Mnet::Expect> and L<Mnet::Expect::Cli::Ios> modules.
+Refer to the L<Mnet::Expect> module, whose methods are inherited by objects
+created with this module. Also refer to L<Mnet::Expect::Cli::Ios>, which
+builds on this module,
 
 =head1 METHODS
 
@@ -78,7 +79,7 @@ in the L<Mnet::Expect> module new method:
     username        set to username for spawned command, if needed
     username_re     undef to skip login/user/username promt detection
 
-    An error is issued if there are login problems.
+An error is issued if there are login problems.
 
 For example, the following call will start an ssh expect session to a device
 with host key checking disabled:
@@ -139,7 +140,6 @@ Refer to the L<Mnet::Expect> module for more information.
         paging_key  => ' ',
         paging_re   => '(--more--|---\(more( \d\d?%)?\)---)',
         password    => undef,
-        _password_  => undef,  # internal, hides password value in opts debug
         password_in => undef,
         # password_re default based on educated guess, specifics noted below:
         #   junos telnet =~ /^Password:$/m
@@ -281,6 +281,7 @@ sub _login {
     #   clear _log_filter, which may have been set when password was sent
     #   clear expect buffer before sending cr, to flush out banner text, etc
     #   set prompt_re to detected command prompt when finished
+    #   prompt_truncate in Mnet::Expect::Cli::Ios must match prompt_re changes
     #   reset log_expect level back to it's prior value before returning
     my ($prompt1, $prompt2, $attempts) = ("", "", 3);
     foreach my $attempt (1.. $attempts) {
