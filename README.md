@@ -68,12 +68,18 @@ Mnet - Testable network automation and reporting
     my $log = Mnet::Log->new({ log_id => $cli->device });
     $log->info("processing device");
 
+    # uncomment the push commands below to skip ssh host key checks
+    #   ideally host keys are already accepted, perhaps via manual ssh
+    my @ssh = qw(ssh);
+    #push @ssh, qw(-o StrictHostKeyChecking=no);
+    #push @ssh, qw(-o UserKnownHostsFile=/dev/null);
+
     # create an expect ssh session to current --device
     #   log ssh login/auth prompts as info, instead of default debug
     #   password_in set to prompt for password if --password opt not set
-    #   ssh host/key checks can be skipped, refer to Mnet::Expect::Cli
+    #   for non-ios devices refer to perldoc Mnet::Expect::Cli
     my $ssh = Mnet::Expect::Cli::Ios->new({
-        spawn       => [ "ssh", "$cli->{username}\@$cli->{device}" ],
+        spawn       => [ @ssh, "$cli->{username}\@$cli->{device}" ],
         log_id      => $cli->{device},
         log_login   => "info",
         password    => $cli->password,
@@ -113,9 +119,9 @@ integration and regression testing of complex automation scripts.
 automation of cisco ios and other command line sessions, including
 authentication and command prompt handling.
 - [Mnet::Stanza](https://metacpan.org/pod/Mnet%3A%3AStanza) module for templated config parsing and generation on cisco ios
-devices and other similar indented stanza text files.
+devices and other similar indented stanza text data.
 - [Mnet::Batch](https://metacpan.org/pod/Mnet%3A%3ABatch) can run automation scripts in batch mode to concurrently process
-a list of devices, using a simple command line argument and a device list file.
+a list of devices, using command line arguments and a device list file.
 - [Mnet::Log](https://metacpan.org/pod/Mnet%3A%3ALog) can facilitate easy log, debug, alert and error output from
 automation scripts, outputs can be redirected to per-device files.
 - [Mnet::Opts::Cli](https://metacpan.org/pod/Mnet%3A%3AOpts%3A%3ACli) module for config settings via command line, environment
@@ -158,7 +164,7 @@ at <mmenza@cpan.org> with any comments or questions.
 
 # COPYRIGHT AND LICENSE
 
-Copyright 2006, 2013-2020 Michael J. Menza Jr.
+Copyright 2006, 2013-2021 Michael J. Menza Jr.
 
 [Mnet](https://metacpan.org/pod/Mnet) is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
