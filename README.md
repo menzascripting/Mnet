@@ -8,9 +8,10 @@ Mnet - Testable network automation and reporting
     #
     #   demonstrates typical use of all major Mnet modules
     #
-    #   --help to list all options, or --help <option>
+    #   --help to list all options, also --help <option>
     #   --device <address> to connect to device with logging
     #   --username and --password should be set if necessary
+    #   --debug to generate extra detailed logging outputs
     #   --batch <file.batch> to process multiple --device lines
     #   --report csv:<file.csv> to create an output csv file
     #   --record <file.test> to create replayable test file
