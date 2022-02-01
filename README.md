@@ -19,7 +19,7 @@ Mnet - Testable network automation and reporting
     #
     #   refer to various Mnet modules' perldoc for more info
 
-    # load modules
+    # load needed modules
     use warnings;
     use strict;
     use Mnet::Batch;

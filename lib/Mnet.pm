@@ -3,7 +3,7 @@ package Mnet;
 # version number used by Makefile.PL
 #   these should be set to "dev", expect when creating a new release
 #   refer to developer build notes in Makefile.PL for more info
-our $VERSION = "5.23-TRIAL03";
+our $VERSION = "dev";
 
 =head1 NAME
 
@@ -26,7 +26,7 @@ Mnet - Testable network automation and reporting
     #
     #   refer to various Mnet modules' perldoc for more info
 
-    # load modules
+    # load needed modules
     use warnings;
     use strict;
     use Mnet::Batch;
