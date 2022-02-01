@@ -3,7 +3,7 @@ package Mnet;
 # version number used by Makefile.PL
 #   these should be set to "dev", expect when creating a new release
 #   refer to developer build notes in Makefile.PL for more info
-our $VERSION = "dev";
+our $VERSION = "5.23-TRIAL03";
 
 =head1 NAME
 
@@ -196,7 +196,7 @@ at <mmenza@cpan.org> with any comments or questions.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2006, 2013-2021 Michael J. Menza Jr.
+Copyright 2006, 2013-2022 Michael J. Menza Jr.
 
 L<Mnet> is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
