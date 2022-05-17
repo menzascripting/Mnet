@@ -157,7 +157,7 @@ BEGIN {
     #   output a linefeed to stderr after ^C put there by shell
     $SIG{INT} = sub {
         syswrite STDERR, "\n";
-        output(undef, "ERR", 3, scalar(caller), "terminate signal received");
+        output(undef, "ERR", 3, scalar(caller), "interrupt signal received");
         exit 1;
     };
 
