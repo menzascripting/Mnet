@@ -250,7 +250,9 @@ prompt, otherwise a value of false is returned.
                     $self->debug("enable enable_in prompt starting");
                     {
                         local $SIG{INT} = sub {
-                            system("stty echo 2>/dev/null")
+                            system("stty echo 2>/dev/null");
+                            syswrite STDERR, "\n\n";
+                            $self->fatal("interrupt signal received");
                         };
                         syswrite STDERR,
                             "\nEnter enable $self->expect->match: ";

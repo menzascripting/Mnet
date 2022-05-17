@@ -244,7 +244,11 @@ sub _login {
             if ($self->{password_in}) {
                 $self->debug("_login password_in prompt starting");
                 {
-                    local $SIG{INT} = sub { system("stty echo 2>/dev/null") };
+                    local $SIG{INT} = sub {
+                        system("stty echo 2>/dev/null");
+                        syswrite STDERR, "\n\n";
+                        $self->fatal("interrupt signal received");
+                    };
                     syswrite STDERR, "\nEnter $self->{password_in}: ";
                     system("stty -echo 2>/dev/null");
                     chomp($password = <STDIN>);

@@ -3,6 +3,7 @@ v5.24   YYYY-MM-DD
 
     - output only perl warn/die stderr text when --quiet is enabled
     - cli --quiet/silent options override those Mnet::Opts::Set pragma modules
+    - allow ctrl-c interrupt during Mnet::Expect::Cli and Ios password_in entry
 
 
 v5.23   2022-02-01
