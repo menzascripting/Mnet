@@ -293,8 +293,8 @@ sub close {
     $expect->close
 
 This method sends the end and exit ios commands before closing the current
-expect session. Timeouts are gracefully handled. Refer to the close method
-in the L<Mnet::Expect::Cli> module for more information.
+expect session. Timeouts and disconnects are gracefully handled. Refer to the
+close method in the L<Mnet::Expect::Cli> module for more information.
 
 =cut
 
