@@ -85,7 +85,7 @@ This function modifies the input string as following:
     - remove blank lines before, after, and within text
     - remove extra leading spaces while preserving indentation
     - remove extra spaces inside non-description/remark lines
-        dosn't modify ios description and remark command lines
+        doesn't modify ios description and remark command lines
 
 A null value will be output if the input is undefined.
 
