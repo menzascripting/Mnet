@@ -4,7 +4,7 @@ Mnet - Testable network automation and reporting
 
 # SYNOPSIS
 
-    # sample script to report Loopback0 ip on cisco devices
+    # sample.pl script to report Loopback0 ip on cisco devices
     #
     #   demonstrates typical use of all major Mnet modules
     #
@@ -123,8 +123,9 @@ authentication and command prompt handling.
 devices and other similar indented stanza text data.
 - [Mnet::Batch](https://metacpan.org/pod/Mnet%3A%3ABatch) can run automation scripts in batch mode to concurrently process
 a list of devices, using command line arguments and a device list file.
-- [Mnet::Log](https://metacpan.org/pod/Mnet%3A%3ALog) can facilitate easy log, debug, alert and error output from
-automation scripts, outputs can be redirected to per-device files.
+- [Mnet::Log](https://metacpan.org/pod/Mnet%3A%3ALog) and [Mnet::Tee](https://metacpan.org/pod/Mnet%3A%3ATee) modules facilitate easy log, debug, alert and
+error output from automation scripts, along with redirection to per-device
+output files.
 - [Mnet::Opts::Cli](https://metacpan.org/pod/Mnet%3A%3AOpts%3A%3ACli) module for config settings via command line, environment
 variable, and/or batch scripts, with help, tips, and password redaction.
 device list files.
@@ -156,6 +157,83 @@ Or download and install from [https://github.com/menzascripting/Mnet](https://gi
 Check your PERL5LIB environment variable if INSTALL\_BASE was used, or if you
 copied the lib/Mnet directory somewhere instead of using the included
 Makefile.PL script. Refer to [ExtUtils::MakeMaker](https://metacpan.org/pod/ExtUtils%3A%3AMakeMaker) for more information
+
+# FAQ
+
+Below are answers to some frequently asked questions.
+
+## How should I get started?
+
+Copy the sample script code from the SYNOPSIS above to a new .pl file, read
+through the comments, make changes as necessary, use the --debug cli option to
+troubleshoot execution.
+
+## What's the easiest way to get more log output?
+
+Use both the [Mnet::Log](https://metacpan.org/pod/Mnet%3A%3ALog) and [Mnet::Opts::Set::Debug](https://metacpan.org/pod/Mnet%3A%3AOpts%3A%3ASet%3A%3ADebug) modules in your script
+for more output, mostly from other Mnet modules unless you add [Mnet::Log](https://metacpan.org/pod/Mnet%3A%3ALog)
+calls, which are a compatible subset of log4perl calls, to your script.
+
+## How should passwords be secured?
+
+Environment variables should be used to provide passwords for scripts, not
+command line options. Command line options can be seen in the system process
+list by other users.
+
+The [Mnet::Opts::Cli](https://metacpan.org/pod/Mnet%3A%3AOpts%3A%3ACli) new method allows a named environment variable to be
+specified that will also be parsed for command line options. Your script can
+be called from a shell script containing authentication, which is accessible
+only to authorized users, such as in the example below:
+
+    #!/bin/sh
+    #   sample.sh script, chmod 700 to restrict access to current user
+    #   works with Mnet::Opts calls in above SYNOPISIS sample.pl script
+    #   "$@" passes throuh all command line options, modify as needed
+    export Mnet='--username <user> --password <secret>'
+    perl -- sample.pl "$@"
+
+The [Mnet::Opts::Cli](https://metacpan.org/pod/Mnet%3A%3AOpts%3A%3ACli) module define function has a redact property that should
+be set for password options so that the value of the option is value is always
+redacted form [Mnet::Log](https://metacpan.org/pod/Mnet%3A%3ALog) outputs.
+
+Also note that the [Mnet::Expect](https://metacpan.org/pod/Mnet%3A%3AExpect) module log\_expect method is used by the
+[Mnet::Expect::Cli](https://metacpan.org/pod/Mnet%3A%3AExpect%3A%3ACli) modules to temporarily disable expect session logging
+during password entry. Any user code bypassing the [Mnet::Expect::Cli](https://metacpan.org/pod/Mnet%3A%3AExpect%3A%3ACli)
+modules to send passwords directly, using the expect method in the
+[Mnet::Expect](https://metacpan.org/pod/Mnet%3A%3AExpect) module, may need to do the same.
+
+## Why should I use the Mnet::Expect module?
+
+The [Mnet::Expect](https://metacpan.org/pod/Mnet%3A%3AExpect) module works with the [Mnet::Log](https://metacpan.org/pod/Mnet%3A%3ALog) and [Mnet::Opts::Cli](https://metacpan.org/pod/Mnet%3A%3AOpts%3A%3ACli)
+modules, for easy logging of normal [Expect](https://metacpan.org/pod/Expect) module activity, with extra
+options for logging, debugging, raw pty, and session tty rows and columns.
+
+However, you still have to handle all the expect session details, including
+send and expect calls for logging in, detecting of command prompts, capturing
+output, etc. It's easier to use the [Mnet::Expect::Cli](https://metacpan.org/pod/Mnet%3A%3AExpect%3A%3ACli) module which handles
+all of this, if you can.
+
+## Why should I use the Mnet::Expect::Cli module?
+
+The [Mnet::Expect::Cli](https://metacpan.org/pod/Mnet%3A%3AExpect%3A%3ACli) module makes it easy to login and obtain outputs from
+command line interfaces, like ssh. This module builds on the [Mnet::Expect](https://metacpan.org/pod/Mnet%3A%3AExpect)
+module mentioned above, adding features to handle a variety of typical username
+and password prompts, command prompts, pagination prompts on long outputs, and
+caching of session command output.
+
+This module also works with the [Mnet::Test](https://metacpan.org/pod/Mnet%3A%3ATest) module, allowing expect session
+activity to be recorded and replayed while offline. This can be of tremendous
+value, both during development, and for sustainability.
+
+Refer also the the [Mnet::Expect::Cli::Ios](https://metacpan.org/pod/Mnet%3A%3AExpect%3A%3ACli%3A%3AIos) module mentioned below, which has
+a couple of features relevant when working with cisco ios and other similar
+devices.
+
+## Why should I use the Mnet::Expect::Cli::Ios module?
+
+The [Mnet::Expect::Cli::Ios](https://metacpan.org/pod/Mnet%3A%3AExpect%3A%3ACli%3A%3AIos) builds on the [Mnet::Expect::Cli](https://metacpan.org/pod/Mnet%3A%3AExpect%3A%3ACli) module
+mentioned above, also handling enable mode authentication, the prompt changes
+going from user to enable mode, and the prompt changes in configuration modes.
 
 # AUTHOR
 

@@ -146,8 +146,9 @@ a list of devices, using command line arguments and a device list file.
 
 =item *
 
-L<Mnet::Log> can facilitate easy log, debug, alert and error output from
-automation scripts, outputs can be redirected to per-device files.
+L<Mnet::Log> and L<Mnet::Tee> modules facilitate easy log, debug, alert and
+error output from automation scripts, along with redirection to per-device
+output files.
 
 =item *
 
