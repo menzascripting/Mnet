@@ -274,7 +274,7 @@ at <mmenza@cpan.org> with any comments or questions.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2006, 2013-2022 Michael J. Menza Jr.
+Copyright 2006 Michael J. Menza Jr.
 
 L<Mnet> is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
