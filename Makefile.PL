@@ -60,6 +60,7 @@ if (-f "README.md") {
 
 # create make file
 #   metacpan will use cpan v2 spec meta_merge github links
+#   update Mnet.pm if minimum perl version changes
 WriteMakefile(
     ABSTRACT_FROM       => 'lib/Mnet.pm',
     AUTHOR              => 'Mike Menza <mmenza@cpan.org>',
@@ -74,7 +75,7 @@ WriteMakefile(
             },
         },
     },
-    MIN_PERL_VERSION    => '5.10.0',
+    MIN_PERL_VERSION    => '5.12.0',
     NAME                => 'Mnet',
     PREREQ_PM           => {
         'Expect'     => 0,
