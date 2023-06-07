@@ -92,7 +92,8 @@ or undefined.
     my ($ipv4, $ipv6) = Mnet::IP::parse($address);
 
     # return binary output for ipv4 addresses
-    $binary = unpack("B*", Socket::inet_pton(AF_INET, "$ipv4")) if $ipv4;
+    #   inet_pton failed on linux 5.12 and 5.14 tests, returning ipv6 binary
+    $binary = unpack("B*", Socket::inet_aton("$ipv4")) if $ipv4;
 
     # return binary output for ipv6 addresses
     $binary = unpack("B*", Socket::inet_pton(AF_INET6, "$ipv6")) if $ipv6;
