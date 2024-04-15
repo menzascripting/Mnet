@@ -234,7 +234,7 @@ users, such as in the example below:
     perl -- sample.pl "$@"
 
 The L<Mnet::Opts::Cli> module define function has a redact property that should
-be set for password options, the input value for options with redact set are
+be set for password options. The input value for options with redact set are
 hidden in L<Mnet::Log> output.
 
 Also note that the L<Mnet::Expect> module log_expect method is used by the
@@ -246,8 +246,8 @@ L<Mnet::Expect> module, may need to do the same.
 =head2 Why should I use the Mnet::Expect module?
 
 The L<Mnet::Expect> module works with the L<Mnet::Log> and L<Mnet::Opts::Cli>
-modules, for easy logging of normal L<Expect> module activity, with extra
-options for logging, debugging, raw pty, and session tty rows and columns.
+modules, for easy logging of normal L<Expect> module activity, with options
+to control logging, debugging, raw pty, and session tty rows and columns.
 
 However, you still have to handle all the expect session details, including
 send and expect calls for logging in, detection of command prompts, capturing
