@@ -162,8 +162,8 @@ output files.
 =item *
 
 L<Mnet::Opts::Cli> module for config settings via command line, environment
-variable, and/or batch scripts, with help, tips, and password redaction.
-device list files.
+variable, and/or batch device list files, with help, tips, and password
+redaction.
 
 =item *
 
@@ -186,7 +186,7 @@ The latest release can be installed from CPAN
 
     cpan install Mnet
 
-Or download and install from L<https://github.com/menzascripting/Mnet>
+Or downloaded and installed from L<https://github.com/menzascripting/Mnet>
 
     tar -xzf Mnet-X.y.tar.gz
     cd Mnet-X.y
@@ -210,9 +210,10 @@ troubleshoot execution.
 
 =head2 What's the easiest way to get more log output?
 
-Use both the L<Mnet::Log> and L<Mnet::Opts::Set::Debug> modules in your script
-for more output, mostly from other Mnet modules unless you add L<Mnet::Log>
-calls, which are a compatible subset of log4perl calls, to your script.
+Add 'use' commands for both L<Mnet::Log> and L<Mnet::Opts::Set::Debug> to the
+beginning of your script for more output, mostly from other Mnet modules unless
+you add L<Mnet::Log> calls, which are a compatible subset of log4perl calls,
+to your script.
 
 =head2 How should passwords be secured?
 
@@ -227,15 +228,14 @@ usernames and passwords, this secure shell script accessible only to authorized
 users, such as in the example below:
 
     #!/bin/sh
-    #   sample.sh script, chmod 700 to restrict access to current user
+    #   sample.sh script, chmod 700 to restrict access to owner user
     #   works with Mnet::Opts calls in above SYNOPISIS sample.pl script
-    #   "$@" passes throuh all command line options, modify as needed
+    #   "$@" passes through all command line options, modify as needed
     export Mnet='--username <user> --password <secret>'
     perl -- sample.pl "$@"
 
 The L<Mnet::Opts::Cli> module define function has a redact property that should
-be set for password options. The input value for options with redact set are
-hidden in L<Mnet::Log> output.
+be set for password options that should be hidden in L<Mnet::Log> output.
 
 Also note that the L<Mnet::Expect> module log_expect method is used by the
 L<Mnet::Expect::Cli> modules to temporarily disable expect session logging
