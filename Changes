@@ -1,4 +1,4 @@
-v5.25   ????-??-??
+v5.26   ????-??-??
 
   - delete env var used with Mnet::Opts::Cli after parsing, for security
   - fixed Mnet::Version getcwd redefined warning
